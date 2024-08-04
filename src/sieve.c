@@ -28,7 +28,7 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #include "compatibility.h"
 #include "gpusieve.h"
 
-void printArray(const char * Name, const unsigned int * Data, const unsigned int len, unsigned int hex);
+// void printArray(const char * Name, const unsigned int * Data, const unsigned int len, unsigned int hex);
 
 /* yeah, I like global variables :) */
 static unsigned int *sieve, *sieve_base, *primes;

@@ -1,5 +1,5 @@
 version 0.15 (...)
-- recognition of more, newer GPUs
+- more GPU models are now detected
 - some support for Intel HD Graphics
 - mfakto now compiles and runs on macOS
 - updated Windows build instructions and fixed some errors
@@ -11,7 +11,7 @@ version 0.15 (...)
 - bug fix: kernel compilation did not work correctly if a device number
   greater than 1 was specified via the -d option
 - bug fix: verbosity level was not passed to valid_assignment()
-- bug fix: the '-d g' option used an invalid device number
+- bug fix: the '-d g' option was hard-coded to use an invalid device number
 - bug fix: the DETAILED_INFO and CHECKS_MODBASECASE debug options no longer
   cause compilation to fail
 - bug fix: the line "Overflow!" was printed ad infinitum when the DETAILED_INFO
