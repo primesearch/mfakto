@@ -1,16 +1,21 @@
 version 0.15 (...)
 - recognition of more, newer GPUs
-- fixed issue: kernel compilation does not work correctly if a device number
-  greater than 1 is specified
-- fixed an issue where verbosity was not passed to valid_assignment()
-- removed dependency on AMD APP SDK as it has been discontinued
-- updated Windows build instructions and fixed some errors
+- some support for Intel HD Graphics
 - mfakto now compiles and runs on macOS
-- fixed Linux compilation issues
-- some compatibility with Intel HD Graphics
-- menu / keypressed evaluation to dynamically adjust settings like
+- updated Windows build instructions and fixed some errors
+- fixed some Linux compilation issues
+- removed dependency on AMD APP SDK as it has been discontinued
+- menu / key-press evaluation to dynamically adjust settings like
   SievePrimes, SieveSize, SieveProcessSize (and others)
-- bugfix: SieveCPUMask on Linux had "random" results.
+- bug fix: SieveCPUMask on Linux had "random" results
+- bug fix: kernel compilation did not work correctly if a device number
+  greater than 1 was specified via the -d option
+- bug fix: verbosity level was not passed to valid_assignment()
+- bug fix: the '-d g' option used an invalid device number
+- bug fix: the DETAILED_INFO and CHECKS_MODBASECASE debug options no longer
+  cause compilation to fail
+- bug fix: the line "Overflow!" was printed ad infinitum when the DETAILED_INFO
+  debug option was enabled
 
 version 0.14 (2014-04-17)
 - --perftest enhancements including GPU sieve evaluation (for optimizing GPUSievePrimes etc.)

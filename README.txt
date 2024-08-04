@@ -51,7 +51,7 @@ Primality tests are computationally intensive, but we can save time by finding
 small factors. GPUs are very efficient at this task due to their parallel
 nature. Only one factor is needed to prove a number composite.
 
-Using a modified Sieve of Eratosthenes, mfakto generates a list of possible
+mfakto uses a modified Sieve of Eratosthenes to generate a list of possible
 factors for a given Mersenne number. It then uses modular exponentiation to
 test these factors. Although this step is only done on the GPU in practice,
 mfakto can perform both steps on either the CPU or GPU. You can find more
@@ -102,24 +102,37 @@ Requires:
 Steps:
 - download and install the GPUOpen OpenCL SDK from GitHub:
   https://github.com/GPUOpen-LibrariesAndSDKs/OCL-SDK/releases
+- Ensure you have an environment variable named OCL_ROOT that contains the path
+  to the SDK directory. You should not have to make changes as the installer
+  does this automatically.
 - open mfaktoVS12.sln in Visual Studio. You can use any recent version as
   Visual Studio will automatically update your project settings. If the option
   does not appear, right-click the solution and select "Retarget solution" from
   the menu.
 - open the project properties and select the configuration and platform
-- go to C/C++ > General > Additional Include Directories and verify that it
-  contains the path to the OpenCL headers:
+- go to C/C++ > General > Additional Include Directories and ensure it contains
+  the path to the OpenCL headers:
 
       $(OCL_ROOT)\include
 
-- now go to Linker > General > Additional Library Directories and verify that
-  it contains the correct library path. You may need to restart your computer
-  for Visual Studio to recognize the OCL_ROOT system variable.
+- now go to Linker > General > Additional Library Directories and ensure it
+  contains the correct paths:
 
       32 bits: $(OCL_ROOT)\lib\x86
       64 bits: $(OCL_ROOT)\lib\x86_64
 
 - select Build > Build Solution to compile mfakto
+
+Additional notes:
+- As an alternative, you can use the OpenCL SDK from the Khronos Group instead:
+  https://github.com/KhronosGroup/OpenCL-SDK/releases
+- However, be aware you will need to manually set the OCL_ROOT environment
+  variable as this SDK does not come with an installer.
+- It is also important to note this SDK only contains a single .lib file in
+  each package. You will need to remove "x86" and "x86_64" from the paths in
+  Configuration Properties > Linker > General > Additional Library Directories.
+- You may have to relaunch Visual Studio before it recognizes changes to
+  environment variables.
 
 ########################
 # 1.2.2 Windows: MinGW #
@@ -139,12 +152,7 @@ Initial steps:
 - verify that the AMD_APP_DIR variable in the makefile points to the SDK
   directory (see note)
 
-MinGW can be used with or without MSYS to compile mfakto. In the latter case:
-- navigate to the mfakto folder
-- cd src
-- mingw32-make
-
-Otherwise:
+MinGW can be optionally used with MSYS2 to compile mfakto:
 - install MSYS2 using the instructions at the home page: https://www.msys2.org
 - launch the MSYS2 shell and install the required packages:
 
@@ -154,14 +162,18 @@ Otherwise:
 - cd src
 - make (cross your fingers)
 
-You may see some warnings, but they are safe to ignore.
+Otherwise:
+- navigate to the mfakto folder
+- cd src
+- mingw32-make
 
 Additional notes:
-- make does not support spaces in file names. If your OpenCL SDK directory
+- You may see some warnings, but they are safe to ignore.
+- make does not support spaces in file names. If the path to the OpenCL SDK
   contains spaces, then you will need to either create a symbolic link or copy
   the files to another folder.
-- mfakto may not compile correctly with Win-builds. It is recommended to use
-  the native Windows package instead:
+- mfakto may not compile with Win-builds. It is recommended to use the native
+  Windows package instead:
   http://mingw-w64.org/doku.php/download/mingw-builds
 - To compile mfakto for both 32 and 64 bits, you will need to install MinGW-w64
   for both the i686 and x86_64 architectures.
@@ -229,10 +241,10 @@ AMD:
 - not supported: FireStream 9170 and Radeon HD 2000 / 3000 series (as kernel
   compilation fails)
 
-Other:
+Other devices:
 - Intel HD Graphics 4000 and later. Currently not supported on macOS.
-- OpenCL-enabled CPUs via the '-d c' option
-- not currently supported: Nvidia devices
+- OpenCL-enabled CPUs via the '-d c' option. Currently fails
+- Nvidia devices. Supported but may fail on some hardware
 
 
 * without atomics, mfakto may not correctly process multiple factors found in
