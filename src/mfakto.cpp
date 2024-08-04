@@ -2514,7 +2514,10 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
   int status, wait = 0;
   struct timeval timer, timer2;
   cl_ulong twait=0;
-  cl_uint cwait=0, i;
+#ifdef DEBUG_STREAM_SCHEDULE
+  cl_uint cwait=0;
+#endif
+  cl_uint i;
 // for TF_72BIT
   int72  k_base = {0};
   int144 b_preinit = {0};
@@ -3043,8 +3046,9 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
 #else
       if (running > 1) twait += timer_diff(&timer2); // see above. Note this would not work for num_streams=1, and not reliably for num_streams=2
 #endif
-
+#ifdef DEBUG_STREAM_SCHEDULE
       cwait++;
+#endif
       // technically the stream we've waited for is finished, but
       // leave the stream in status RUNNING to let the case-loop above check for errors and do cleanup
     }
