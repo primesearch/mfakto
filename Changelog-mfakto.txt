@@ -16,6 +16,8 @@ version 0.15 (...)
   cause compilation to fail
 - bug fix: the line "Overflow!" was printed ad infinitum when the DETAILED_INFO
   debug option was enabled
+- bug fix: the number of threads per grid could be set to zero when less than
+  the vector size * maximum threads per block
 
 version 0.14 (2014-04-17)
 - --perftest enhancements including GPU sieve evaluation (for optimizing GPUSievePrimes etc.)
