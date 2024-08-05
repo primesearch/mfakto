@@ -173,8 +173,7 @@ Additional notes:
   contains spaces, then you will need to either create a symbolic link or copy
   the files to another folder.
 - mfakto may not compile with Win-builds. It is recommended to use the native
-  Windows package instead:
-  http://mingw-w64.org/doku.php/download/mingw-builds
+  Windows package instead: https://sourceforge.net/projects/mingw-w64/files
 - To compile mfakto for both 32 and 64 bits, you will need to install MinGW-w64
   for both the i686 and x86_64 architectures.
 - mfakto may give an "entry point not found" error on startup. Running make
