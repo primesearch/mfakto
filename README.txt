@@ -125,8 +125,7 @@ Additional notes:
   https://github.com/KhronosGroup/OpenCL-SDK/releases
 - Please note the AMD installer automatically sets the OCL_ROOT environment
   variable. Developers using a different SDK will have to manually configure
-  the variable in the system settings, and the library and include paths in the
-  project properties.
+  the library and include paths in the project properties.
 - You may have to relaunch Visual Studio before it recognizes changes to
   environment variables.
 
