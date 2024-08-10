@@ -97,14 +97,11 @@ Steps:
 
 Requires:
 - Microsoft Visual Studio
-- GPUOpen OpenCL SDK
+- an OpenCL SDK
 
 Steps:
-- download and install the GPUOpen OpenCL SDK from GitHub:
+- download and install the OpenCL SDK from AMD:
   https://github.com/GPUOpen-LibrariesAndSDKs/OCL-SDK/releases
-- Ensure you have an environment variable named OCL_ROOT that contains the path
-  to the SDK directory. You should not have to make changes as the installer
-  does this automatically.
 - open mfaktoVS12.sln in Visual Studio. You can use any recent version as
   Visual Studio will automatically update your project settings. If the option
   does not appear, right-click the solution and select "Retarget solution" from
@@ -126,11 +123,10 @@ Steps:
 Additional notes:
 - As an alternative, you can use the OpenCL SDK from the Khronos Group instead:
   https://github.com/KhronosGroup/OpenCL-SDK/releases
-- However, be aware you will need to manually set the OCL_ROOT environment
-  variable as this SDK does not come with an installer.
-- It is also important to note this SDK only contains a single .lib file in
-  each package. You will need to remove "x86" and "x86_64" from the paths in
-  Configuration Properties > Linker > General > Additional Library Directories.
+- Please note the AMD installer automatically sets the OCL_ROOT environment
+  variable. Developers using a different SDK will have to manually configure
+  the variable in the system settings, and the library and include paths in the
+  project properties.
 - You may have to relaunch Visual Studio before it recognizes changes to
   environment variables.
 
@@ -140,13 +136,13 @@ Additional notes:
 
 Requires:
 - MinGW (64-bit)
-- GPUOpen OpenCL SDK
+- an OpenCL SDK
 - optional: MSYS2
 
 Initial steps:
 - download and install a 64-bit MinGW compiler. Our recommendation is to use
   MinGW-w64 as it is actively maintained: http://mingw-w64.org
-- download and install the GPUOpen OpenCL SDK from GitHub:
+- download and install the OpenCL SDK from AMD:
   https://github.com/GPUOpen-LibrariesAndSDKs/OCL-SDK/releases
 - add the "bin" folder in the MinGW directory to your system Path variable
 - verify that the AMD_APP_DIR variable in the makefile points to the SDK
