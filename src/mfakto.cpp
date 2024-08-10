@@ -3121,9 +3121,11 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
 #endif
 
   mystuff->stats.grid_count = count;
-  mystuff->stats.class_time = timer_diff(&timer)/1000;
+  mystuff->stats.class_time = timer_diff(&timer) / 1000;
+  mystuff->stats.bit_level_time += timer_diff(&timer) / 1000;
 /* prevent division by zero if timer resolution is too low */
   if(mystuff->stats.class_time == 0)mystuff->stats.class_time = 1;
+  if(mystuff->stats.bit_level_time == 0)mystuff->stats.bit_level_time = 1;
   mystuff->stats.cpu_wait_time = twait;
 
   if(mystuff->stats.grid_count > 2 * mystuff->num_streams)mystuff->stats.cpu_wait = (float)twait / ((float)mystuff->stats.class_time * 10);
