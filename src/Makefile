@@ -21,8 +21,7 @@
 # Example: "make bitness=32 static=yes" to compile for 32 bits and link
 #          statically
 
-# set x86_64 (64-bit) as default
-ARCH := x86_64
+ARCH := $(shell uname -m)
 BITS := -m64
 
 # check whether to build 32-bit version

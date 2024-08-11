@@ -26,7 +26,7 @@
 #
 # export SDKROOT=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
 
-ARCH = x86_64
+ARCH = $(shell uname -m)
 
 # compiler settings for C and C++ files
 CC = gcc
