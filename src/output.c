@@ -198,7 +198,7 @@ void print_timestamp(FILE *outfile)
 
   if (previous_time + 5 < now) // have at least 5 seconds between successive time stamps in the results file
   {
-    ptr = asctime(&now);
+    ptr = asctime(gmtime(&now));
     ptr[24] = '\0'; // cut off the newline
     fprintf(outfile, "[%s]\n", ptr);
     previous_time = now;
@@ -505,8 +505,8 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
       mystuff->exponent, mystuff->bit_min, mystuff->bit_max_stage,
       MFAKTO_VERSION, mystuff->stats.kernelname);
   }
-  sprintf(jsonstring, "{\"exponent\":%u, \"worktype\":\"TF\", \"status\":\"%s\", \"bitlo\":%2d, \"bithi\":%2d, \"rangecomplete\":%s%s, \"program\":{\"name\":\"mfaktc\", \"version\":\"%s\", \"subversion\":\"%s\"}, \"timestamp\":\"%s\"%s%s%s%s}",
-      mystuff->exponent, factorsfound > 0 ? "F" : "NF", mystuff->bit_min, mystuff->bit_max_stage, partialresult ? "false" : "true", factorjson, MFAKTO_VERSION, mystuff->stats.kernelname, timestamp, userjson, computerjson, aidjson, osjson);
+  sprintf(jsonstring, "{\"exponent\":%u, \"worktype\":\"TF\", \"status\":\"%s\", \"bitlo\":%2d, \"bithi\":%2d, \"rangecomplete\":%s%s, \"program\":{\"name\":\"mfakto\", \"version\":\"%s\", \"subversion\":\"%s\"}, \"timestamp\":\"%s\"%s%s%s%s}",
+      mystuff->exponent, factorsfound > 0 ? "F" : "NF", mystuff->bit_min, mystuff->bit_max_stage, partialresult ? "false" : "true", factorjson, SHORT_MFAKTO_VERSION, mystuff->stats.kernelname, timestamp, userjson, computerjson, aidjson, osjson);
 
   if(mystuff->mode != MODE_SELFTEST_SHORT)
   {
@@ -546,8 +546,8 @@ void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bi
   {
     if(mystuff->mode != MODE_SELFTEST_SHORT)
     {
-      if(mystuff->printmode == 1 && factor_number == 0)printf("\n");
-      printf("M%u has a factor: %s (%f bits, %f GHz-d)\n", mystuff->exponent, factor, bits, mystuff->stats.ghzdays);
+      if(mystuff->printmode == 1 && factor_number == 0)logprintf(mystuff, "\n");
+      logprintf(mystuff, "M%u has a factor: %s (%f bits, %f GHz-d)\n", mystuff->exponent, factor, bits, mystuff->stats.ghzdays);
     }
     if(mystuff->mode == MODE_NORMAL)
     {

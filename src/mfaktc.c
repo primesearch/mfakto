@@ -582,6 +582,7 @@ other return value
 
   mystuff->stats.class_counter = 0;
   mystuff->stats.bit_level_time = 0;
+  mystuff->factors_string[0] = 0;
 
   k_min=calculate_k(mystuff->exponent,mystuff->bit_min);
   k_max=calculate_k(mystuff->exponent,mystuff->bit_max_stage);
