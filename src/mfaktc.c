@@ -738,19 +738,6 @@ other return value
 
           if (mystuff->checkpoints > 0)
           {
-            if (numfactors > 0)
-            {
-              char factorstring[50];
-              int96 factor;
-              for (i = 0; (i < numfactors) && (i < 10); i++)
-              {
-                factor.d2 = mystuff->h_RES[i * 3 + 1];
-                factor.d1 = mystuff->h_RES[i * 3 + 2];
-                factor.d0 = mystuff->h_RES[i * 3 + 3];
-                print_dez96(factor, factorstring);
-                sprintf(mystuff->factors_string, mystuff->factors_string[0] ? "%s,\"%s\"" : "%s\"%s\"", mystuff->factors_string, factorstring);
-              }
-            }
             if ( ((mystuff->checkpoints > 1) && (--do_checkpoint == 0)) ||
                  ((mystuff->checkpoints == 1) && (now - time_last_checkpoint > (time_t) mystuff->checkpointdelay)) ||
                    mystuff->quit )
