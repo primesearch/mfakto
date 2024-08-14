@@ -136,6 +136,7 @@ int init_CLstreams(int gs_reinit_only)
         printf("ERROR: malloc(h_ktab[%d]) failed\n", i);
         return 1;
       }
+      memset(mystuff.h_ktab, 0, sizeof(mystuff.h_ktab));
       mystuff.d_ktab[i] = clCreateBuffer(context,
                         CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                         mystuff.threads_per_grid * sizeof(cl_uint),
@@ -152,6 +153,7 @@ int init_CLstreams(int gs_reinit_only)
       printf("ERROR: malloc(h_RES) failed\n");
       return 1;
     }
+    memset(mystuff.h_RES, 0, sizeof(mystuff.h_RES));
     mystuff.d_RES = clCreateBuffer(context,
                       CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                       32 * sizeof(cl_uint),
@@ -168,6 +170,7 @@ int init_CLstreams(int gs_reinit_only)
       printf("ERROR: malloc(h_modbasecase_debug) failed\n");
       return 1;
     }
+    memset(mystuff.h_modbasecase_debug, 0, sizeof(mystuff.h_modbasecase_debug));
     mystuff.d_modbasecase_debug = clCreateBuffer(context,
                       CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                       32 * sizeof(cl_uint),
