@@ -136,7 +136,7 @@ int init_CLstreams(int gs_reinit_only)
         printf("ERROR: malloc(h_ktab[%d]) failed\n", i);
         return 1;
       }
-      memset(mystuff.h_ktab, 0, sizeof(mystuff.h_ktab));
+      memset(mystuff.h_ktab[i], 0, sizeof(mystuff.h_ktab[i]));
       mystuff.d_ktab[i] = clCreateBuffer(context,
                         CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                         mystuff.threads_per_grid * sizeof(cl_uint),
