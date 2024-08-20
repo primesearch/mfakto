@@ -36,7 +36,7 @@ extern kernel_info_t   kernel_info[];
 extern GPU_type        gpu_types[];
 static int inifile_unavailable = 0;
 
-static int my_read_int(char *inifile, char *name, int *value)
+int my_read_int(char *inifile, char *name, int *value)
 {
   FILE *in;
   char buf[100];
@@ -100,7 +100,7 @@ static int my_read_ulong(char *inifile, char *name, unsigned long long int *valu
   return 1;
 }
 
-static int my_read_string(char *inifile, char *name, char *string, unsigned int len)
+int my_read_string(char *inifile, char *name, char *string, unsigned int len)
 {
   FILE *in;
   char buf[512];
@@ -651,6 +651,34 @@ int read_config(mystuff_t *mystuff)
     else      logprintf(mystuff, "  PrintMode                 compact\n");
   }
   mystuff->printmode = i;
+
+  /*****************************************************************************/
+
+
+  if (my_read_int(mystuff->inifile, "Logging", &i))
+  {
+      logprintf(mystuff, "WARNING: Cannot read Logging from INI file, set to 0 by default\n");
+      i = 0;
+  }
+  else if (i != 0 && i != 1)
+  {
+      logprintf(mystuff, "WARNING: Logging must be 0 or 1, set to 0 by default\n");
+      i = 0;
+  }
+  if (mystuff->verbosity >= 1)
+  {
+      if (i == 0)logprintf(mystuff, "  Logging                   disabled\n");
+      else      logprintf(mystuff, "  Logging                   enabled\n");
+  }
+  mystuff->logging = i;
+  if (mystuff->logging == 1 && mystuff->logfileptr == NULL)
+  {
+      mystuff->logfileptr = fopen(mystuff->logfile, "a");
+      if (mystuff->logfileptr == NULL)
+      {
+          logprintf(mystuff, "WARNING: Cannot open %s for appending, error: %d", mystuff->logfile, errno);
+      }
+  }
 
 /*****************************************************************************/
 

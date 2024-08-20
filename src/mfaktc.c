@@ -1003,7 +1003,7 @@ RET_ERROR we might have a serios problem
     if (mystuff->quit) break;
   }
 
-  logprintf(mystuff, "                                                          \n");
+  logprintf(mystuff, "\n");
   logprintf(mystuff, "Self-test statistics\n");
   logprintf(mystuff, "  number of tests           %d\n", num_selftests);
   logprintf(mystuff, "  successful tests          %d\n", st_success);
@@ -1048,6 +1048,7 @@ int main(int argc, char **argv)
   mystuff.bit_max_assignment = -1;
   mystuff.bit_max_stage = -1;
   mystuff.logging = -1;
+  mystuff.logfileptr = NULL;
   mystuff.gpu_sieving = 0;
   /* GPU sieve size in bits. Default is 64 Mib. */
   mystuff.gpu_sieve_size = GPU_SIEVE_SIZE_DEFAULT * 1024 * 1024;
@@ -1055,6 +1056,18 @@ int main(int argc, char **argv)
   mystuff.gpu_sieve_processing_size = GPU_SIEVE_PROCESS_SIZE_DEFAULT * 1024;
   strcpy(mystuff.inifile, "mfakto.ini");
   mystuff.force_rebuild = 0;
+
+
+  // need to see if we should log all the output before all of the other preamble
+  my_read_int(mystuff.inifile, "Logging", &(mystuff.logging));
+  if (mystuff.logging == 1 && mystuff.logfileptr == NULL)
+  {
+      if (my_read_string(mystuff.inifile, "LogFile", mystuff.logfile, 50))
+      {
+          sprintf(mystuff.logfile, "mfakto.log");
+      }
+      mystuff.logfileptr = fopen(mystuff.logfile, "a");
+  }
 
   logprintf(&mystuff, "%s (%d-bit build)\n\n", MFAKTO_VERSION, (int)(sizeof(void*)*8));
 
@@ -1239,25 +1252,25 @@ int main(int argc, char **argv)
   if(mystuff.verbosity >= 1)
   {
 #ifdef USE_DEVICE_PRINTF
-    logprintf(mystuff, "  USE_DEVICE_PRINTF         enabled (DEBUG option)\n");
+    logprintf(&mystuff, "  USE_DEVICE_PRINTF         enabled (DEBUG option)\n");
 #endif
 #ifdef CHECKS_MODBASECASE
-    logprintf(mystuff, "  CHECKS_MODBASECASE        enabled (DEBUG option)\n");
+    logprintf(&mystuff, "  CHECKS_MODBASECASE        enabled (DEBUG option)\n");
 #endif
 #ifdef DEBUG_STREAM_SCHEDULE
-    logprintf(mystuff, "  DEBUG_STREAM_SCHEDULE     enabled (DEBUG option)\n");
+    logprintf(&mystuff, "  DEBUG_STREAM_SCHEDULE     enabled (DEBUG option)\n");
 #endif
 #ifdef DEBUG_STREAM_SCHEDULE_CHECK
-    logprintf(mystuff, "  DEBUG_STREAM_SCHEDULE_CHECK\n                            enabled (DEBUG option)\n");
+    logprintf(&mystuff, "  DEBUG_STREAM_SCHEDULE_CHECK\n                            enabled (DEBUG option)\n");
 #endif
 #ifdef DEBUG_FACTOR_FIRST
-    logprintf(mystuff, "  DEBUG_FACTOR_FIRST        enabled (DEBUG option)\n");
+    logprintf(&mystuff, "  DEBUG_FACTOR_FIRST        enabled (DEBUG option)\n");
 #endif
 #ifdef RAW_GPU_BENCH
-    logprintf(mystuff, "  RAW_GPU_BENCH             enabled (DEBUG option)\n");
+    logprintf(&mystuff, "  RAW_GPU_BENCH             enabled (DEBUG option)\n");
 #endif
 #ifdef DETAILED_INFO
-    logprintf(mystuff, "  DETAILED_INFO             enabled (DEBUG option)\n");
+    logprintf(&mystuff, "  DETAILED_INFO             enabled (DEBUG option)\n");
 #endif
 #ifdef CL_PERFORMANCE_INFO
     logprintf(mystuff, "  CL_PERFORMANCE_INFO       enabled (DEBUG option)\n");
