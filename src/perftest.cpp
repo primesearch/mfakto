@@ -1754,7 +1754,11 @@ void CL_test(cl_int devnumber)
 
     char program_options[150];
   // so far use the same vector size for all kernels ...
+#if defined __APPLE__
+  snprintf(program_options, sizeof(program_options), "-I. -DVECTOR_SIZE=%d", mystuff.vectorsize);
+#else
   sprintf(program_options, "-I. -DVECTOR_SIZE=%d", mystuff.vectorsize);
+#endif
 #ifdef CL_DEBUG
   strcat(program_options, " -g");
 #else

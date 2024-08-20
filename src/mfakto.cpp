@@ -787,7 +787,16 @@ int load_kernels(cl_int *devnumber)
   }
   else
   {
+#if defined __APPLE__
+    snprintf(
+      program_options,
+      sizeof(program_options),
+      "-I. -DVECTOR_SIZE=%d -D%s",
+      mystuff.vectorsize, gpu_types[mystuff.gpu_type].gpu_name
+    );
+#else
     sprintf(program_options, "-I. -DVECTOR_SIZE=%d -D%s", mystuff.vectorsize, gpu_types[mystuff.gpu_type].gpu_name);
+#endif
   #ifdef CL_DEBUG
     strcat(program_options, " -g");
   #else
@@ -1110,7 +1119,11 @@ int load_kernels(cl_int *devnumber)
         if(f.is_open())
         {
           char header[180];
+#if defined __APPLE__
+          snprintf(header, sizeof(header), "Compile options: %s\n", program_options);
+#else
           sprintf(header, "Compile options: %s\n", program_options);
+#endif
           f.write(header, strlen(header));
           f.write(binaries[active_device], binarySizes[active_device]);
           f.close();
@@ -2514,7 +2527,10 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
   int status, wait = 0;
   struct timeval timer, timer2;
   cl_ulong twait=0;
-  cl_uint cwait=0, i;
+#ifdef DEBUG_STREAM_SCHEDULE
+  cl_uint cwait = 0;
+#endif
+  cl_uint i;
 // for TF_72BIT
   int72  k_base = {0};
   int144 b_preinit = {0};
@@ -3043,8 +3059,9 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
 #else
       if (running > 1) twait += timer_diff(&timer2); // see above. Note this would not work for num_streams=1, and not reliably for num_streams=2
 #endif
-
+#ifdef DEBUG_STREAM_SCHEDULE
       cwait++;
+#endif
       // technically the stream we've waited for is finished, but
       // leave the stream in status RUNNING to let the case-loop above check for errors and do cleanup
     }
