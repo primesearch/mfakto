@@ -99,7 +99,7 @@ checkpoint_write() writes the checkpoint file.
 }
 
 
-int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cur_class, int *num_factors, char* factors_string, unsigned long long int *bit_level_time, int verbosity)
+int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cur_class, int* num_factors, char* factors_string, unsigned long long int* bit_level_time, int verbosity)
 /*
 checkpoint_read() reads the checkpoint file and compares values for exp,
 bit_min, bit_max, NUM_CLASSES read from file with current values.
