@@ -18,7 +18,12 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
+#ifdef _WIN32
 #include <string.h>
+#define strcasecmp _stricmp
+#else // assuming POSIX or BSD compliant system
+#include <strings.h>
+#endif
 #include <errno.h>
 #if defined BUILD_OPENCL
   #if defined __APPLE__
@@ -782,7 +787,7 @@ int read_config(mystuff_t *mystuff)
     mystuff->gpu_type = GPU_UNKNOWN;
     for (i=0; i < (int)GPU_UNKNOWN; i++)
     {
-      if (strcmp(tmp, gpu_types[i].gpu_name) == 0)
+      if (strcasecmp(tmp, gpu_types[i].gpu_name) == 0)
       {
         mystuff->gpu_type = gpu_types[i].gpu_type;
         break;
