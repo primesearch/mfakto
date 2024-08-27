@@ -228,7 +228,7 @@ typedef struct _stats_t
   cl_uint  class_number;              /* the number of the last processed class */
   cl_uint  grid_count;                /* number of grids processed in the last processed class */
   cl_ulong class_time;                /* time (in ms) needed to process the last processed class */
-  cl_ulong bit_level_time;            /* time (in ms) since the bitlevel was started */
+  unsigned long long bit_level_time;  /* time (in ms) since the bitlevel was started */
   cl_ulong cpu_wait_time;             /* time (ms) CPU was waiting for the GPU */
   float    cpu_wait;                  /* percentage CPU was waiting for the GPU */
   cl_uint  output_counter;            /* count how often the status line was written since last headline */

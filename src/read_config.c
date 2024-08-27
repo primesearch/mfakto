@@ -18,11 +18,9 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
-#ifdef _WIN32
 #include <string.h>
+#ifdef _WIN32
 #define strcasecmp _stricmp
-#else // assuming POSIX or BSD compliant system
-#include <strings.h>
 #endif
 #include <errno.h>
 #if defined BUILD_OPENCL
