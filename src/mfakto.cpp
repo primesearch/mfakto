@@ -327,6 +327,9 @@ int init_CL(int num_streams, cl_int *devnumber)
     else for(i=0; i < numplatforms; i++) // autoselect: search for AMD
     {
       char buf[128] = {0};
+      cl_uint device_count;
+      int is_amd;
+
       status = clGetPlatformInfo(platformlist[i], CL_PLATFORM_VENDOR,
                         sizeof(buf), buf, NULL);
       if(status != CL_SUCCESS)
@@ -334,10 +337,10 @@ int init_CL(int num_streams, cl_int *devnumber)
         std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetPlatformInfo(VENDOR)\n";
         return 1;
       }
-      platform = platformlist[i];  // use any platform, but ...
-      if(strcmp(buf, "Advanced Micro Devices, Inc.") == 0)
-      {
-        break;  // ... prefer AMD, otherwise use the last one
+      is_amd = strcmp(buf, "Advanced Micro Devices, Inc.") == 0;
+      status = clGetDeviceIDs(platformlist[i], devtype, 0, nullptr, &device_count);
+      if (status != CL_SUCCESS) {
+        device_count = 0;
       }
 #ifdef DETAILED_INFO
       std::cout << "OpenCL Platform " << (i+1) << "/" << numplatforms << ": " << buf;
@@ -349,8 +352,16 @@ int init_CL(int num_streams, cl_int *devnumber)
         std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetPlatformInfo(VERSION)\n";
         return 1;
       }
-      std::cout << ", Version: " << buf << std::endl;
+      std::cout << ", Version: " << buf << ", Devices: " << device_count << std::endl;
 #endif
+      if (device_count == 0) {
+        continue;
+      }
+      platform = platformlist[i];  // use any platform, but ...
+      if (is_amd)
+      {
+        break;  // ... prefer AMD, otherwise use the last one
+      }
     }
   }
 
