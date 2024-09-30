@@ -170,6 +170,24 @@ uint popcount(uint x)
 #define ATOMIC_INC(x) ((x)++)
 #endif
 
+// generic_bitalign() emulates amd_bitalign() using shifts.
+#ifdef cl_intel_subgroups
+// Workaround for Intel Compute Runtime (NEO) versions 23.22.26516.18 to
+// 24.45.31740.9: https://github.com/intel/intel-graphics-compiler/issues/358
+// Use 64-bit shifts. They are faster than 32-bit shifts on Intel, so it's not
+// needed to limit this workaround to specific versions.
+inline uint_v generic_bitalign(const uint_v high, const uint_v low, const int shift)
+{
+  return CONVERT_UINT_V(((CONVERT_ULONG_V(high) << 32) | CONVERT_ULONG_V(low)) >> shift);
+}
+#else
+// Use 32-bit shifts for other platforms.
+inline uint_v generic_bitalign(const uint_v high, const uint_v low, const int shift)
+{
+  return (high << (32 - shift)) | (low >> shift);
+}
+#endif
+
 #ifdef cl_amd_media_ops
 #pragma OPENCL EXTENSION cl_amd_media_ops : enable
 #else
@@ -180,7 +198,7 @@ uint popcount(uint x)
 //    Description
 //      dst.s0 =  (uint) (((((long)src0.s0) << 32) | (long)src1.s0) >> (src2.s0 & 31))
 //      similar operation applied to other components of the vectors.
-#define amd_bitalign(src0, src1, src2) (src0  << (32-src2)) | (src1 >> src2)
+#define amd_bitalign(src0, src1, src2) generic_bitalign(src0, src1, src2)
 #endif
 
 #ifdef cl_amd_media_ops2
