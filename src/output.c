@@ -24,11 +24,6 @@ along with mfaktc.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdarg.h>
 #include <stdbool.h>
 #include <string.h>
-#if defined __APPLE__
-  #include <OpenCL/cl.h>
-#else
-  #include <CL/cl.h>
-#endif
 #include "string.h"
 #include "params.h"
 #include "my_types.h"
