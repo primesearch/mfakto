@@ -149,12 +149,13 @@ typedef struct _int180_v
 #define CONVERT_DOUBLE_RTP_V convert_double
 #define CONVERT_UINT_V convert_uint
 #define CONVERT_ULONG_V convert_ulong
-// AS_UINT is applied only to logical results. For vector operations, these are 0 (false) or -1 (true)
-// For scalar operations, they result in 0 (false) or 1 (true) ==> to unify, negate here
-#define AS_INT_V(x) as_int((x)?-1:0)
-#define AS_LONG_V(x) as_long((x)?-1:0)
-#define AS_UINT_V(x) as_uint((x)?-1:0)
-#define AS_ULONG_V(x) as_ulong((x)?-1:0)
+
+// Convert comparison result to uint. To unify logic with vector operations,
+// true is (uint)(-1), false is (uint)0.
+inline uint _as_uint_v(bool cond) {
+  return (uint)(-cond);
+}
+
 // to unify printf's:
 #define V(x) x
 #else
@@ -213,26 +214,37 @@ typedef struct _int180_v
 #define CONVERT_DOUBLE_RTP_V CONC(convert_double,VECTOR_SIZE)
 #define CONVERT_UINT_V CONC(convert_uint,VECTOR_SIZE)
 #define CONVERT_ULONG_V CONC(convert_ulong,VECTOR_SIZE)
-#define AS_INT_V CONC(as_int,VECTOR_SIZE)
-#define AS_LONG_V CONC(as_long,VECTOR_SIZE)
-#define AS_UINT_V CONC(as_uint,VECTOR_SIZE)
-#define AS_ULONG_V CONC(as_ulong,VECTOR_SIZE)
+
+// Convert result of comparison to a vector of uint values.
+// True is (uint)(-1), false is (uint)0.
+inline uint_v _as_uint_v(int_v cond) {
+  return CONC(as_uint,VECTOR_SIZE)(cond);
+}
+
 // to unify printf's:
 #define V(x) x.s0
 #endif
 
+// AS_UINT_V should only be used on comparison results.
+// The result uses (uint)(-1) for true and (uint)0 for false.
+#define AS_UINT_V(cond) _as_uint_v((cond))
+
 // define to efficiently handle carry/borrow
 // ADD_COND returns val+1 if cond is true, otherwise val
 // SUB_COND returns val-1 if cond is true, otherwise val
-#if defined VLIW4 || defined VLIW5
+#if (VECTOR_SIZE == 1)
+// Scalar boolean, true is 1, false is 0
+#define ADD_COND(val, cond) ((val) + as_uint((cond)))
+#define SUB_COND(val, cond) ((val) - as_uint((cond)))
+#elif defined VLIW4 || defined VLIW5
 // VLIW4/5 native instructions already return -1 on vector "true": use it directly
-#define ADD_COND(val, cond) (val - AS_UINT_V(cond))
-#define SUB_COND(val, cond) (val + AS_UINT_V(cond))
+#define ADD_COND(val, cond) ((val) - AS_UINT_V((cond)))
+#define SUB_COND(val, cond) ((val) + AS_UINT_V((cond)))
 #else
 // GCN (and others) don't really know vectors and return 1 for "true" in their native instructions
 // use this define to allow the optimizer to circumvent the OpenCL convention to return -1
-#define ADD_COND(val, cond) (val + AS_UINT_V((cond) ? 1 : 0))
-#define SUB_COND(val, cond) (val - AS_UINT_V((cond) ? 1 : 0))
+#define ADD_COND(val, cond) ((val) + ((cond) ? 1U : 0U))
+#define SUB_COND(val, cond) ((val) - ((cond) ? 1U : 0U))
 #endif
 
 #define CONVERT_FLOAT convert_float
