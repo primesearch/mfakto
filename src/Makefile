@@ -71,7 +71,7 @@ OPTIMIZE_FLAG = -O3 -funroll-loops  -ffast-math -finline-functions -frerun-loop-
 # compiler settings for C and C++ files
 CC = gcc
 CPP = $(CC)
-CFLAGS = $(BITS) -Wall $(OPTIMIZE_FLAG) $(AMD_APP_INCLUDE) -DBUILD_OPENCL
+CFLAGS = $(BITS) -Wall $(OPTIMIZE_FLAG) $(AMD_APP_INCLUDE)
 CPPFLAGS =
 #CFLAGS_EXTRA_SIEVE = -funroll-all-loops
 #CFLAGS_EXTRA_SIEVE = -funroll-all-loops -funsafe-loop-optimizations -fira-region=all -fsched-spec-load -fsched-stalled-insns=10 -fsched-stalled-insns-dep=10 -floop-parallelize-all -fvariable-expansion-in-unroller -fno-align-labels

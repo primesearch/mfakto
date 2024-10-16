@@ -19,13 +19,6 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdio.h>
 #include <string.h>
-#if defined BUILD_OPENCL
-  #if defined __APPLE__
-    #include <OpenCL/cl.h>
-  #else
-    #include <CL/cl.h>
-  #endif
-#endif
 
 #include "params.h"
 #include "my_types.h"
