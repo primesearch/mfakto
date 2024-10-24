@@ -38,3 +38,6 @@ worktodo.txt
 
 # other
 .DS_Store
+*.log
+*.zip
+.vs/
