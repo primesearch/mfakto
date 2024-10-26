@@ -10,8 +10,7 @@ You can get support via the following means:
 
 - the official thread at the GIMPS forum:
   https://mersenneforum.org/showthread.php?t=15646
-- opening a ticket on GitHub: https://github.com/Bdot42/mfakto/issues
-- contacting Bertram Franz at bertramf@gmx.net
+- opening a ticket on GitHub: https://github.com/primesearch/mfakto/issues
 
 #################
 # mfakto README #
