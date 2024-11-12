@@ -60,6 +60,7 @@ GPU_type gpu_types[]={
   {GPU_GCN5,    64,  "GCN5"},
   {GPU_GCNF,    64,  "GCNF"},
   {GPU_RDNA,    64,  "RDNA"},
+  {GPU_RDNA3,   64,  "RDNA3"},
   {GPU_APU,     80,  "APU"},
   {GPU_CPU,      1,  "CPU"},
   {GPU_NVIDIA,   8,  "NVIDIA"},
