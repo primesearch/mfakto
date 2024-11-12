@@ -73,8 +73,13 @@ static int   current_drive = 0;
 int file_exists (char	*filename)
 {
 	int fd;
-  if (current_dir == NULL) {current_dir = getcwd(NULL,0); current_drive = getdrive();}
-  if (chdrive(current_drive) || chdir(current_dir)) fprintf(stderr, "\nWarning: Current Directory \"%s\" is not available.\n", current_dir);
+  if (current_dir == NULL) {
+      current_dir = getcwd(NULL, 0);
+      current_drive = getdrive();
+  }
+  if (chdrive(current_drive) || current_dir == NULL || chdir(current_dir)) {
+      fprintf(stderr, "\nWarning: Current directory \"%s\" is not available.\n", current_dir);
+  }
   fd = open(filename, O_RDONLY);
 //  printf ("file_exists(%s)\n", filename);
 	if (fd < 0) return 0;
@@ -102,8 +107,13 @@ FILE *fopen_and_lock(const char *path, const char *mode)
 
   sprintf(locked_files[num_locked_files].lock_filename, "%.250s.lck", path);
 
-  if (current_dir == NULL) {current_dir = getcwd(NULL,0); current_drive = getdrive();}
-  if (chdrive(current_drive) || chdir(current_dir)) fprintf(stderr, "\nWarning: Current Directory \"%s\" is not available.\n", current_dir);
+  if (current_dir == NULL) {
+      current_dir = getcwd(NULL, 0);
+      current_drive = getdrive();
+  }
+  if (chdrive(current_drive) || current_dir == NULL || chdir(current_dir)) {
+      fprintf(stderr, "\nWarning: Current directory \"%s\" is not available.\n", current_dir);
+  }
 //  printf("fopen_and_lock(%s)\n", path);
   for(i=0;;)
   {
@@ -153,8 +163,13 @@ int unlock_and_fclose(FILE *f)
 
   if (f == NULL) return -1;
 
-  if (current_dir == NULL) {current_dir = getcwd(NULL,0); current_drive = getdrive();}
-  if (chdrive(current_drive) || chdir(current_dir)) fprintf(stderr, "\nWarning: Current Directory \"%s\" is not available.\n", current_dir);
+  if (current_dir == NULL) {
+      current_dir = getcwd(NULL, 0);
+      current_drive = getdrive();
+  }
+  if (chdrive(current_drive) || current_dir == NULL || chdir(current_dir)) {
+      fprintf(stderr, "\nWarning: Current directory \"%s\" is not available.\n", current_dir);
+  }
 
   for (i=0; i<num_locked_files; i++)
   {
