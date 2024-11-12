@@ -138,13 +138,13 @@ version 0.10 (2011-12-19)
 - added ResultsFile parameter to inifile
 - added program support for GPU-sieving (siever kernel not yet functional!)
 
-version 0.09 (2011-10-01)
+version 0.9 (2011-10-01)
 - fixed bug in 72-bit kernel that might miss small factors (<48 bit)
   unfortunately, the fix slows this kernel by ~3-5%
 - added test for the above bug to the selftest
 - better calculation for SievePrimesAdjust
 
-version 0.08 (2011-09-13)
+version 0.8 (2011-09-13)
 - added --help and parameter checking
 - exclude single-vectored 72-bit-mul24-kernel (not working with AMD APP SDK 2.5)
 - removed THREADS_PER_BLOCK (no longer needed, will be selected automatically
@@ -155,7 +155,7 @@ version 0.08 (2011-09-13)
   have their top-speed with different kernels
 - tuned the settings for SievePrimesAdjust - should now be usable
 
-version 0.07 (2011-08-10)
+version 0.7 (2011-08-10)
 - vectorized barrett kernels
 - re-enabled the MODBASECASE checks
 - removed crash-workaround from barrett kernels
@@ -169,7 +169,7 @@ version 0.07 (2011-08-10)
 - added option for debuggable kernel code
 - fixed/optimized limits for preprocessing on CPU
 
-version 0.06 (2011-07-09)
+version 0.6 (2011-07-09)
 - ported barrett kernels for 79 and 92 bit factor sizes
 - added support for GPUs without atomics (HD4xxx)
 - dropped 2- and 16-wide vectors
@@ -178,7 +178,7 @@ version 0.06 (2011-07-09)
 - SievePrimes auto-adjust now working (still not optimal)
 - slightly faster sieve-initialization per class
 
-version 0.05 (2011-06-19)
+version 0.5 (2011-06-19)
 - fixed 72-bit subtraction (in various places) as per TheJudger's comment
   on www.mersenneforum.org - Thanks for the hint!
 - fixed boundaries for 95-bit kernel (-st failures)
@@ -191,7 +191,7 @@ version 0.05 (2011-06-19)
   params.h
 - added GPLv3 headers everywhere
 
-version 0.04 (2011-06-09)
+version 0.4 (2011-06-09)
 - first version to go out to some people
 - cleanup of
   - unused code
