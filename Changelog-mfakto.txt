@@ -35,8 +35,7 @@ version 0.14 (2014-04-17)
 - slight performance improvement for the montgomery kernels
 - improved English wording in program output, ini file etc. (thanks to kracker)
 - recognition of new GPUs (8xxx, R9, new APUs) (thanks to kracker)
-- added a warning when using VectorSize=1 (possible AMD driver issue, see
-  https://community.amd.com/thread/167571 for details)
+- added a warning when using VectorSize=1
 - fix for a small memory leak (~0.5kB per assignment)
 - compatible with windows 8.1
 
