@@ -1295,10 +1295,13 @@ int main(int argc, char **argv)
     // threads_per_grid is the number of FC's per kernel invocation. It must be divisible by the vectorsize
     // as only threads_per_grid / vectorsize threads will actually be started.
     cl_uint diff_threads = mystuff.threads_per_grid % (mystuff.vectorsize * deviceinfo.maxThreadsPerBlock);
-    // on some devices, such as certain Intel CPUs, this could be set to zero
-    // when less than the vector size * maximum threads per block
+    // on some devices, such as certain Intel CPUs, the number of threads per
+    // grid could be set to zero when less than vector size * maximum threads
+    // per block
     if (mystuff.threads_per_grid > diff_threads) {
       mystuff.threads_per_grid -= diff_threads;
+    } else {
+      logprintf(&mystuff, "Info: threads per grid was not adjusted\n");
     }
   }
   else
