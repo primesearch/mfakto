@@ -279,7 +279,10 @@ int gpusieve_init (mystuff_t *mystuff, cl_context context)
     {
       // need to enlarge the primes array
       mystuff->sieve_primes_upper_limit = mystuff->sieve_primes;
-      primes = (cl_uint *) realloc (primes, mystuff->sieve_primes_upper_limit * sizeof (cl_uint));
+      cl_uint* realloc_temp = (cl_uint*)realloc(primes, mystuff->sieve_primes_upper_limit * sizeof(cl_uint));
+      if (realloc_temp != NULL) {
+          primes = realloc_temp;
+      }
       if (primes == NULL)
       {
         printf ("error in realloc primes\n");
