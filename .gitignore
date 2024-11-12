@@ -10,7 +10,7 @@ mfakto
 *.elf
 *.exe
 
-# copied from source directory
+# automatically copied from source directory
 *.cl
 !src/*.cl
 *.h
@@ -24,20 +24,22 @@ mfakto
 *.opensdf
 *.vcxproj.user
 
-# Visual Studio build folders
+# device-specific Visual Studio folders
+.vs/
 ipch/
 Release/
 Debug/
 x64/
 
-# instance-specific files
+# device-specific files
 *.ckp
 *.ckp.bu
 results.txt
+results.json.txt
 worktodo.txt
+worktodo.add
 
 # other
 .DS_Store
 *.log
 *.zip
-.vs/
