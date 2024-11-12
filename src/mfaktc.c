@@ -560,7 +560,6 @@ other return value
 */
 {
   unsigned int cur_class, max_class, i = 0;
-  // unsigned int count = 0;
   unsigned long long int k_min, k_max, k_range, tmp;
   unsigned int f_hi, f_med, f_low;
   struct timeval timer;
