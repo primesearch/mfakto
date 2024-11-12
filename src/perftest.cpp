@@ -1354,7 +1354,7 @@ int perftest(int par, int devicenumber)
 
   init_perftest(devicenumber);
 
-  printf("\n\nPerftest\n\n");
+  printf("\n\nPerformance test\n\n");
 
   if (par == 0) par=10;
 
@@ -1390,7 +1390,7 @@ int perftest(int par, int devicenumber)
   // 5. TF kernels
   test_tf_kernels((cl_uint)par, devicenumber);
 
-  printf("\nPerftest Finished\n");
+  printf("\nPerformance test finished\n");
 
   return 0;
 }
