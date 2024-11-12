@@ -101,7 +101,7 @@ than an equal SIEVE_SIZE_LIMIT #define.
 *******************************************************************************
 ******************************************************************************/
 
-#define SHORT_MFAKTO_VERSION "0.16-beta.1" /* DO NOT CHANGE! */
+#define SHORT_MFAKTO_VERSION "0.16-beta.2" /* DO NOT CHANGE! */
 
 #ifdef _MSC_VER
   #define MFAKTO_VERSION "mfakto " SHORT_MFAKTO_VERSION "-Win" /* DO NOT CHANGE! */
