@@ -795,16 +795,12 @@ int load_kernels(cl_int *devnumber)
   }
   else
   {
-#if defined __APPLE__
     snprintf(
       program_options,
       sizeof(program_options),
       "-I. -DVECTOR_SIZE=%d -D%s",
       mystuff.vectorsize, gpu_types[mystuff.gpu_type].gpu_name
     );
-#else
-    sprintf(program_options, "-I. -DVECTOR_SIZE=%d -D%s", mystuff.vectorsize, gpu_types[mystuff.gpu_type].gpu_name);
-#endif
   #ifdef CL_DEBUG
     strcat(program_options, " -g");
   #else
@@ -1127,11 +1123,7 @@ int load_kernels(cl_int *devnumber)
         if(f.is_open())
         {
           char header[180];
-#if defined __APPLE__
           snprintf(header, sizeof(header), "Compile options: %s\n", program_options);
-#else
-          sprintf(header, "Compile options: %s\n", program_options);
-#endif
           f.write(header, strlen(header));
           f.write(binaries[active_device], binarySizes[active_device]);
           f.close();
