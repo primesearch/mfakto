@@ -308,7 +308,7 @@ typedef struct _mystuff_t
   FILE *logfileptr;
   char V5UserID[51];         /* primenet V5UserID and ComputerID */
   char ComputerID[51];       /* currently only used for screen/result output */
-  char assignment_key[100]; /* the assignment ID */
+  char assignment_key[MAX_LINE_LENGTH + 1]; /* the assignment ID */
   char factors_string[500];            /* store factors in global state */
   char CompileOptions[151];  /* additional compile options */
   char binfile[51];          /* compiled kernels file to use, empty if not desired */

@@ -224,3 +224,5 @@ The following lines define the min, default and max value.
 #define GPU_SIEVE_PROCESS_SIZE_DEFAULT      16 /* Default is processing 16K bits */
 #define GPU_SIEVE_PROCESS_SIZE_MAX          32 /* Upper limit is 64K, since we store k values as "short". Shared memory requirements limit usable values */
 
+/* For worktodo.txt files */
+#define MAX_LINE_LENGTH 100
