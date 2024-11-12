@@ -176,6 +176,7 @@ enum GPU_types
   GPU_GCN5,
   GPU_GCNF,  // R VII
   GPU_RDNA,
+  GPU_RDNA3,
   GPU_APU,
   GPU_CPU,
   GPU_NVIDIA,
