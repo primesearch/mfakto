@@ -3216,7 +3216,13 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
     mystuff->stats.ghzdays = mystuff->stats.ghzdays * (bits - floor(bits));
 
     print_factor(mystuff, i, string, bits);
-    sprintf(mystuff->factors_string, mystuff->factors_string[0] ? "%s,\"%s\"" : "%s\"%s\"", mystuff->factors_string, string);
+    snprintf(
+      mystuff->factors_string,
+      sizeof(mystuff->factors_string),
+      mystuff->factors_string[0] ? "%s,\"%s\"" : "%s\"%s\"",
+      mystuff->factors_string,
+      string
+    );
     prev_factor = factor;
   }
   if(factorsfound>=10)
