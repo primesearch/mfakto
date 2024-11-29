@@ -32,7 +32,6 @@ jobs:
         files: |
           mfakto-${{ github.ref_name }}-linux64.tar.bz2
 
-
   WindowsMSVC:
     name: Windows MSVC
     runs-on: windows-2022
@@ -51,14 +50,15 @@ jobs:
     - name: Build
       run: |
         msbuild mfaktoVS12.vcxproj /property:OCL_ROOT="$env:OCL_ROOT"
-    - name: Create additional release assets
-      run: |
-        Compress-Archive -DestinationPath mfakto-${{ github.ref_name }}-windows-msvc.zip -CompressionLevel Optimal -Path *.cl, Changelog-mfakto.txt, COPYING, datatypes.h, mfakto.exe, mfakto.ini, README-SpecialVersions.txt, README.txt, tf_debug.h, todo.txt
-    - name: Upload additional release assets
-      uses: softprops/action-gh-release@v2
-      with:
-        files: |
-          mfakto-${{ github.ref_name }}-windows-msvc.zip
+# Did not work on GitHub - needs Windows knowledge to fix it
+#    - name: Create additional release assets
+#      run: |
+#        Compress-Archive -DestinationPath mfakto-${{ github.ref_name }}-windows-msvc.zip -CompressionLevel Optimal -Path *.cl, Changelog-mfakto.txt, COPYING, datatypes.h, mfakto.exe, mfakto.ini, README-SpecialVersions.txt, README.txt, tf_debug.h, todo.txt
+#    - name: Upload additional release assets
+#      uses: softprops/action-gh-release@v2
+#      with:
+#        files: |
+#          mfakto-${{ github.ref_name }}-windows-msvc.zip
 
   WindowsMSYS2:
     name: Windows MSYS2
