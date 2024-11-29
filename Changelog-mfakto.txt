@@ -2,6 +2,8 @@ version 0.16
 - merge features from mfaktc 0.23
 - json results output
 - logging
+- RDNA3 support
+- fix barrett15 double precision issues
 
 version 0.15 (...)
 - more GPU models are now detected
