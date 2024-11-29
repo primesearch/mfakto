@@ -101,7 +101,7 @@ than an equal SIEVE_SIZE_LIMIT #define.
 *******************************************************************************
 ******************************************************************************/
 
-#define SHORT_MFAKTO_VERSION "0.16-beta.1" /* DO NOT CHANGE! */
+#define SHORT_MFAKTO_VERSION "0.16-beta.2" /* DO NOT CHANGE! */
 
 #ifdef _MSC_VER
   #define MFAKTO_VERSION "mfakto " SHORT_MFAKTO_VERSION "-Win" /* DO NOT CHANGE! */
@@ -224,3 +224,5 @@ The following lines define the min, default and max value.
 #define GPU_SIEVE_PROCESS_SIZE_DEFAULT      16 /* Default is processing 16K bits */
 #define GPU_SIEVE_PROCESS_SIZE_MAX          32 /* Upper limit is 64K, since we store k values as "short". Shared memory requirements limit usable values */
 
+/* For worktodo.txt files */
+#define MAX_LINE_LENGTH 100

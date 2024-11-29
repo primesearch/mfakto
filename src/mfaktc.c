@@ -1388,7 +1388,7 @@ int main(int argc, char **argv)
     do
     {
       if (use_worktodo) parse_ret = get_next_assignment(mystuff.workfile, &(mystuff.exponent), &(mystuff.bit_min),
-                                                            &(mystuff.bit_max_assignment), NULL, mystuff.verbosity);
+                                                            &(mystuff.bit_max_assignment), &(mystuff.assignment_key), mystuff.verbosity);
       else
       {
         mystuff.exponent           = exponent;
