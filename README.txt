@@ -57,10 +57,8 @@ mfakto can perform both steps on either the CPU or GPU. You can find more
 details at the GIMPS website:
 https://mersenne.org/various/math.php#trial_factoring
 
-
 * portmanteau of the English word "factorisation" and the German word
 "Faktorisierung"
-
 
 #################
 # 1 Compilation #
@@ -71,8 +69,7 @@ General requirements:
 - an OpenCL SDK
 
 Please note: the AMD APP SDK has been discontinued. If you still want to use it
-to compile mfakto, make sure you have version 2.5 or later. You can download
-the SDK here: https://community.amd.com/thread/227948
+to compile mfakto, make sure you have version 2.5 or later.
 
 #############
 # 1.1 Linux #
