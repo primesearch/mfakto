@@ -2,6 +2,9 @@ name: mfakto CI
 
 on:
   push:
+    paths-ignore:
+      - '**.txt'
+      - 'COPYING'
   pull_request:
 
 jobs:
