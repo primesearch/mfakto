@@ -5,6 +5,7 @@ on:
     paths-ignore:
       - '**.txt'
       - 'COPYING'
+      - '.gitignore'
   pull_request:
 
 jobs:
