@@ -40,13 +40,13 @@ jobs:
     - name: Create artifact and release asset
       if: startsWith(github.ref, 'refs/tags/')
       run: |
-        tar cvjf mfakto-${{ github.ref_name }}-linux64.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
+        tar cvjf mfakto-linux64.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
     - name: Upload release assets on release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          mfakto-${{ github.ref_name }}-linux64.tar.bz2
+          mfakto-linux64.tar.bz2
 
   WindowsMSVC:
     name: Windows MSVC
@@ -69,7 +69,7 @@ jobs:
     - name: Create artifact and release asset
       run: |
         Copy-Item -Path Changelog-mfakto.txt, COPYING, README-SpecialVersions.txt, README.txt, todo.txt, src/mfakto.ini -Destination x64/Debug/
-        Compress-Archive -DestinationPath mfakto-${{ github.ref_name }}-windows-msvc.zip -CompressionLevel Optimal -Path x64/Debug/*
+        Compress-Archive -DestinationPath mfakto-windows-msvc.zip -CompressionLevel Optimal -Path x64/Debug/*
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
@@ -80,7 +80,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          mfakto-${{ github.ref_name }}-windows-msvc.zip
+          mfakto-windows-msvc.zip
 
   WindowsMSYS2:
     name: Windows MSYS2
@@ -118,13 +118,13 @@ jobs:
     - name: Create artifact and release asset
       if: startsWith(github.ref, 'refs/tags/')
       run: |
-        Compress-Archive -DestinationPath mfakto-${{ github.ref_name }}-windows-msys2.zip -CompressionLevel Optimal -Path *.cl, Changelog-mfakto.txt, COPYING, datatypes.h, mfakto.exe, mfakto.ini, README-SpecialVersions.txt, README.txt, tf_debug.h, todo.txt
+        Compress-Archive -DestinationPath mfakto-windows-msys2.zip -CompressionLevel Optimal -Path *.cl, Changelog-mfakto.txt, COPYING, datatypes.h, mfakto.exe, mfakto.ini, README-SpecialVersions.txt, README.txt, tf_debug.h, todo.txt
     - name: Upload release assets on release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-           mfakto-${{ github.ref_name }}-windows-msys2.zip
+           mfakto-windows-msys2.zip
 
   MacOS:
     name: MacOS
@@ -165,10 +165,10 @@ jobs:
     - name: Create artifact and release asset
       if: startsWith(github.ref, 'refs/tags/')
       run: |
-        tar cvjf mfakto-${{ github.ref_name }}-${{ matrix.os }}.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
+        tar cvjf mfakto-${{ matrix.os }}.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
     - name: Upload release assets on release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          mfakto-${{ github.ref_name }}-${{ matrix.os }}.tar.bz2
+          mfakto-${{ matrix.os }}.tar.bz2
