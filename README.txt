@@ -236,14 +236,12 @@ Other devices:
 - OpenCL-enabled CPUs via the '-d c' option. Currently fails
 - Nvidia devices. Supported but may fail on some hardware
 
-
-* without atomics, mfakto may not correctly process multiple factors found in
-the same class. It may report only one factor or even an incorrect one, the
-latter due to scrambled data from multiple factors. PrimeNet automatically
-rejects factors that do not divide a Mersenne number. If this happens, run the
-exponent and bit level again on the CPU or another device. You can run mfakto
-on the CPU using the '-d c' option or use Prime95 instead. Lowering GridSize in
-mfakto.ini can also reduce the chance of error.
+* without atomics, mfakto may not correctly detect multiple factors found in
+the same class. It may report only one factor or even an incorrect one (due to
+mixed data from multiple factors). PrimeNet checks each factor and rejects
+those that do not divide a Mersenne number. If this happens, run the exponent
+and bit level again on a different device, or on the CPU using Prime95.
+Lowering GridSize in mfakto.ini can reduce the chance of error.
 
 #############
 # 2.2 Linux #
@@ -396,14 +394,9 @@ Submitting results:
   AMD GPU. In this case, use the -d switch to specify a different device
   number. You can run 'clinfo' to get a list of devices.
 
-- on devices that do not support atomic operations, mfakto may not correctly
-  process multiple factors found in the same class. It may report only one
-  factor or even an incorrect one, the latter due to scrambled data from
-  multiple factors.
-  If this happens, run the exponent and bit level again on the CPU or another
-  device. You can tell mfakto to run on the CPU using the '-d c' option or use
-  Prime95 instead. Lowering GridSize in mfakto.ini can also reduce the chance
-  of error.
+- on devices that do not support atomic operations, mfakto may give incorrect
+  results when multiple factors are found in the same class. See the above
+  "Supported GPUs" section for details.
 
 - mfakto does not support Intel HD Graphics on macOS
   Due to buggy drivers shipped with macOS, mfakto presently does not work with
