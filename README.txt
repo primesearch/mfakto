@@ -336,8 +336,9 @@ Advanced usage:
         Factor=[assignment ID],78467119,65,72
 
     It is important to submit the results once you're done. Do not report
-    partial results as the exponent may be reassigned to someone else in the
-    interim, resulting in duplicate work and wasted cycles.
+    partial results as PrimeNet may reassign the exponent to someone else in
+    the meantime; this can lead to duplicate work and wasted cycles. You can
+    easily avoid this by setting Stages=0 in the INI file.
 
     Please do not manually extend assignments from GPU to 72 as users are
     requested not to "trial factor past the level you've pledged."
