@@ -348,7 +348,7 @@ Advanced usage:
     Running mfakto is also a great way to stress test your GPU. ;-)
 
 Submitting results:
-    mfakto currently cannot communicate with the PrimeNet server, but there is
+    mfakto does not natively communicate with the PrimeNet server, but there is
     a program called AutoPrimeNet that does so. See the AutoPrimeNet download
     page for instructions: https://download.mersenne.ca/AutoPrimeNet
 
@@ -357,7 +357,7 @@ Submitting results:
     Step 1) log in to the GIMPS website with your username and password
     Step 2) on the menu bar, select Manual Testing > Results
     Step 3) upload the results.json.txt file produced by mfakto. You may
-    archive or delete the file after it has been processed.
+            archive or delete the file after it has been processed.
 
     To prevent abuse, admin approval is required for manual submissions. You
     can request approval by contacting George Woltman at woltman@alum.mit.edu
