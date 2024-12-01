@@ -194,8 +194,8 @@ General requirements:
   recommended to update your drivers as the SDK has been discontinued.
 - for Intel integrated GPUs: Compute Runtime for OpenCL
 
-macOS users do not need any additional software as OpenCL is already part of
-the system.
+macOS users do not need any additional software as an OpenCL implementation is
+included with the system.
 
 Open a terminal window and run 'mfakto -h' for possible parameters. You may
 also want to check mfakto.ini for additional settings. mfakto typically fetches
@@ -364,6 +364,9 @@ Submitting results:
     or posting on the GIMPS forum:
     https://mersenneforum.org/forumdisplay.php?f=38
 
+    Important note: the results.txt file is deprecated and will no longer be
+    accepted from 2025 onwards.
+
 ##################
 # 4 Known issues #
 ##################
@@ -398,9 +401,9 @@ Submitting results:
   results when multiple factors are found in the same class. See the above
   "Supported GPUs" section for details.
 
-- self-tests are known to fail on Intel HD Graphics on older macOS versions;
-  the exact list has not been determined. However, tests have shown that macOS
-  Ventura does not have this issue.
+- self-tests are known to fail on Intel HD Graphics on macOS. We have not
+  determined the exact list of affected versions, but tests have shown that
+  macOS Ventura does not have this issue.
 
 ##################
 # 4.1 Non-issues #
@@ -419,14 +422,12 @@ Submitting results:
   the average overhead is 0.5% for a class with 100 blocks but only 0.05% for
   one with 1000 blocks.
 
-
 ############
 # 5 Tuning #
 ############
 
 You can find additional settings in the mfakto.ini file. Read it carefully
 before making changes. ;-)
-
 
 #########
 # 6 FAQ #
@@ -451,7 +452,6 @@ A: mfakto tries to load the pre-compiled kernel files in version 0.14 and
    later. The INI file parameter UseBinfile defines the name of the file
    containing the pre-compiled kernels. You can force mfakto to recompile the
    kernels by deleting the file and restarting mfakto.
-
 
 ###########
 # 7 Plans #
