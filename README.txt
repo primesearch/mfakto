@@ -289,9 +289,9 @@ Steps:
 # 3 Getting work and reporting results #
 ########################################
 
-You must have a PrimeNet account to participate. Simply visit the GIMPS website
-at https://mersenne.org to create one. Once you've signed up, you can get
-assignments in several ways.
+You must have a PrimeNet account to participate. Simply go to the GIMPS website
+at https://mersenne.org and click "Register" to create one. Once you've signed
+up, you can get assignments in several ways.
 
 From the GIMPS website:
     Step 1) log in to the GIMPS website with your username and password
@@ -302,11 +302,11 @@ From the GIMPS website:
 
     Users with older GPUs may want to use the regular form.
 
-Using the GPU to 72 tool:
-    GPU to 72 is a website that "subcontracts" assignments from the PrimeNet
-    server. It was previously the only means to obtain work at high bit levels.
-    Although the manual GPU assignment form now serves this purpose, GPU to 72
-    remains the more popular option.
+Using the GPU to 72 service:
+    GPU to 72 "subcontracts" assignments from the PrimeNet server, and was
+    previously the only means to obtain work at high bit levels. GIMPS now has a
+    manual GPU assignment form that serves this purpose, but GPU to 72 remains
+    a popular option.
 
     GPU to 72 website: https://gpu72.com
 
