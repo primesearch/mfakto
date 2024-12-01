@@ -232,7 +232,7 @@ AMD:
   compilation fails)
 
 Other devices:
-- Intel HD Graphics 4000 and later. Currently not supported on macOS.
+- Intel HD Graphics 4000 and later
 - OpenCL-enabled CPUs via the '-d c' option. Currently fails
 - Nvidia devices. Supported but may fail on some hardware
 
@@ -398,11 +398,9 @@ Submitting results:
   results when multiple factors are found in the same class. See the above
   "Supported GPUs" section for details.
 
-- mfakto does not support Intel HD Graphics on macOS
-  Due to buggy drivers shipped with macOS, mfakto presently does not work with
-  Intel HD Graphics. Unless Apple fixes the issue, Intel integrated GPUs may
-  not be supported in the foreseeable future.
-
+- self-tests are known to fail on Intel HD Graphics on older macOS versions;
+  the exact list has not been determined. However, tests have shown that macOS
+  Ventura does not have this issue.
 
 ##################
 # 4.1 Non-issues #
