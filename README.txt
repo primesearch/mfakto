@@ -344,9 +344,10 @@ Advanced usage:
     requested not to "trial factor past the level you've pledged."
 
 
-    Once you have your assignments, copy the "Factor=..." lines directly into
-    your worktodo.txt file. Start mfakto, sit back and let it do its job.
-    Running mfakto is also a great way to stress test your GPU. ;-)
+    Once you have your assignments, create an empty file called worktodo.txt
+    and copy all the "Factor=..." lines into that file. Start mfakto, sit back
+    and let it do its job. Running mfakto is also a great way to stress test
+    your GPU. ;-)
 
 Submitting results:
     mfakto does not natively communicate with the PrimeNet server, but there is
