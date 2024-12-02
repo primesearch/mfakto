@@ -68,9 +68,6 @@ General requirements:
 - C and C++ development tools
 - an OpenCL SDK
 
-Please note: the AMD APP SDK has been discontinued. If you still want to use it
-to compile mfakto, make sure you have version 2.5 or later.
-
 #############
 # 1.1 Linux #
 #############
@@ -293,6 +290,12 @@ You must have a PrimeNet account to participate. Simply go to the GIMPS website
 at https://mersenne.org and click "Register" to create one. Once you've signed
 up, you can get assignments in several ways.
 
+Using the AutoPrimeNet application:
+    AutoPrimeNet allows clients that do not natively support PrimeNet to obtain
+    work and submit results. It is recommended to use this tool when possible.
+    See the AutoPrimeNet download page for instructions:
+    https://download.mersenne.ca/AutoPrimeNet
+
 From the GIMPS website:
     Step 1) log in to the GIMPS website with your username and password
     Step 2) on the menu bar, select Manual Testing > Assignments
@@ -302,15 +305,18 @@ From the GIMPS website:
 
     Users with older GPUs may want to use the regular form.
 
-Using the GPU to 72 service:
+Using the GPU to 72 website:
     GPU to 72 "subcontracts" assignments from the PrimeNet server, and was
     previously the only means to obtain work at high bit levels. GIMPS now has a
     manual GPU assignment form that serves this purpose, but GPU to 72 remains
     a popular option.
 
-    GPU to 72 website: https://gpu72.com
+    Please note results should be submitted to PrimeNet and not the GPU to 72
+    website.
 
-Using the MISFIT tool:
+    GPU to 72 can be accessed here: https://gpu72.com
+
+Using the MISFIT application:
     MISFIT is a Windows tool that automatically requests assignments and
     submits results. You can get it here: https://mersenneforum.org/misfit
 
@@ -318,7 +324,7 @@ From mersenne.ca:
     James Heinrich's website mersenne.ca offers assignments for exponents up
     to 32 bits. You can get such work here: https://mersenne.ca/tf1G
 
-    Be aware that mfakto currently does not work below 60 bits.
+    Be aware mfakto currently does not support exponents below 100,000.
 
 Advanced usage:
     As mfakto works best on long-running jobs, you may want to manually extend
@@ -337,8 +343,7 @@ Advanced usage:
 
     It is important to submit the results once you're done. Do not report
     partial results as PrimeNet may reassign the exponent to someone else in
-    the meantime; this can lead to duplicate work and wasted cycles. You can
-    easily avoid this by setting Stages=0 in the INI file.
+    the meantime; this can lead to duplicate work and wasted cycles.
 
     Please do not manually extend assignments from GPU to 72 as users are
     requested not to "trial factor past the level you've pledged."
@@ -350,11 +355,9 @@ Advanced usage:
     your GPU. ;-)
 
 Submitting results:
-    mfakto does not natively communicate with the PrimeNet server, but there is
-    a program called AutoPrimeNet that does so. See the AutoPrimeNet download
-    page for instructions: https://download.mersenne.ca/AutoPrimeNet
-
-    Another option is to manually submit the results:
+    AutoPrimeNet automatically submits results in addition to obtaining
+    assignments. For computers without Internet access, you can manually submit
+    the results instead:
 
     Step 1) log in to the GIMPS website with your username and password
     Step 2) on the menu bar, select Manual Testing > Results
