@@ -406,7 +406,7 @@ Submitting results:
   results when multiple factors are found in the same class. See the above
   "Supported GPUs" section for details.
 
-- self-tests are known to fail on Intel HD Graphics on macOS. We have not
+- self-tests have been known to fail on Intel HD Graphics on macOS. We have not
   determined the exact list of affected versions, but tests have shown that
   macOS Ventura does not have this issue.
 
