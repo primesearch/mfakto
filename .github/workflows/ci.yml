@@ -7,10 +7,11 @@ on:
       - 'COPYING'
       - '.gitignore'
   pull_request:
-    - 'opened'
-    - 'reopened'
-    - 'synchronized'
-    - 'ready_for_review'
+    types:
+      - 'opened'
+      - 'reopened'
+      - 'synchronized'
+      - 'ready_for_review'
 
 jobs:
   Linux:
