@@ -3,10 +3,14 @@ name: mfakto CI
 on:
   push:
     paths-ignore:
-      - '**.txt'
+      - '**/*.txt'
       - 'COPYING'
       - '.gitignore'
   pull_request:
+    paths-ignore:
+      - '**/*.txt'
+      - 'COPYING'
+      - '.gitignore'
     types:
       - 'opened'
       - 'reopened'
