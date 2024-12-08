@@ -318,11 +318,10 @@ A note on extending assignments:
     to search for factors beyond traditional Prime95 limits:
     https://mersenne.org/various/math.php
 
-    Users have historically edited the worktodo.txt file to manually extend
-    assignments, but this is no longer necessary as both the manual GPU
-    assignment request form and GPU to 72 allow assignments with higher bit
-    levels to be requested. However, the PrimeNet server still accepts results
-    whose bit levels are higher than assigned.
+    Users have historically edited worktodo.txt to manually extend assignments,
+    but this is no longer necessary as both the manual GPU assignment form and
+    GPU to 72 allow higher bit levels to be requested. However, the PrimeNet
+    server still accepts results whose bit levels are higher than assigned.
 
     Please do not manually extend assignments from GPU to 72 as users are
     requested not to "trial factor past the level you've pledged."
