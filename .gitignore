@@ -34,6 +34,7 @@ x64/
 # device-specific files
 *.ckp
 *.ckp.bu
+*.log
 results.txt
 results.json.txt
 worktodo.txt
@@ -41,5 +42,4 @@ worktodo.add
 
 # other
 .DS_Store
-*.log
 *.zip
