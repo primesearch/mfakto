@@ -185,11 +185,11 @@ Steps:
 ####################
 
 General requirements:
-- AMD Catalyst 11.4 or higher. Consider using at least 14.4 as some previous
-  versions have a bug that causes high CPU loads.
-- AMD APP SDK 2.5 or higher for systems without Catalyst 11.10 or above. It is
-  recommended to update your drivers as the SDK has been discontinued.
-- for Intel integrated GPUs: Compute Runtime for OpenCL
+- the latest drivers for the target device
+  - AMD drivers:
+    https://amd.com/en/support/download/drivers.html
+  - OpenCL runtime for Intel CPUs:
+    https://intel.com/content/www/us/en/developer/articles/technical/intel-cpu-runtime-for-opencl-applications-with-sycl-support.html
 
 macOS users do not need any additional software as an OpenCL implementation is
 included with the system.
@@ -252,11 +252,6 @@ Lowering GridSize in mfakto.ini can reduce the chance of error.
 ###############
 
 Requirements:
-- the latest drivers for the target device
-  - AMD driver download page:
-    https://amd.com/en/support/download/drivers.html
-  - OpenCL runtime for Intel integrated GPUs:
-    https://intel.com/content/www/us/en/developer/articles/technical/intel-cpu-runtime-for-opencl-applications-with-sycl-support.html
 - you may also need the Microsoft Visual C++ Redistributable:
   https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
 
