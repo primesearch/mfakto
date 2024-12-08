@@ -252,28 +252,20 @@ Lowering GridSize in mfakto.ini can reduce the chance of error.
 ###############
 
 Requirements:
-- AMD Catalyst 11.4 or higher. Consider using at least 14.4 as some previous
-  versions have a bug that causes high CPU loads.
-- AMD APP SDK 2.5 or higher for systems without Catalyst 11.10 or above. It is
-  recommended to update your drivers as the SDK has been discontinued.
-  If you still want to use it to run mfakto, make sure the path to the
-  appropriate library folder is in the system Path variable:
-
-      32 bits: %AMDAPPSDKROOT%\lib\x86
-      64 bits: %AMDAPPSDKROOT%\lib\x86_64
-
-- you may also need the Microsoft Visual C++ 2010 Redistributable Package for
-  your platform and language:
-
-      32 bits: https://microsoft.com/en-us/download/details.aspx?id=5555
-      64 bits: https://microsoft.com/en-us/download/details.aspx?id=14632
+- the latest drivers for the target device
+  - AMD driver download page:
+    https://amd.com/en/support/download/drivers.html
+  - OpenCL runtime for Intel integrated GPUs:
+    https://intel.com/content/www/us/en/developer/articles/technical/intel-cpu-runtime-for-opencl-applications-with-sycl-support.html
+- you may also need the Microsoft Visual C++ Redistributable:
+  https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
 
 Steps:
 - build mfakto using the above instructions or download a stable version. Only
   the 64-bit binary is currently distributed.
 - go to the mfakto folder and launch the executable
-- mfakto defaults to the first OpenCL-supported GPU it finds. You can specify a
-  different GPU using the -d option.
+- mfakto defaults to the first OpenCL-supported GPU it finds. Use the -d option
+  to run mfakto on a specific device.
 
 #############
 # 2.4 macOS #
