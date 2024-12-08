@@ -230,7 +230,7 @@ AMD:
 
 Other devices:
 - Intel HD Graphics 4000 and later
-- OpenCL-enabled CPUs via the '-d c' option. Currently fails
+- OpenCL-enabled CPUs via the '-d c' option. Fails on some CPUs
 - Nvidia devices. Supported but may fail on some hardware
 
 * without atomics, mfakto may not correctly detect multiple factors found in
@@ -251,8 +251,8 @@ Lowering GridSize in mfakto.ini can reduce the chance of error.
 # 2.3 Windows #
 ###############
 
-Requirements:
-- you may also need the Microsoft Visual C++ Redistributable:
+OS-specific requirements:
+- Microsoft Visual C++ Redistributable:
   https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
 
 Steps:
