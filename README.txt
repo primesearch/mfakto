@@ -230,8 +230,8 @@ AMD:
 
 Other devices:
 - Intel HD Graphics 4000 and later
-- OpenCL-enabled CPUs via the '-d c' option. Fails on some CPUs
-- Nvidia devices. Supported but may fail on some hardware
+- OpenCL-enabled CPUs via the '-d c' option
+- Nvidia devices
 
 * without atomics, mfakto may not correctly detect multiple factors found in
 the same class. It may report only one factor or even an incorrect one (due to
@@ -313,35 +313,34 @@ From mersenne.ca:
 
     Be aware mfakto currently does not support exponents below 100,000.
 
-Advanced usage:
-    As mfakto works best on long-running jobs, you may want to manually extend
-    your assignments. Let's assume you've received an assignment like this:
-        Factor=[assignment ID],78467119,65,66
+A note on extending assignments:
+    Because modern GPUs are much more efficient than CPUs, they are often used
+    to search for factors beyond traditional Prime95 limits:
+    https://mersenne.org/various/math.php
 
-    This means the PrimeNet server has assigned you to trial factor M78467119
-    from 65 to 66 bits. However, take a look at the factoring limits:
-    http://mersenne.org/various/math.php
-
-    According to the table, the exponent is factored to 71 bits before being
-    tested. Because mfakto runs very fast on modern GPUs, you might want to go
-    directly to 71 or even 72 bits. Simply edit the ending bit level before
-    starting mfakto. For example:
-        Factor=[assignment ID],78467119,65,72
-
-    It is important to submit the results once you're done. Do not report
-    partial results as PrimeNet may reassign the exponent to someone else in
-    the meantime; this can lead to duplicate work and wasted cycles.
+    Users have historically edited the worktodo.txt file to manually extend
+    assignments, but this is no longer necessary as both the manual GPU
+    assignment request form and GPU to 72 allow assignments with higher bit
+    levels to be requested. However, the PrimeNet server still accepts results
+    whose bit levels are higher than assigned.
 
     Please do not manually extend assignments from GPU to 72 as users are
     requested not to "trial factor past the level you've pledged."
 
+---
 
     Once you have your assignments, create an empty file called worktodo.txt
     and copy all the "Factor=..." lines into that file. Start mfakto, sit back
     and let it do its job. Running mfakto is also a great way to stress test
     your GPU. ;-)
 
+---
+
 Submitting results:
+    It is important to submit the results once you're done. Do not report
+    partial results as PrimeNet may reassign the exponent to someone else in
+    the meantime; this can lead to duplicate work and wasted cycles.
+
     AutoPrimeNet automatically submits results in addition to obtaining
     assignments. For computers without Internet access, you can manually submit
     the results instead:
@@ -393,9 +392,15 @@ Submitting results:
   results when multiple factors are found in the same class. See the above
   "Supported GPUs" section for details.
 
-- self-tests have been known to fail on Intel HD Graphics on macOS. We have not
-  determined the exact list of affected versions, but tests have shown that
-  macOS Ventura does not have this issue.
+- self-tests can fail on Intel HD Graphics unless VectorSize is set to 1 in the
+  INI file. On some macOS systems, the issue may persist regardless of the
+  vector size. We have not determined the exact list of affected versions, but
+  tests have shown that macOS Ventura does not have this issue.
+
+- the '-d c' option fails for some CPUs; this is under investigation
+
+- some have reported mfakto does not work on certain Nvidia hardware; this is
+  also being investigated
 
 ##################
 # 4.1 Non-issues #
