@@ -48,18 +48,23 @@ jobs:
     env:
       CC: gcc
       CPP: g++
+    defaults:
+      run:
+        shell: msys2 {0}
     steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        msystem: mingw64
+        pacboy: >-
+          gcc:p
+          make:p
+          opencl-headers:p
+          opencl-icd:p
     - uses: actions/checkout@v4
-    - name: Path Setup
-      run: |
-        echo "C:\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-        echo "C:\msys64\usr\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-    - name: Setup
-      run: |
-        pacman -S --needed --noconfirm mingw-w64-x86_64-opencl-icd mingw-w64-x86_64-opencl-headers
     - name: Build
       run: |
-        make -C src -O -j $env:NUMBER_OF_PROCESSORS CC=$env:CC CPP=$env:CPP AMD_APP_INCLUDE="-IC:\msys64\mingw64\include" AMD_APP_LIB="-LC:\msys64\mingw64\lib"
+        mingw32-make -C src -O -j $NUMBER_OF_PROCESSORS CC=$CC CPP=$CPP
 
   MacOS:
     name: MacOS
