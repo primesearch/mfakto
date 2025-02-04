@@ -645,10 +645,11 @@ void set_gpu_type()
     {
       mystuff.gpu_type = GPU_GCN3;   // these cards have improved int32 performance over the previous GCNs, making for a changed kernel selection
     }
-    else if (strstr(deviceinfo.d_name, "Ellesmere")  ||    // RX 470/480/570/580/590
-             strstr(deviceinfo.d_name, "gfx804")     ||    // RX 550
-             strstr(deviceinfo.d_name, "Lexa")       ||    // small GCN 4.0 - not tested, only assumption
-             strstr(deviceinfo.d_name, "Baffin")           // small GCN 4.0 - not tested, only assumption
+    else if (strstr(deviceinfo.d_name, "Ellesmere")      ||    // RX 470/480/570/580/590
+             strstr(deviceinfo.d_name, "gfx804")         ||    // RX 550
+             strstr(deviceinfo.d_name, "Radeon Pro 560") ||    // Baffin, used on Macs
+             strstr(deviceinfo.d_name, "Lexa")           ||    // small GCN 4.0 - not tested, only assumption
+             strstr(deviceinfo.d_name, "Baffin")               // small GCN 4.0 - not tested, only assumption
             )
     {
       mystuff.gpu_type = GPU_GCN4;

@@ -1827,10 +1827,11 @@ ff = 1/f as float, needed in div_192_96().
   a.d1 = SUB_COND(-tmp75.d1, a.d0 > 0);
   a.d2 = SUB_COND(-tmp75.d2, a.d1 > 0x7FFF);
   a.d3 = SUB_COND(-tmp75.d3, a.d2 > 0x7FFF);
-  a.d4 = SUB_COND(mad24(bb.d5, 32768u, bb.d4) - tmp75.d4, a.d3 > 0x7FFF) & 0xFFFF;  // keep one extra bit
+  a.d4 = SUB_COND(mad24(bb.d5, 32768u, bb.d4) - tmp75.d4, a.d3 > 0x7FFF);
   a.d1 &= 0x7FFF;
   a.d2 &= 0x7FFF;
   a.d3 &= 0x7FFF;
+  a.d4 &= 0x1FFFF;  // keep 2 extra bits
 
 #if (TRACE_KERNEL > 3)
     if (tid==TRACE_TID) printf((__constant char *)"cl_barrett15_74: b=%x:%x:%x:%x:%x - tmp = %x:%x:%x:%x:%x (a)\n",
