@@ -78,7 +78,7 @@ jobs:
         brew install pocl
     - name: Build
       run: |
-        make -C src -f Makefile.macOS -j "$(sysctl -n hw.ncpu)" CC=${CC} CPP=${CPP} CFLAGS="-O3 -Wall $(pkg-config --cflags pocl)" LDFLAGS="$(pkg-config --libs pocl)"
+        make -C src -j "$(sysctl -n hw.ncpu)" CC=${CC} CPP=${CPP} AMD_APP_INCLUDE="$(pkg-config --cflags pocl)" AMD_APP_LIB="$(pkg-config --libs pocl)"
     - name: Test
       run: |
         ./mfakto -d 11
