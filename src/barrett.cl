@@ -253,27 +253,27 @@ Adding x*x to a few carries will not cascade the carry
 
 void shl_96(int96_v * const a)
 /* shiftleft a one bit */
-{ /* here, bitalign improves the 92-bit kernel, and slows down 76-bit */
+{ /* here, amd_bitalign improves the 92-bit kernel, and slows down 76-bit */
   a->d2 = amd_bitalign(a->d2, a->d1, 31);
   a->d1 = amd_bitalign(a->d1, a->d0, 31);
-//  a->d2 = (a->d2 << 1) | (a->d1 >> 31);
-//  a->d1 = (a->d1 << 1) | (a->d0 >> 31);
+//  a->d2 = generic_bitalign(a->d2, a->d1, 31);
+//  a->d1 = generic_bitalign(a->d1, a->d0, 31);
   a->d0 = a->d0 << 1;
 }
 
 void shl_192(int192_v * const a)
 /* shiftleft a one bit */
-{ /* in this function, bitalign slows down all kernels */
+{ /* in this function, amd_bitalign slows down all kernels */
 //  a->d5 = amd_bitalign(a->d5, a->d4, 31);
 //  a->d4 = amd_bitalign(a->d4, a->d3, 31);
 //  a->d3 = amd_bitalign(a->d3, a->d2, 31);
 //  a->d2 = amd_bitalign(a->d2, a->d1, 31);
 //  a->d1 = amd_bitalign(a->d1, a->d0, 31);
-  a->d5 = (a->d5 << 1) | (a->d4 >> 31);
-  a->d4 = (a->d4 << 1) | (a->d3 >> 31);
-  a->d3 = (a->d3 << 1) | (a->d2 >> 31);
-  a->d2 = (a->d2 << 1) | (a->d1 >> 31);
-  a->d1 = (a->d1 << 1) | (a->d0 >> 31);
+  a->d5 = generic_bitalign(a->d5, a->d4, 31);
+  a->d4 = generic_bitalign(a->d4, a->d3, 31);
+  a->d3 = generic_bitalign(a->d3, a->d2, 31);
+  a->d2 = generic_bitalign(a->d2, a->d1, 31);
+  a->d1 = generic_bitalign(a->d1, a->d0, 31);
   a->d0 = a->d0 << 1;
 }
 
@@ -442,12 +442,12 @@ void div_192_96(int96_v * const res, __private uint qd5, const int96_v n, const 
 
 // shiftleft nn 11 bits
 #ifndef DIV_160_96
-  nn.d3 = (nn.d3 << 11) + (nn.d2 >> 21);
+  nn.d3 = generic_bitalign(nn.d3, nn.d2, 21);
 #endif
   nn.d2 = amd_bitalign(nn.d2, nn.d1, 21);
   nn.d1 = amd_bitalign(nn.d1, nn.d0, 21);
-//  nn.d2 = (nn.d2 << 11) + (nn.d1 >> 21);
-//  nn.d1 = (nn.d1 << 11) + (nn.d0 >> 21);
+//  nn.d2 = generic_bitalign(nn.d2, nn.d1, 21);
+//  nn.d1 = generic_bitalign(nn.d1, nn.d0, 21);
   nn.d0 =  nn.d0 << 11;
 
 //  q = q - nn
@@ -510,11 +510,11 @@ void div_192_96(int96_v * const res, __private uint qd5, const int96_v n, const 
   nn.d4 =                  nn.d3 >> 9;
 #endif
 //  nn.d3 = amd_bitalign(nn.d3, nn.d2, 9);
-  nn.d3 = (nn.d3 << 23) + (nn.d2 >> 9);
+  nn.d3 = generic_bitalign(nn.d3, nn.d2, 9);
   nn.d2 = amd_bitalign(nn.d2, nn.d1, 9);
-//  nn.d2 = (nn.d2 << 23) + (nn.d1 >> 9);
+//  nn.d2 = generic_bitalign(nn.d2, nn.d1, 9);
 //  nn.d1 = amd_bitalign(nn.d1, nn.d0, 9);
-  nn.d1 = (nn.d1 << 23) + (nn.d0 >> 9);
+  nn.d1 = generic_bitalign(nn.d1, nn.d0, 9);
   nn.d0 =  nn.d0 << 23;
 
 // q = q - nn
@@ -642,9 +642,9 @@ void div_192_96(int96_v * const res, __private uint qd5, const int96_v n, const 
 #ifdef CHECKS_MODBASECASE
   nn.d4 =                  nn.d3 >> 17;
 #endif
-  nn.d3 = (nn.d3 << 15) + (nn.d2 >> 17);
-  nn.d2 = (nn.d2 << 15) + (nn.d1 >> 17);
-  nn.d1 = (nn.d1 << 15) + (nn.d0 >> 17);
+  nn.d3 = generic_bitalign(nn.d3, nn.d2, 17);
+  nn.d2 = generic_bitalign(nn.d2, nn.d1, 17);
+  nn.d1 = generic_bitalign(nn.d1, nn.d0, 17);
   nn.d0 =  nn.d0 << 15;
 
 //  q = q - nn
@@ -877,12 +877,12 @@ DIV_160_96 here. */
 
 // shiftleft nn 11 bits
 #ifndef DIV_160_96
-  nn.d3 = (nn.d3 << 11) + (nn.d2 >> 21);
+  nn.d3 = generic_bitalign(nn.d3, nn.d2, 21);
 #endif
   nn.d2 = amd_bitalign(nn.d2, nn.d1, 21);
   nn.d1 = amd_bitalign(nn.d1, nn.d0, 21);
-//  nn.d2 = (nn.d2 << 11) + (nn.d1 >> 21);
-//  nn.d1 = (nn.d1 << 11) + (nn.d0 >> 21);
+//  nn.d2 = generic_bitalign(nn.d2, nn.d1, 21);
+//  nn.d1 = generic_bitalign(nn.d1, nn.d0, 21);
   nn.d0 =  nn.d0 << 11;
 
 //  q = q - nn
@@ -945,11 +945,11 @@ DIV_160_96 here. */
   nn.d4 =                  nn.d3 >> 9;
 #endif
 //  nn.d3 = amd_bitalign(nn.d3, nn.d2, 9);
-  nn.d3 = (nn.d3 << 23) + (nn.d2 >> 9);
+  nn.d3 = generic_bitalign(nn.d3, nn.d2, 9);
   nn.d2 = amd_bitalign(nn.d2, nn.d1, 9);
-//  nn.d2 = (nn.d2 << 23) + (nn.d1 >> 9);
+//  nn.d2 = generic_bitalign(nn.d2, nn.d1, 9);
 //  nn.d1 = amd_bitalign(nn.d1, nn.d0, 9);
-  nn.d1 = (nn.d1 << 23) + (nn.d0 >> 9);
+  nn.d1 = generic_bitalign(nn.d1, nn.d0, 9);
   nn.d0 =  nn.d0 << 23;
 
 // q = q - nn
@@ -1077,9 +1077,9 @@ DIV_160_96 here. */
 #ifdef CHECKS_MODBASECASE
   nn.d4 =                  nn.d3 >> 17;
 #endif
-  nn.d3 = (nn.d3 << 15) + (nn.d2 >> 17);
-  nn.d2 = (nn.d2 << 15) + (nn.d1 >> 17);
-  nn.d1 = (nn.d1 << 15) + (nn.d0 >> 17);
+  nn.d3 = generic_bitalign(nn.d3, nn.d2, 17);
+  nn.d2 = generic_bitalign(nn.d2, nn.d1, 17);
+  nn.d1 = generic_bitalign(nn.d1, nn.d0, 17);
   nn.d0 =  nn.d0 << 15;
 
 //  q = q - nn
