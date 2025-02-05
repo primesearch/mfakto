@@ -16,13 +16,13 @@
 # along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #
 #
-# Run "make" to compile mfakto. You can pass parameters on the make command
-# line to override defaults. For example, use "make bitness=32 static=yes"
-# to compile a 32-bit binary and link statically.
+# Run "make" to compile mfakto. You can pass parameters to make to override
+# defaults. For example, use "make bitness=32 static=yes" to compile a 32-bit
+# statically linked executable.
 #
-# MacOS Users may see an "out of sync" warning when compiling mfakto. Although
-# harmless, the warning can be silenced by running the following command prior
-# to compilation:
+# macOS users may see a warning about files being "out of sync" - this warning
+# is harmless but can be silenced by running the following command prior to
+# compilation:
 #
 # export SDKROOT=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
 
@@ -37,7 +37,7 @@ ifdef bitness
   endif
 endif
 
-# Check if static linking is requested
+# check whether to link statically
 ifdef static
   ifeq ($(static), yes)
     STATIC := -static
@@ -48,7 +48,7 @@ endif
 RM = rm -f
 INSTALL = install
 
-# MacOS specific flags
+# macOS-specific flags
 OS = $(shell uname -s)
 ifeq ($(OS), Darwin)
   ARCHFLAGS = -arch $(ARCH)
