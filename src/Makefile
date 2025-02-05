@@ -58,21 +58,13 @@ else
   OPENCL_LIB = -lOpenCL
 endif
 
-# where is the OpenCL SDK installed?
-AMD_APP_DIR = /opt/rocm/opencl
-AMD_APP_INCLUDE = -I$(AMD_APP_DIR)/include
-AMD_APP_LIB = -L$(AMD_APP_DIR)/lib/$(ARCH)
-
-# Change needed for compilation with amdgpu-pro
-# AMD_APP_DIR = /opt/amdgpu-pro/opencl
-
 # compiler settings for C and C++ files
 CC = gcc
 CPP = g++
 CFLAGS = $(ARCHFLAGS) $(BITS) -Wall $(OPTIMIZE_FLAG) $(AMD_APP_INCLUDE)
 CPPFLAGS =
 
-# Linker
+# linker settings
 LD = $(CPP)
 LDFLAGS = $(ARCHFLAGS) $(BITS) $(STATIC) $(OPTIMIZE_FLAG) $(AMD_APP_LIB) $(OPENCL_LIB)
 

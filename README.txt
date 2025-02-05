@@ -72,17 +72,18 @@ General requirements:
 #############
 
 Requires:
-- ROCm
+- C compiler
+  - can be installed with "sudo apt install gcc"
+- C++ compiler
+  - can be installed with "sudo apt install g++"
+- OpenCL headers
+  - can be installed with "sudo apt install ocl-icd-opencl-dev"
 
 Steps:
-- install ROCm
-- navigate to the mfakto folder
 - cd src
-- verify that the AMD_APP_DIR variable in the makefile points to the ROCm
-  directory
 - optional: run "make clean" to remove any build artifacts
 - make
-  - mfakto should compile without errors in its root folder
+  - mfakto should compile without errors
 
 #######################
 # 1.2.1 Windows: MSVC #
