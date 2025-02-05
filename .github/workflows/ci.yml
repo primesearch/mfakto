@@ -22,6 +22,31 @@ jobs:
     - name: Test
       run: |
         ./mfakto -d 11
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mfakto-linux64
+        path: |
+          *.cl
+          Changelog-mfakto.txt
+          COPYING
+          datatypes.h
+          mfakto
+          mfakto.ini
+          README-SpecialVersions.txt
+          README.txt
+          tf_debug.h
+          todo.txt
+    - name: Create artifact and release asset
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        tar cvjf mfakto-linux64.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
+    - name: Upload release assets on release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          mfakto-linux64.tar.bz2
 
   WindowsMSVC:
     name: Windows MSVC
@@ -40,7 +65,22 @@ jobs:
         cp $env:OCL_ROOT\lib\*.lib $env:OCL_ROOT\lib\x86_64
     - name: Build
       run: |
-        msbuild mfaktoVS12.vcxproj /property:OCL_ROOT="$env:OCL_ROOT"
+        msbuild mfaktoVS12.vcxproj /property:OCL_ROOT="$env:OCL_ROOT" /property:Configuration=Release
+    - name: Create artifact and release asset
+      run: |
+        Copy-Item -Path Changelog-mfakto.txt, COPYING, README-SpecialVersions.txt, README.txt, todo.txt, src/mfakto.ini -Destination x64/Release/
+        Compress-Archive -DestinationPath mfakto-windows-msvc.zip -CompressionLevel Optimal -Path x64/Release/*
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mfakto-windows-msvc
+        path: x64/Release/
+    - name: Upload release asset on release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          mfakto-windows-msvc.zip
 
   WindowsMSYS2:
     name: Windows MSYS2
@@ -60,6 +100,31 @@ jobs:
     - name: Build
       run: |
         make -C src -O -j $env:NUMBER_OF_PROCESSORS CC=$env:CC CPP=$env:CPP AMD_APP_INCLUDE="-IC:\msys64\mingw64\include" AMD_APP_LIB="-LC:\msys64\mingw64\lib"
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mfakto-windows-msys2
+        path: |
+          *.cl
+          Changelog-mfakto.txt
+          COPYING
+          datatypes.h
+          mfakto.exe
+          mfakto.ini
+          README-SpecialVersions.txt
+          README.txt
+          tf_debug.h
+          todo.txt
+    - name: Create artifact and release asset
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        Compress-Archive -DestinationPath mfakto-windows-msys2.zip -CompressionLevel Optimal -Path *.cl, Changelog-mfakto.txt, COPYING, datatypes.h, mfakto.exe, mfakto.ini, README-SpecialVersions.txt, README.txt, tf_debug.h, todo.txt
+    - name: Upload release assets on release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+           mfakto-windows-msys2.zip
 
   MacOS:
     name: MacOS
@@ -76,9 +141,40 @@ jobs:
     - name: Setup
       run: |
         brew install pocl
-    - name: Build
+    - name: Build with pocl
       run: |
         make -C src -j "$(sysctl -n hw.ncpu)" CC=${CC} CPP=${CPP} AMD_APP_INCLUDE="$(pkg-config --cflags pocl)" AMD_APP_LIB="$(pkg-config --libs pocl)"
     - name: Test
       run: |
         ./mfakto -d 11
+    - name: Cleanup build
+      run: |
+        make -C src clean
+    - name: Build for native OpenCL
+      run: |
+        make -C src -j "$(sysctl -n hw.ncpu)" CC=${CC} CPP=${CPP}
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mfakto-${{ matrix.os }}
+        path: |
+          *.cl
+          Changelog-mfakto.txt
+          COPYING
+          datatypes.h
+          mfakto
+          mfakto.ini
+          README-SpecialVersions.txt
+          README.txt
+          tf_debug.h
+          todo.txt
+    - name: Create artifact and release asset
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        tar cvjf mfakto-${{ matrix.os }}.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
+    - name: Upload release assets on release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          mfakto-${{ matrix.os }}.tar.bz2
