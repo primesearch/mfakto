@@ -57,10 +57,8 @@ mfakto can perform both steps on either the CPU or GPU. You can find more
 details at the GIMPS website:
 https://mersenne.org/various/math.php#trial_factoring
 
-
 * portmanteau of the English word "factorisation" and the German word
 "Faktorisierung"
-
 
 #################
 # 1 Compilation #
@@ -69,10 +67,6 @@ https://mersenne.org/various/math.php#trial_factoring
 General requirements:
 - C and C++ development tools
 - an OpenCL SDK
-
-Please note: the AMD APP SDK has been discontinued. If you still want to use it
-to compile mfakto, make sure you have version 2.5 or later. You can download
-the SDK here: https://community.amd.com/thread/227948
 
 #############
 # 1.1 Linux #
@@ -191,14 +185,14 @@ Steps:
 ####################
 
 General requirements:
-- AMD Catalyst 11.4 or higher. Consider using at least 14.4 as some previous
-  versions have a bug that causes high CPU loads.
-- AMD APP SDK 2.5 or higher for systems without Catalyst 11.10 or above. It is
-  recommended to update your drivers as the SDK has been discontinued.
-- for Intel integrated GPUs: Compute Runtime for OpenCL
+- the latest drivers for the target device
+  - AMD drivers:
+    https://amd.com/en/support/download/drivers.html
+  - OpenCL runtime for Intel CPUs:
+    https://intel.com/content/www/us/en/developer/articles/technical/intel-cpu-runtime-for-opencl-applications-with-sycl-support.html
 
-macOS users do not need any additional software as OpenCL is already part of
-the system.
+macOS users do not need any additional software as an OpenCL implementation is
+included with the system.
 
 Open a terminal window and run 'mfakto -h' for possible parameters. You may
 also want to check mfakto.ini for additional settings. mfakto typically fetches
@@ -235,18 +229,16 @@ AMD:
   compilation fails)
 
 Other devices:
-- Intel HD Graphics 4000 and later. Currently not supported on macOS.
-- OpenCL-enabled CPUs via the '-d c' option. Currently fails
-- Nvidia devices. Supported but may fail on some hardware
+- Intel HD Graphics 4000 and later
+- OpenCL-enabled CPUs via the '-d c' option
+- Nvidia devices
 
-
-* without atomics, mfakto may not correctly process multiple factors found in
-the same class. It may report only one factor or even an incorrect one, the
-latter due to scrambled data from multiple factors. PrimeNet automatically
-rejects factors that do not divide a Mersenne number. If this happens, run the
-exponent and bit level again on the CPU or another device. You can run mfakto
-on the CPU using the '-d c' option or use Prime95 instead. Lowering GridSize in
-mfakto.ini can also reduce the chance of error.
+* without atomics, mfakto may not correctly detect multiple factors found in
+the same class. It may report only one factor or even an incorrect one (due to
+mixed data from multiple factors). PrimeNet checks each factor and rejects
+those that do not divide a Mersenne number. If this happens, run the exponent
+and bit level again on a different device, or on the CPU using Prime95.
+Lowering GridSize in mfakto.ini can reduce the chance of error.
 
 #############
 # 2.2 Linux #
@@ -259,29 +251,16 @@ mfakto.ini can also reduce the chance of error.
 # 2.3 Windows #
 ###############
 
-Requirements:
-- AMD Catalyst 11.4 or higher. Consider using at least 14.4 as some previous
-  versions have a bug that causes high CPU loads.
-- AMD APP SDK 2.5 or higher for systems without Catalyst 11.10 or above. It is
-  recommended to update your drivers as the SDK has been discontinued.
-  If you still want to use it to run mfakto, make sure the path to the
-  appropriate library folder is in the system Path variable:
-
-      32 bits: %AMDAPPSDKROOT%\lib\x86
-      64 bits: %AMDAPPSDKROOT%\lib\x86_64
-
-- you may also need the Microsoft Visual C++ 2010 Redistributable Package for
-  your platform and language:
-
-      32 bits: https://microsoft.com/en-us/download/details.aspx?id=5555
-      64 bits: https://microsoft.com/en-us/download/details.aspx?id=14632
+OS-specific requirements:
+- Microsoft Visual C++ Redistributable:
+  https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
 
 Steps:
 - build mfakto using the above instructions or download a stable version. Only
   the 64-bit binary is currently distributed.
 - go to the mfakto folder and launch the executable
-- mfakto defaults to the first OpenCL-supported GPU it finds. You can specify a
-  different GPU using the -d option.
+- mfakto defaults to the first OpenCL-supported GPU it finds. Use the -d option
+  to run mfakto on a specific device.
 
 #############
 # 2.4 macOS #
@@ -294,9 +273,15 @@ Steps:
 # 3 Getting work and reporting results #
 ########################################
 
-You must have a PrimeNet account to participate. Simply visit the GIMPS website
-at https://mersenne.org to create one. Once you've signed up, you can get
-assignments in several ways.
+You must have a PrimeNet account to participate. Simply go to the GIMPS website
+at https://mersenne.org and click "Register" to create one. Once you've signed
+up, you can get assignments in several ways.
+
+Using the AutoPrimeNet application:
+    AutoPrimeNet allows clients that do not natively support PrimeNet to obtain
+    work and submit results. It is recommended to use this tool when possible.
+    See the AutoPrimeNet download page for instructions:
+    https://download.mersenne.ca/AutoPrimeNet
 
 From the GIMPS website:
     Step 1) log in to the GIMPS website with your username and password
@@ -307,15 +292,18 @@ From the GIMPS website:
 
     Users with older GPUs may want to use the regular form.
 
-Using the GPU to 72 tool:
-    GPU to 72 is a website that "subcontracts" assignments from the PrimeNet
-    server. It was previously the only means to obtain work at high bit levels.
-    Although the manual GPU assignment form now serves this purpose, GPU to 72
-    remains the more popular option.
+Using the GPU to 72 website:
+    GPU to 72 "subcontracts" assignments from the PrimeNet server, and was
+    previously the only means to obtain work at high bit levels. GIMPS now has a
+    manual GPU assignment form that serves this purpose, but GPU to 72 remains
+    a popular option.
 
-    GPU to 72 website: https://gpu72.com
+    Please note results should be submitted to PrimeNet and not the GPU to 72
+    website.
 
-Using the MISFIT tool:
+    GPU to 72 can be accessed here: https://gpu72.com
+
+Using the MISFIT application:
     MISFIT is a Windows tool that automatically requests assignments and
     submits results. You can get it here: https://mersenneforum.org/misfit
 
@@ -323,51 +311,51 @@ From mersenne.ca:
     James Heinrich's website mersenne.ca offers assignments for exponents up
     to 32 bits. You can get such work here: https://mersenne.ca/tf1G
 
-    Be aware that mfakto currently does not work below 60 bits.
+    Be aware mfakto currently does not support exponents below 100,000.
 
-Advanced usage:
-    As mfakto works best on long-running jobs, you may want to manually extend
-    your assignments. Let's assume you've received an assignment like this:
-        Factor=[assignment ID],78467119,65,66
+A note on extending assignments:
+    Because modern GPUs are much more efficient than CPUs, they are often used
+    to search for factors beyond traditional Prime95 limits:
+    https://mersenne.org/various/math.php
 
-    This means the PrimeNet server has assigned you to trial factor M78467119
-    from 65 to 66 bits. However, take a look at the factoring limits:
-    http://mersenne.org/various/math.php
-
-    According to the table, the exponent is factored to 71 bits before being
-    tested. Because mfakto runs very fast on modern GPUs, you might want to go
-    directly to 71 or even 72 bits. Simply edit the ending bit level before
-    starting mfakto. For example:
-        Factor=[assignment ID],78467119,65,72
-
-    It is important to submit the results once you're done. Do not report
-    partial results as the exponent may be reassigned to someone else in the
-    interim, resulting in duplicate work and wasted cycles.
+    Users have historically edited worktodo.txt to manually extend assignments,
+    but this is no longer necessary as both the manual GPU assignment form and
+    GPU to 72 allow higher bit levels to be requested. However, the PrimeNet
+    server still accepts results whose bit levels are higher than assigned.
 
     Please do not manually extend assignments from GPU to 72 as users are
     requested not to "trial factor past the level you've pledged."
 
+---
 
-    Once you have your assignments, copy the "Factor=..." lines directly into
-    your worktodo.txt file. Start mfakto, sit back and let it do its job.
-    Running mfakto is also a great way to stress test your GPU. ;-)
+    Once you have your assignments, create an empty file called worktodo.txt
+    and copy all the "Factor=..." lines into that file. Start mfakto, sit back
+    and let it do its job. Running mfakto is also a great way to stress test
+    your GPU. ;-)
+
+---
 
 Submitting results:
-    mfakto currently cannot communicate with the PrimeNet server, so you must
-    manually submit the results. To prevent abuse, admin approval is required
-    for manual submissions. You can request approval by contacting George
-    Woltman at woltman@alum.mit.edu or posting on the GIMPS forum:
-    https://mersenneforum.org/forumdisplay.php?f=38
+    It is important to submit the results once you're done. Do not report
+    partial results as PrimeNet may reassign the exponent to someone else in
+    the meantime; this can lead to duplicate work and wasted cycles.
+
+    AutoPrimeNet automatically submits results in addition to obtaining
+    assignments. For computers without Internet access, you can manually submit
+    the results instead:
 
     Step 1) log in to the GIMPS website with your username and password
     Step 2) on the menu bar, select Manual Testing > Results
-    Step 3) upload the results.txt file produced by mfakto. You may archive or
-            delete the file after it has been processed.
+    Step 3) upload the results.json.txt file produced by mfakto. You may
+            archive or delete the file after it has been processed.
 
-    There are several tools that can automate this process. You can find a
-    complete list here:
-    https://mersenneforum.org/showpost.php?p=465293&postcount=24
+    To prevent abuse, admin approval is required for manual submissions. You
+    can request approval by contacting George Woltman at woltman@alum.mit.edu
+    or posting on the GIMPS forum:
+    https://mersenneforum.org/forumdisplay.php?f=38
 
+    Important note: the results.txt file is deprecated and will no longer be
+    accepted from 2025 onwards.
 
 ##################
 # 4 Known issues #
@@ -399,20 +387,19 @@ Submitting results:
   AMD GPU. In this case, use the -d switch to specify a different device
   number. You can run 'clinfo' to get a list of devices.
 
-- on devices that do not support atomic operations, mfakto may not correctly
-  process multiple factors found in the same class. It may report only one
-  factor or even an incorrect one, the latter due to scrambled data from
-  multiple factors.
-  If this happens, run the exponent and bit level again on the CPU or another
-  device. You can tell mfakto to run on the CPU using the '-d c' option or use
-  Prime95 instead. Lowering GridSize in mfakto.ini can also reduce the chance
-  of error.
+- on devices that do not support atomic operations, mfakto may give incorrect
+  results when multiple factors are found in the same class. See the above
+  "Supported GPUs" section for details.
 
-- mfakto does not support Intel HD Graphics on macOS
-  Due to buggy drivers shipped with macOS, mfakto presently does not work with
-  Intel HD Graphics. Unless Apple fixes the issue, Intel integrated GPUs may
-  not be supported in the foreseeable future.
+- self-tests can fail on Intel HD Graphics unless VectorSize is set to 1 in the
+  INI file. On some macOS systems, the issue may persist regardless of the
+  vector size. We have not determined the exact list of affected versions, but
+  tests have shown that macOS Ventura does not have this issue.
 
+- the '-d c' option fails for some CPUs; this is under investigation
+
+- some have reported mfakto does not work on certain Nvidia hardware; this is
+  also being investigated
 
 ##################
 # 4.1 Non-issues #
@@ -431,14 +418,12 @@ Submitting results:
   the average overhead is 0.5% for a class with 100 blocks but only 0.05% for
   one with 1000 blocks.
 
-
 ############
 # 5 Tuning #
 ############
 
 You can find additional settings in the mfakto.ini file. Read it carefully
 before making changes. ;-)
-
 
 #########
 # 6 FAQ #
@@ -463,7 +448,6 @@ A: mfakto tries to load the pre-compiled kernel files in version 0.14 and
    later. The INI file parameter UseBinfile defines the name of the file
    containing the pre-compiled kernels. You can force mfakto to recompile the
    kernels by deleting the file and restarting mfakto.
-
 
 ###########
 # 7 Plans #
