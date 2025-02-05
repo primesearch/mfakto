@@ -58,6 +58,10 @@ else
   OPENCL_LIB = -lOpenCL
 endif
 
+# Please note: the AMD_APP_* variables are used for continuous integration in
+# GitHub Actions. Do not remove them just because they are not defined in the
+# makefile.
+
 # compiler settings for C and C++ files
 CC = gcc
 CPP = g++
