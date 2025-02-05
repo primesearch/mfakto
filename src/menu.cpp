@@ -197,11 +197,12 @@ static void handle_menu(mystuff_t *mystuff)
   int choice, new_value;
   char choice_string[10], new_value_string[50];
 
-  for(;;)
+  for (;;)
   {
     print_menu(mystuff);
     std::cout << "Change setting number: ";
-    fgets(choice_string, 9, stdin); // std:cin does not allow empty input
+    char* temp = fgets(choice_string, 9, stdin); // std:cin does not allow empty input
+    temp++; // useless but avoids warning about unused return value
     choice = atoi(choice_string);
     if (choice == -1)       // quit
     {
