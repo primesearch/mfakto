@@ -141,16 +141,16 @@ jobs:
     - name: Setup
       run: |
         brew install pocl
-    - name: Build GitHub development version
+    - name: Build with pocl
       run: |
         make -C src -j "$(sysctl -n hw.ncpu)" CC=${CC} CPP=${CPP} AMD_APP_INCLUDE="$(pkg-config --cflags pocl)" AMD_APP_LIB="$(pkg-config --libs pocl)"
     - name: Test
       run: |
         ./mfakto -d 11
-    - name: Cleanup build for user artifact
+    - name: Cleanup build
       run: |
         make -C src clean
-    - name: Build user artifact without pocl dependency
+    - name: Build for native OpenCL
       run: |
         make -C src -j "$(sysctl -n hw.ncpu)" CC=${CC} CPP=${CPP}
     - name: Upload build artifact
