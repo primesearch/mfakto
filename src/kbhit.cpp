@@ -55,7 +55,7 @@ char ch;
     }
     else {
         ssize_t temp = read(0, &ch, 1);
-        temp++; // useless but avoids warning about unused return value
+        (void)temp; // avoid warning about unused return value
     }
 
     return ch;

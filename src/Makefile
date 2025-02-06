@@ -26,7 +26,6 @@
 #
 # export SDKROOT=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
 
-
 ARCH := $(shell uname -m)
 
 # check whether to build 32-bit version
@@ -128,7 +127,6 @@ sieve.o : sieve.c
 	$(INSTALL) -m 644 $< ..
 
 .PHONY: all clean
-
 
 ##############################################################################
 
