@@ -753,9 +753,11 @@ void set_gpu_type()
                "Please test by changing VectorSize to 2 in %s and restarting mfakto.\n\n", mystuff.inifile);
       }
     }
-    else if (strstr(deviceinfo.d_name, "CPU")           ||
-             strstr(deviceinfo.v_name, "GenuineIntel")  ||
-             strstr(deviceinfo.v_name, "AuthenticAMD"))
+    else if (
+        strstr(deviceinfo.d_name, "CPU")            ||
+        strstr(deviceinfo.d_name, "cpu")            ||
+        strstr(deviceinfo.v_name, "GenuineIntel")   ||
+        strstr(deviceinfo.v_name, "AuthenticAMD"))
     {
       mystuff.gpu_type = GPU_CPU;
     }
