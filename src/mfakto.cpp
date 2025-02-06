@@ -588,8 +588,8 @@ int init_CL(int num_streams, cl_int *devnumber)
   cl_command_queue_properties props = 0;
 #endif
   // GPU sieving is started without synchronization events, but CPU sieve can
-  // run out-of-order if appropriate kernels are queued with event
-  // dependencies. However, the GPU driver does not support this as of
+  // run out-of-order if appropriate kernels and copy events are queued with
+  // event dependencies. However, the GPU driver does not support this as of
   // Catalyst 12.9
   if (mystuff.gpu_sieving == 0) {
       // determine whether device supports out-of-order operations
@@ -1710,6 +1710,15 @@ int run_mod_kernel(cl_ulong hi, cl_ulong lo, cl_ulong q, cl_float qr, cl_ulong *
 #endif
 )
 */
+    size_t   globalThreads;
+    size_t   localThreads;
+    size_t   total_threads = mystuff.threads_per_grid;
+
+    total_threads /= mystuff.vectorsize;
+
+    globalThreads = total_threads;
+    localThreads = (total_threads > deviceinfo.maxThreadsPerBlock) ? deviceinfo.maxThreadsPerBlock : total_threads;
+
   cl_int   status;
   cl_event mod_evt;
 
@@ -1766,14 +1775,18 @@ int run_mod_kernel(cl_ulong hi, cl_ulong lo, cl_ulong q, cl_float qr, cl_ulong *
                     sizeof(cl_uint),
                     (void *)&status);
 
-  status = clEnqueueTask(QUEUE,
-                 kernel_info[_TEST_MOD_].kernel,
-                 0,
-                 NULL,
-                 &mod_evt);
-  if(status != CL_SUCCESS)
+  status = clEnqueueNDRangeKernel(QUEUE,
+      kernel_info[_TEST_MOD_].kernel,
+      1,
+      NULL,
+      &globalThreads,
+      &localThreads,
+      0,
+      NULL,
+      &mod_evt);
+  if (status != CL_SUCCESS)
   {
-    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueueing kernel(clEnqueueTask)\n";
+    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueueing kernel(clEnqueueNDRangeKernel)\n";
     return 1;
   }
 
