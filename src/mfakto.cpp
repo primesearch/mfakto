@@ -1380,10 +1380,10 @@ cl_int run_calc_mod_inv(cl_uint numblocks, size_t localThreads, cl_event *run_ev
                  0,
                  NULL,
                  run_event);
-  if(status != CL_SUCCESS)
+  if (status != CL_SUCCESS)
   {
-    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel(clEnqueueNDRangeKernel) " << kernel_info[CL_CALC_MOD_INV].kernelname << "\n";
-    return 1;
+      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel (clEnqueueNDRangeKernel) " << kernel_info[CL_CALC_MOD_INV].kernelname << "\n";
+      return 1;
   }
 #ifdef CL_PERFORMANCE_INFO
   clFinish(QUEUE);
@@ -1495,10 +1495,10 @@ cl_int run_calc_bit_to_clear(cl_uint numblocks, size_t localThreads, cl_event *r
                  0,
                  NULL,
                  run_event);
-  if(status != CL_SUCCESS)
+  if (status != CL_SUCCESS)
   {
-    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel(clEnqueueNDRangeKernel) " << kernel_info[CL_CALC_BIT_TO_CLEAR].kernelname << "\n";
-    return 1;
+      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel(clEnqueueNDRangeKernel) " << kernel_info[CL_CALC_BIT_TO_CLEAR].kernelname << "\n";
+      return 1;
   }
 
 #ifdef CL_PERFORMANCE_INFO
@@ -1620,10 +1620,10 @@ cl_int run_cl_sieve(cl_uint numblocks, size_t localThreads, cl_event *run_event,
                  0,
                  NULL,
                  run_event);
-  if(status != CL_SUCCESS)
+  if (status != CL_SUCCESS)
   {
-    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel (clEnqueueNDRangeKernel) " << kernel_info[CL_SIEVE].kernelname << "\n";
-    return 1;
+      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel (clEnqueueNDRangeKernel) " << kernel_info[CL_SIEVE].kernelname << "\n";
+      return 1;
   }
 
 /////////////////////////////////////////////////
@@ -1788,15 +1788,15 @@ int run_mod_kernel(cl_ulong hi, cl_ulong lo, cl_ulong q, cl_float qr, cl_ulong *
       &mod_evt);
   if (status != CL_SUCCESS)
   {
-    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueueing kernel(clEnqueueNDRangeKernel)\n";
-    return 1;
+      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Enqueueing kernel (clEnqueueNDRangeKernel)\n";
+      return 1;
   }
 
   status = clWaitForEvents(1, &mod_evt);
-  if(status != CL_SUCCESS)
+  if (status != CL_SUCCESS)
   {
-    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Waiting for mod call to finish. (clWaitForEvents)\n";
-    return 1;
+      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Waiting for mod call to finish. (clWaitForEvents)\n";
+      return 1;
   }
   #ifdef CL_PERFORMANCE_INFO
               cl_ulong startTime;
@@ -1826,10 +1826,10 @@ int run_mod_kernel(cl_ulong hi, cl_ulong lo, cl_ulong q, cl_float qr, cl_ulong *
 #endif
 
   status = clReleaseEvent(mod_evt);
-  if(status != CL_SUCCESS)
+  if (status != CL_SUCCESS)
   {
-    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Release mod event object. (clReleaseEvent)\n";
-    return 1;
+      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Release mod event object. (clReleaseEvent)\n";
+      return 1;
   }
   status = clEnqueueReadBuffer(QUEUE,
                 mystuff.d_RES,
@@ -1841,10 +1841,10 @@ int run_mod_kernel(cl_ulong hi, cl_ulong lo, cl_ulong q, cl_float qr, cl_ulong *
                 NULL,
                 NULL);
 
-  if(status != CL_SUCCESS)
+  if (status != CL_SUCCESS)
   {
-    std::cout << "Error " << status << " (" << ClErrorString(status) << "): clEnqueueReadBuffer RES failed. (clEnqueueReadBuffer)\n";
-    return 1;
+      std::cout << "Error " << status << " (" << ClErrorString(status) << "): clEnqueueReadBuffer RES failed. (clEnqueueReadBuffer)\n";
+      return 1;
   }
   *res_hi = mystuff.h_RES[0];
   *res_lo = mystuff.h_RES[1];
@@ -2318,10 +2318,10 @@ __kernel void cl_barrett32_77_gs(__private uint exp, const int96_t k_base, const
                     (void *)&b_preinit
 #endif
         );
-    if(status != CL_SUCCESS)
+    if (status != CL_SUCCESS)
     {
-      std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (b_in)\n";
-      return 1;
+        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (b_in)\n";
+        return 1;
     }
   }
 #ifdef DETAILED_INFO
