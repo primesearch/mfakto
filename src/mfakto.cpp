@@ -597,7 +597,7 @@ int init_CL(int num_streams, cl_int *devnumber)
   }
   commandQueue = clCreateCommandQueue(context, devices[*devnumber], props, &status);
   if (status != CL_SUCCESS) {
-      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueue(dev#" << (*devnumber+1) << ")\n";
+      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueue(device #" << (*devnumber+1) << ")\n";
       return 1;
   }
 
@@ -606,7 +606,7 @@ int init_CL(int num_streams, cl_int *devnumber)
   commandQueuePrf = clCreateCommandQueue(context, devices[*devnumber], props, &status);
   if(status != CL_SUCCESS)
   {
-    std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueuePrf(dev#" << (*devnumber+1) << ")\n";
+    std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueue(device #" << (*devnumber+1) << ") with profiling enabled\n";
     return 1;
   }
   return CL_SUCCESS;
