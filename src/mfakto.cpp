@@ -582,31 +582,55 @@ int init_CL(int num_streams, cl_int *devnumber)
       deviceinfo.maxThreadsPerGrid *= deviceinfo.wi_sizes[i];
   }
 
+#if defined CL_VERSION_2_0
+  cl_command_queue_properties props[3] = { CL_QUEUE_PROPERTIES, 0, 0 };
+#else
   cl_command_queue_properties props = 0;
-  // GPU sieve is started without synchronization events
-  // but CPU sieve can run out-of-order, if possible
-  // kernels and copy-jobs are queued with event dependencies, so this should work ...
-  // but so far the GPU driver does not support that anyway (as of Catalyst 12.9)
+#endif
+  // GPU sieving is started without synchronization events, but CPU sieve can
+  // run out-of-order if appropriate kernels are queued with event
+  // dependencies. However, the GPU driver does not support this as of
+  // Catalyst 12.9
   if (mystuff.gpu_sieving == 0) {
       // determine whether device supports out-of-order operations
       if (deviceinfo.queue_properties & CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE) {
+#if defined CL_VERSION_2_0
+          props[1] = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
+#else
           props = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
+#endif
       } else {
           printf("\nINFO: Device does not support out-of-order operations. Falling back to in-order queues.\n");
       }
   }
+#if defined CL_VERSION_2_0
+  commandQueue = clCreateCommandQueueWithProperties(context, devices[*devnumber], props, &status);
+#else
   commandQueue = clCreateCommandQueue(context, devices[*devnumber], props, &status);
+#endif
   if (status != CL_SUCCESS) {
-      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueue(device #" << (*devnumber+1) << ")\n";
+#if defined CL_VERSION_2_0
+      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueueWithProperties(device #" << (*devnumber + 1) << ")\n";
+#else
+      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueue(device #" << (*devnumber + 1) << ")\n";
+#endif
       return 1;
   }
 
+#if defined CL_VERSION_2_0
+  props[1] |= CL_QUEUE_PROFILING_ENABLE;
+  commandQueuePrf = clCreateCommandQueueWithProperties(context, devices[*devnumber], props, &status);
+#else
   props |= CL_QUEUE_PROFILING_ENABLE;
-
   commandQueuePrf = clCreateCommandQueue(context, devices[*devnumber], props, &status);
-  if(status != CL_SUCCESS)
+#endif
+  if (status != CL_SUCCESS)
   {
-    std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueue(device #" << (*devnumber+1) << ") with profiling enabled\n";
+#if defined CL_VERSION_2_0
+      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueueWithProperties(device #" << (*devnumber + 1) << ") with profiling enabled\n";
+#else
+      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueue(device #" << (*devnumber + 1) << ") with profiling enabled\n";
+#endif
     return 1;
   }
   return CL_SUCCESS;
