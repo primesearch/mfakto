@@ -528,6 +528,20 @@ int init_CL(int num_streams, cl_int *devnumber)
       std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetContextInfo(CL_DEVICE_LOCAL_MEM_SIZE)\n";
       return 1;
     }
+#if defined CL_VERSION_2_0
+    status = clGetDeviceInfo(devices[i], CL_DEVICE_QUEUE_ON_DEVICE_PROPERTIES, sizeof(deviceinfo.queue_properties), &deviceinfo.queue_properties, NULL);
+#else
+    status = clGetDeviceInfo(devices[i], CL_DEVICE_QUEUE_PROPERTIES, sizeof(deviceinfo.queue_properties), &deviceinfo.queue_properties, NULL);
+#endif
+    if (status != CL_SUCCESS)
+    {
+#if defined CL_VERSION_2_0
+        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetContextInfo(CL_DEVICE_QUEUE_ON_DEVICE_PROPERTIES)\n";
+#else
+        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetContextInfo(CL_DEVICE_QUEUE_PROPERTIES)\n";
+#endif
+        return 1;
+    }
 
     if (mystuff.verbosity > 1)
       std::cout << "Device " << (i+1)  << "/" << num_devices << ": " << deviceinfo.d_name << " (" << deviceinfo.v_name << "),\ndevice version: "
@@ -568,25 +582,23 @@ int init_CL(int num_streams, cl_int *devnumber)
       deviceinfo.maxThreadsPerGrid *= deviceinfo.wi_sizes[i];
   }
 
-  cl_command_queue_properties props = 0;             // GPU sieve is started without synchronization events
-  if (mystuff.gpu_sieving == 0)                      // but CPU sieve can run out-of-order, if possible
-    props = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;  // kernels and copy-jobs are queued with event dependencies, so this should work ...
-                                                     // but so far the GPU driver does not support that anyway (as of Catalyst 12.9)
-
+  cl_command_queue_properties props = 0;
+  // GPU sieve is started without synchronization events
+  // but CPU sieve can run out-of-order, if possible
+  // kernels and copy-jobs are queued with event dependencies, so this should work ...
+  // but so far the GPU driver does not support that anyway (as of Catalyst 12.9)
+  if (mystuff.gpu_sieving == 0) {
+      // determine whether device supports out-of-order operations
+      if (deviceinfo.queue_properties & CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE) {
+          props = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
+      } else {
+          printf("\nINFO: Device does not support out-of-order operations. Falling back to in-order queues.\n");
+      }
+  }
   commandQueue = clCreateCommandQueue(context, devices[*devnumber], props, &status);
-  if(status != CL_SUCCESS)
-  {
-    props = 0; // Intel HD does not support out-of-order
-    commandQueue = clCreateCommandQueue(context, devices[*devnumber], props, &status);
-    if(status != CL_SUCCESS)
-    {
+  if (status != CL_SUCCESS) {
       std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueue(dev#" << (*devnumber+1) << ")\n";
       return 1;
-    }
-    else
-    {
-      printf("\nINFO: Device does not support out-of-order operations. Fallback to in-order queues.\n");
-    }
   }
 
   props |= CL_QUEUE_PROFILING_ENABLE;

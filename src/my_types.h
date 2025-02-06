@@ -324,6 +324,7 @@ typedef struct
     cl_ulong gl_cache, gl_mem, l_mem;
     cl_uint max_clock, units, w_dim;
     size_t wg_size, wi_sizes[10], maxThreadsPerBlock, maxThreadsPerGrid;
+    cl_command_queue_properties queue_properties;
 } OpenCL_deviceinfo_t;
 
 typedef struct _kernel_info
