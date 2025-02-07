@@ -131,7 +131,7 @@ int init_CLstreams(int gs_reinit_only)
     for(i=0;i<(mystuff.num_streams);i++)
     {
       mystuff.stream_status[i] = UNUSED;
-      if( (mystuff.h_ktab[i] = (cl_uint *) malloc( mystuff.threads_per_grid * sizeof(cl_uint) + 4)) == NULL )
+      if ((mystuff.h_ktab[i] = (cl_uint*)malloc(mystuff.threads_per_grid * sizeof(cl_uint) + 4)) == NULL)
       {
         printf("ERROR: malloc(h_ktab[%d]) failed\n", i);
         return 1;
@@ -142,16 +142,16 @@ int init_CLstreams(int gs_reinit_only)
                         mystuff.threads_per_grid * sizeof(cl_uint),
                         mystuff.h_ktab[i],
                         &status);
-      if(status != CL_SUCCESS)
+      if (status != CL_SUCCESS)
       {
-        std::cout<<"Error " << status << " (" << ClErrorString(status) << "): clCreateBuffer (h_ktab[" << i << "]) \n";
-        return 1;
+          std::cout << "Error " << status << " (" << ClErrorString(status) << "): clCreateBuffer (h_ktab[" << i << "]) \n";
+          return 1;
       }
     }
-    if( (mystuff.h_RES = (cl_uint *) malloc(32 * sizeof(cl_uint) + 48)) == NULL )  // only 32 uints required, but OpenCL libs read&write after that (valgrind error)
+    if ((mystuff.h_RES = (cl_uint*)malloc(32 * sizeof(cl_uint) + 48)) == NULL)  // only 32 uints required, but OpenCL libs read&write after that (valgrind error)
     {
-      printf("ERROR: malloc(h_RES) failed\n");
-      return 1;
+        printf("ERROR: malloc(h_RES) failed\n");
+        return 1;
     }
     memset(mystuff.h_RES, 0, sizeof(*mystuff.h_RES));
     mystuff.d_RES = clCreateBuffer(context,
@@ -159,16 +159,16 @@ int init_CLstreams(int gs_reinit_only)
                       32 * sizeof(cl_uint),
                       mystuff.h_RES,
                       &status);
-    if(status != CL_SUCCESS)
+    if (status != CL_SUCCESS)
     {
-      std::cout<<"Error " << status << " (" << ClErrorString(status) << "): clCreateBuffer (d_RES)\n";
-      return 1;
+        std::cout << "Error " << status << " (" << ClErrorString(status) << "): clCreateBuffer (d_RES)\n";
+        return 1;
     }
   #ifdef CHECKS_MODBASECASE
-    if( (mystuff.h_modbasecase_debug = (cl_uint *) malloc(32 * sizeof(cl_uint) + 4)) == NULL )
+    if ((mystuff.h_modbasecase_debug = (cl_uint*)malloc(32 * sizeof(cl_uint) + 4)) == NULL)
     {
-      printf("ERROR: malloc(h_modbasecase_debug) failed\n");
-      return 1;
+        printf("ERROR: malloc(h_modbasecase_debug) failed\n");
+        return 1;
     }
     memset(mystuff.h_modbasecase_debug, 0, sizeof(mystuff.h_modbasecase_debug));
     mystuff.d_modbasecase_debug = clCreateBuffer(context,
@@ -176,10 +176,10 @@ int init_CLstreams(int gs_reinit_only)
                       32 * sizeof(cl_uint),
                       mystuff.h_modbasecase_debug,
                       &status);
-    if(status != CL_SUCCESS)
+    if (status != CL_SUCCESS)
     {
-      std::cout<<"Error " << status << " (" << ClErrorString(status) << "): clCreateBuffer (d_modbasecase_debug)\n";
-      return 1;
+        std::cout << "Error " << status << " (" << ClErrorString(status) << "): clCreateBuffer (d_modbasecase_debug)\n";
+        return 1;
     }
   #endif
   }
@@ -197,10 +197,10 @@ int init_CLstreams(int gs_reinit_only)
                       1,
                       sizeof(cl_mem),
                       (void *)&mystuff.d_calc_bit_to_clear_info);
-    if(status != CL_SUCCESS)
+    if (status != CL_SUCCESS)
     {
-      std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_calc_bit_to_clear_info)\n";
-      return 1;
+        std::cout << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_calc_bit_to_clear_info)\n";
+        return 1;
     }
 
     // CL_CALC_BIT_TO_CLEAR
@@ -210,19 +210,19 @@ int init_CLstreams(int gs_reinit_only)
                       2,
                       sizeof(cl_mem),
                       (void *)&mystuff.d_calc_bit_to_clear_info);
-    if(status != CL_SUCCESS)
+    if (status != CL_SUCCESS)
     {
-      std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_calc_bit_to_clear_info)\n";
-      return 1;
+        std::cout << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_calc_bit_to_clear_info)\n";
+        return 1;
     }
     status = clSetKernelArg(kernel_info[CL_CALC_BIT_TO_CLEAR].kernel,
                       3,
                       sizeof(cl_mem),
                       (void *)&mystuff.d_sieve_info);
-    if(status != CL_SUCCESS)
+    if (status != CL_SUCCESS)
     {
-      std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_sieve_info)\n";
-      return 1;
+        std::cout << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_sieve_info)\n";
+        return 1;
     }
 
     // CL_SIEVE
@@ -231,19 +231,19 @@ int init_CLstreams(int gs_reinit_only)
                       0,
                       sizeof(cl_mem),
                       (void *)&mystuff.d_bitarray);
-    if(status != CL_SUCCESS)
+    if (status != CL_SUCCESS)
     {
-      std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_bitarray)\n";
-      return 1;
+        std::cout << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_bitarray)\n";
+        return 1;
     }
     status = clSetKernelArg(kernel_info[CL_SIEVE].kernel,
                       1,
                       sizeof(cl_mem),
                       (void *)&mystuff.d_sieve_info);
-    if(status != CL_SUCCESS)
+    if (status != CL_SUCCESS)
     {
-      std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_sieve_info)\n";
-      return 1;
+        std::cout << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_sieve_info)\n";
+        return 1;
     }
     // param 2 (primes_per_thread) is variable, can't set it now.
   }
@@ -265,12 +265,15 @@ int init_CL(int num_streams, cl_int *devnumber)
   cl_platform_id* platformlist = NULL;
   cl_device_type devtype = CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
 
-  if (mystuff.verbosity > 0) {printf("Select device - "); fflush(NULL);}
+  if (mystuff.verbosity > 0) {
+      printf("Select device - "); 
+      fflush(NULL);
+  }
   status = clGetPlatformIDs(0, NULL, &numplatforms);
-  if(status != CL_SUCCESS)
+  if (status != CL_SUCCESS)
   {
-    std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetPlatformIDs(num)\n";
-    return 1;
+      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetPlatformIDs(num)\n";
+      return 1;
   }
 
   if (*devnumber < 0)
@@ -288,7 +291,7 @@ int init_CL(int num_streams, cl_int *devnumber)
   {
     platformlist = new cl_platform_id[numplatforms];
     status = clGetPlatformIDs(numplatforms, platformlist, NULL);
-    if(status != CL_SUCCESS)
+    if (status != CL_SUCCESS)
     {
       std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetPlatformIDs\n";
       return 1;
@@ -304,7 +307,7 @@ int init_CL(int num_streams, cl_int *devnumber)
         char buf[128];
         status = clGetPlatformInfo(platform, CL_PLATFORM_VENDOR,
                         sizeof(buf), buf, NULL);
-        if(status != CL_SUCCESS)
+        if (status != CL_SUCCESS)
         {
           std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetPlatformInfo(VENDOR)\n";
           return 1;
@@ -313,7 +316,7 @@ int init_CL(int num_streams, cl_int *devnumber)
 
         status = clGetPlatformInfo(platform, CL_PLATFORM_VERSION,
                         sizeof(buf), buf, NULL);
-        if(status != CL_SUCCESS)
+        if (status != CL_SUCCESS)
         {
           std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetPlatformInfo(VERSION)\n";
           return 1;
@@ -327,7 +330,7 @@ int init_CL(int num_streams, cl_int *devnumber)
         return 1;
       }
     }
-    else for(i=0; i < numplatforms; i++) // autoselect: search for AMD
+    else for (i = 0; i < numplatforms; i++) // autoselect: search for AMD
     {
       char buf[128] = {0};
       cl_uint device_count;
@@ -335,7 +338,7 @@ int init_CL(int num_streams, cl_int *devnumber)
 
       status = clGetPlatformInfo(platformlist[i], CL_PLATFORM_VENDOR,
                         sizeof(buf), buf, NULL);
-      if(status != CL_SUCCESS)
+      if (status != CL_SUCCESS)
       {
         std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetPlatformInfo(VENDOR)\n";
         return 1;
@@ -350,7 +353,7 @@ int init_CL(int num_streams, cl_int *devnumber)
 
       status = clGetPlatformInfo(platformlist[i], CL_PLATFORM_VERSION,
                         sizeof(buf), buf, NULL);
-      if(status != CL_SUCCESS)
+      if (status != CL_SUCCESS)
       {
         std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetPlatformInfo(VERSION)\n";
         return 1;
@@ -370,7 +373,7 @@ int init_CL(int num_streams, cl_int *devnumber)
 
   delete[] platformlist;
 
-  if(platform == NULL)
+  if (platform == NULL)
   {
     std::cerr << "Error: No platform found\n";
     return 1;
@@ -383,13 +386,13 @@ int init_CL(int num_streams, cl_int *devnumber)
     clReleaseContext(context);
     std::cout << "GPU not found, fallback to CPU." << std::endl;
     context = clCreateContextFromType(cps, CL_DEVICE_TYPE_CPU, NULL, NULL, &status);
-    if(status != CL_SUCCESS)
+    if (status != CL_SUCCESS)
     {
        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateContextFromType(CPU)\n";
       return 1;
     }
   }
-  else if(status != CL_SUCCESS)
+  else if (status != CL_SUCCESS)
   {
     std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateContextFromType(GPU)\n";
     return 1;
@@ -397,34 +400,34 @@ int init_CL(int num_streams, cl_int *devnumber)
 
   cl_uint num_devices;
   status = clGetContextInfo(context, CL_CONTEXT_NUM_DEVICES, sizeof(num_devices), &num_devices, NULL);
-  if(status != CL_SUCCESS)
+  if (status != CL_SUCCESS)
   {
     std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetContextInfo(CL_CONTEXT_NUM_DEVICES) - assuming one device\n";
     num_devices = 1;
   }
 
   status = clGetContextInfo(context, CL_CONTEXT_DEVICES, 0, NULL, &dev_s);
-  if(status != CL_SUCCESS)
+  if (status != CL_SUCCESS)
   {
     std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetContextInfo(numdevs)\n";
     return 1;
   }
 
-  if(dev_s == 0)
+  if (dev_s == 0)
   {
     std::cerr << "Error: no devices.\n";
     return 1;
   }
 
   devices = (cl_device_id *)malloc(dev_s*sizeof(cl_device_id));  // *sizeof(...) should not be needed (dev_s is in bytes)
-  if(devices == 0)
+  if (devices == 0)
   {
     std::cerr << "Error: Out of memory.\n";
     return 1;
   }
 
   status = clGetContextInfo(context, CL_CONTEXT_DEVICES, dev_s*sizeof(cl_device_id), devices, NULL);
-  if(status != CL_SUCCESS)
+  if (status != CL_SUCCESS)
   {
     std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetContextInfo(devices)\n";
     return 1;
@@ -798,7 +801,7 @@ void set_gpu_type()
 #ifdef _MSC_VER
     // avoid warning C33010 in Visual Studio; this should not be reachable
     if (mystuff.gpu_type < GPUKernels::AUTOSELECT_KERNEL || mystuff.gpu_type > GPUKernels::UNKNOWN_GS_KERNEL) {
-        std::cerr << "Error: kernel out of range in set_gpu_type()";
+        std::cerr << "Error: kernel out of range in set_gpu_type()\n";
         exit(1);
     }
 #endif
@@ -2927,7 +2930,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
 #ifdef _MSC_VER
                 // avoid warning C33010 in Visual Studio; this should not be reachable
                 if (use_kernel < GPUKernels::AUTOSELECT_KERNEL || use_kernel > GPUKernels::UNKNOWN_GS_KERNEL) {
-                    std::cerr << "Error: kernel out of range in tf_class_opencl()";
+                    std::cerr << "Error: kernel out of range in tf_class_opencl()\n";
                     return RET_ERROR;
                 }
 #endif
