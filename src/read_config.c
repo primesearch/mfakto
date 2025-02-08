@@ -89,17 +89,17 @@ static int my_read_ulong(char *inifile, char *name, unsigned long long int *valu
         {
 #ifdef __MINGW32__
             if (sscanf(&(buf[strlen(name) + 1]), "%"PRIu64, value) == 1) {
-                found = 1;
-            }
 #else
             if (sscanf(&(buf[strlen(name) + 1]), "%llu", value) == 1) {
+#endif
                 found = 1;
             }
-#endif
         }
     }
     fclose(in);
-    if (found)return 0;
+    if (found) {
+        return 0;
+    }
     return 1;
 }
 
