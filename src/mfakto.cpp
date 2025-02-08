@@ -1715,13 +1715,6 @@ int run_mod_kernel(cl_ulong hi, cl_ulong lo, cl_ulong q, cl_float qr, cl_ulong *
 #endif
 )
 */
-    size_t total_threads = mystuff.threads_per_grid;
-
-    total_threads /= mystuff.vectorsize;
-
-    size_t globalThreads = total_threads;
-    size_t localThreads = (total_threads > deviceinfo.maxThreadsPerBlock) ? deviceinfo.maxThreadsPerBlock : total_threads;
-
     cl_int   status;
     cl_event mod_evt;
 
@@ -1777,6 +1770,9 @@ int run_mod_kernel(cl_ulong hi, cl_ulong lo, cl_ulong q, cl_float qr, cl_ulong *
         5,
         sizeof(cl_uint),
         (void*)&status);
+
+    size_t globalThreads = mystuff.threads_per_grid / mystuff.vectorsize;
+    size_t localThreads = (globalThreads > deviceinfo.maxThreadsPerBlock) ? deviceinfo.maxThreadsPerBlock : globalThreads;
 
     status = clEnqueueNDRangeKernel(QUEUE,
         kernel_info[_TEST_MOD_].kernel,
@@ -2627,7 +2623,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
                 NULL);
   if(status != CL_SUCCESS)
   {
-    std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Copying h_RES(clEnqueueWriteBuffer)\n";
+    std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Copying h_RES (clEnqueueWriteBuffer)\n";
     return RET_ERROR; // # factors found ;-)
   }
 #ifdef CHECKS_MODBASECASE
@@ -2644,7 +2640,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
                 NULL);
   if(status != CL_SUCCESS)
   {
-    std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Copying h_modbasecase_debug(clEnqueueWriteBuffer)\n";
+    std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Copying h_modbasecase_debug (clEnqueueWriteBuffer)\n";
     return RET_ERROR; // # factors found ;-)
   }
 #endif
@@ -2765,7 +2761,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
 
         if(status != CL_SUCCESS)
         {
-            std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Copying h_ktab(clEnqueueWriteBuffer)\n";
+            std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Copying h_ktab (clEnqueueWriteBuffer)\n";
             return RET_ERROR; // # factors found ;-)
         }
       }
