@@ -65,6 +65,7 @@ endif
 CC = gcc
 CPP = g++
 CFLAGS = $(ARCHFLAGS) $(BITS) -Wall $(OPTIMIZE_FLAG) $(AMD_APP_INCLUDE)
+CFLAGS_EXTRA_SIEVE =
 CPPFLAGS =
 
 # linker settings
@@ -79,10 +80,8 @@ ifneq (, $(findstring gcc, $(CC_VERSION)))
   CFLAGS_EXTRA_SIEVE = -funroll-all-loops -funsafe-loop-optimizations -fira-region=all -fsched-spec-load -fsched-stalled-insns=10 -fsched-stalled-insns-dep=10 -fno-align-labels
 else ifneq (, $(findstring clang, $(CC_VERSION)))
   OPTIMIZE_FLAG = -O3 -funroll-loops -ffast-math -finline-functions -flto
-  CFLAGS_EXTRA_SIEVE =
 else
   OPTIMIZE_FLAG = -O3
-  CFLAGS_EXTRA_SIEVE =
 endif
 
 ##############################################################################
