@@ -28,6 +28,9 @@
 
 ARCH := $(shell uname -m)
 
+BITS =
+STATIC =
+
 # check whether to build 32-bit version
 ifdef bitness
   ifeq ($(bitness), 32)
@@ -57,9 +60,13 @@ else
   OPENCL_LIB = -lOpenCL
 endif
 
-# Please note: the AMD_APP_* variables are used for continuous integration in
-# GitHub Actions. Do not remove them just because they are not defined in the
-# makefile.
+# used for continuous integration in GitHub Actions
+ifndef AMD_APP_INCLUDE
+AMD_APP_INCLUDE =
+endif
+ifndef AMD_APP_LIB
+AMD_APP_LIB =
+endif
 
 # compiler settings for C and C++ files
 CC = gcc
@@ -133,8 +140,10 @@ depend: $(CSRC)
 	$(CC) -MM $(CFLAGS) $(CSRC) > $@.tmp
 	mv $@.tmp $@
 
+ifdef MAKECMDGOALS
 ifneq ($(MAKECMDGOALS), clean)
 ifneq (, $(wildcard depend))
 include depend
+endif
 endif
 endif
