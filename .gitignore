@@ -11,12 +11,9 @@ mfakto
 *.exe
 
 # automatically copied from source directory
-*.cl
-!src/*.cl
-*.h
-!src/*.h
-*.ini
-!src/*.ini
+/*.cl
+/*.h
+/*.ini
 
 # device-specific Visual Studio files
 *.suo
