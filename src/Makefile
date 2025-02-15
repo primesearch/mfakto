@@ -83,10 +83,10 @@ CC_VERSION = $(shell $(CC) --version)
 
 # optimize or debug
 ifneq (, $(findstring gcc, $(CC_VERSION)))
-  OPTIMIZE_FLAG = -O3 -funroll-loops -ffast-math -finline-functions -frerun-loop-opt -fgcse-sm -fgcse-las -flto
+  OPTIMIZE_FLAG = -O3 -funroll-loops -ffast-math -finline-functions -frerun-loop-opt -fgcse-sm -fgcse-las -flto=auto -save-temps
   CFLAGS_EXTRA_SIEVE = -funroll-all-loops -funsafe-loop-optimizations -fira-region=all -fsched-spec-load -fsched-stalled-insns=10 -fsched-stalled-insns-dep=10 -fno-align-labels
 else ifneq (, $(findstring clang, $(CC_VERSION)))
-  OPTIMIZE_FLAG = -O3 -funroll-loops -ffast-math -finline-functions -flto
+  OPTIMIZE_FLAG = -O3 -funroll-loops -ffast-math -finline-functions -flto=auto -save-temps
 else
   OPTIMIZE_FLAG = -O3
 endif
