@@ -5,6 +5,7 @@
 
 #include "kbhit.h"
 #include <unistd.h> // read()
+#include <iostream>
 
 keyboard::keyboard()
 {
@@ -54,8 +55,10 @@ char ch;
         peek_character = -1;
     }
     else {
-        ssize_t temp = read(0, &ch, 1);
-        (void)temp; // avoid warning about unused return value
+        ssize_t res = read(0, &ch, 1);
+        if (res == -1) {
+            std::cerr << "Error getting character from terminal\n";
+        }
     }
 
     return ch;
