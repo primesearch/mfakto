@@ -36,9 +36,9 @@ Contents
 7      Plans
 
 
-#####################
-# 0 What is mfakto? #
-#####################
+##################
+# 0 About mfakto #
+##################
 
 mfakto is an OpenCL port of mfaktc that aims to have the same features and
 functions. mfaktc is a program that trial factors Mersenne numbers. It stands
@@ -401,12 +401,12 @@ Submitting results:
 
 - mfakto can find factors outside the given range.
   This is because mfakto works on huge factor blocks, controlled by GridSize in
-  the INI file. The default value GridSize=3 means mfakto runs up to 1048576
+  the INI file. The default value of GridSize=3 means mfakto runs up to 1048576
   factor candidates at once, per class. So the last block of each class is
-  filled with factor candidates above the upper limit. This is a huge overhead
-  for small ranges but can be safely ignored for larger ranges. For example,
-  the average overhead is 0.5% for a class with 100 blocks but only 0.05% for
-  one with 1000 blocks.
+  filled up with factor candidates to above the upper bit level. This is a huge
+  overhead for small ranges but can be safely ignored for larger ranges.
+  For example, the average overhead is 0.5% for a class with 100 blocks but
+  only 0.05% for one with 1000 blocks.
 
 ############
 # 5 Tuning #

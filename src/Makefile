@@ -112,7 +112,7 @@ all: $(ALL_TARGETS)
 	$(LD) $^ $(LDFLAGS) -o $@
 
 clean:
-	$(RM) *.o *~ depend
+	$(RM) *.o *~ depend *.i *.ii
 
 sieve.o : sieve.c
 	$(CC) $(CFLAGS) $(CFLAGS_EXTRA_SIEVE) -c $< -o $@
@@ -141,9 +141,13 @@ depend: $(CSRC)
 	mv $@.tmp $@
 
 ifdef MAKECMDGOALS
-ifneq ($(MAKECMDGOALS), clean)
+	goals := $(MAKECMDGOALS)
+else
+	goals := all
+endif
+
+ifneq ($(goals), clean)
 ifneq (, $(wildcard depend))
 include depend
-endif
 endif
 endif
