@@ -124,6 +124,7 @@ TODO
 +DONE+ Split device detection from kernel compilation to make use of device's capabilities
 +DONE+ correct GHzDays prediction for factors found
 +DONE+ Complete instructions on building on Windows (VS and MinGW)
++DONE+ use clCreateCommandQueueWithProperties instead of deprecated clCreateCommandQueue for OpenCL 2.0 and above
 1 copy small exp handling from mfaktc
 1 find out why 0.13/0.14 were faster for some kernels
 2 build test kernels to auto-detect DP vs. SP and mul24 vs. mul32 performance
@@ -147,5 +148,4 @@ TODO
 5 cleanup: separate GPU- and CPU-sieve based kernels, compile and load only one set of them
 5 repunit
 
-OpenCL 2.0 (per #ifdef): clCreateCommandQueueWithProperties instead of clCreateCommandQueue: use device queue: requires out-of-order queues: need events
 merge mfaktc changes: small exps: should correct failing test
