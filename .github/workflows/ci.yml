@@ -26,7 +26,7 @@ jobs:
       CPP: g++
     steps:
     - uses: actions/checkout@v4
-    - name: Setup
+    - name: Install dependencies
       run: |
         sudo apt-get install -y ocl-icd-opencl-dev pocl-opencl-icd
     - name: Build
@@ -35,7 +35,7 @@ jobs:
     - name: Test
       run: |
         ./mfakto -d 11
-    - name: Upload build artifact
+    - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: mfakto-linux64
@@ -50,11 +50,11 @@ jobs:
           README.txt
           tf_debug.h
           todo.txt
-    - name: Create artifact and release asset
+    - name: Create artifacts and release assets
       if: startsWith(github.ref, 'refs/tags/')
       run: |
         tar cvjf mfakto-linux64.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
-    - name: Upload release assets on release
+    - name: Release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
@@ -70,7 +70,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: ilammy/msvc-dev-cmd@v1
-    - name: Setup
+    - name: Install dependencies
       run: |
         Invoke-WebRequest $env:OCL_URL -OutFile OpenCL-SDK.zip
         unzip OpenCL-SDK.zip
@@ -79,16 +79,16 @@ jobs:
     - name: Build
       run: |
         msbuild mfaktoVS12.vcxproj /property:OCL_ROOT="$env:OCL_ROOT" /property:Configuration=Release
-    - name: Create artifact and release asset
+    - name: Create artifacts and release assets
       run: |
         Copy-Item -Path Changelog-mfakto.txt, COPYING, README-SpecialVersions.txt, README.txt, todo.txt, src/mfakto.ini -Destination x64/Release/
         Compress-Archive -DestinationPath mfakto-windows-msvc.zip -CompressionLevel Optimal -Path x64/Release/*
-    - name: Upload build artifact
+    - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: mfakto-windows-msvc
         path: x64/Release/
-    - name: Upload release asset on release
+    - name: Release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
@@ -103,17 +103,17 @@ jobs:
       CPP: g++
     steps:
     - uses: actions/checkout@v4
-    - name: Path Setup
+    - name: Configure paths
       run: |
         echo "C:\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
         echo "C:\msys64\usr\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-    - name: Setup
+    - name: Install dependencies
       run: |
         pacman -S --needed --noconfirm mingw-w64-x86_64-opencl-icd mingw-w64-x86_64-opencl-headers
     - name: Build
       run: |
         make -C src -O -j $env:NUMBER_OF_PROCESSORS CC=$env:CC CPP=$env:CPP AMD_APP_INCLUDE="-IC:\msys64\mingw64\include" AMD_APP_LIB="-LC:\msys64\mingw64\lib"
-    - name: Upload build artifact
+    - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: mfakto-windows-msys2
@@ -128,11 +128,11 @@ jobs:
           README.txt
           tf_debug.h
           todo.txt
-    - name: Create artifact and release asset
+    - name: Create artifacts and release assets
       if: startsWith(github.ref, 'refs/tags/')
       run: |
         Compress-Archive -DestinationPath mfakto-windows-msys2.zip -CompressionLevel Optimal -Path *.cl, Changelog-mfakto.txt, COPYING, datatypes.h, mfakto.exe, mfakto.ini, README-SpecialVersions.txt, README.txt, tf_debug.h, todo.txt
-    - name: Upload release assets on release
+    - name: Release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
@@ -140,7 +140,7 @@ jobs:
            mfakto-windows-msys2.zip
 
   MacOS:
-    name: MacOS
+    name: macOS
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -151,22 +151,22 @@ jobs:
       CPP: clang++
     steps:
     - uses: actions/checkout@v4
-    - name: Setup
+    - name: Install dependencies
       run: |
         brew install pocl
-    - name: Build with pocl
+    - name: Build with PoCL
       run: |
         make -C src -j "$(sysctl -n hw.ncpu)" CC=${CC} CPP=${CPP} AMD_APP_INCLUDE="$(pkg-config --cflags pocl)" AMD_APP_LIB="$(pkg-config --libs pocl)"
     - name: Test
       run: |
         ./mfakto -d 11
-    - name: Cleanup build
+    - name: Clean up build
       run: |
         make -C src clean
     - name: Build for native OpenCL
       run: |
         make -C src -j "$(sysctl -n hw.ncpu)" CC=${CC} CPP=${CPP}
-    - name: Upload build artifact
+    - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: mfakto-${{ matrix.os }}
@@ -181,11 +181,11 @@ jobs:
           README.txt
           tf_debug.h
           todo.txt
-    - name: Create artifact and release asset
+    - name: Create artifacts and release assets
       if: startsWith(github.ref, 'refs/tags/')
       run: |
         tar cvjf mfakto-${{ matrix.os }}.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
-    - name: Upload release assets on release
+    - name: Release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:

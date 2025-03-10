@@ -5,6 +5,7 @@
 
 #include "kbhit.h"
 #include <unistd.h> // read()
+#include <iostream>
 
 keyboard::keyboard()
 {
@@ -52,7 +53,13 @@ char ch;
     {
         ch = peek_character;
         peek_character = -1;
-    } else read(0,&ch,1);
+    }
+    else {
+        ssize_t res = read(0, &ch, 1);
+        if (res == -1) {
+            std::cerr << "Error getting character from terminal\n";
+        }
+    }
 
     return ch;
 }
