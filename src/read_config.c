@@ -747,7 +747,7 @@ int read_config(mystuff_t *mystuff)
 
   if(my_read_int(mystuff->inifile, "LegacyResultsTxt", &i))
   {
-    logprintf(mystuff, "WARNING: Cannot read LegacyResultsTxt from mfakto.ini, set to 0 by default\n");
+    logprintf(mystuff, "WARNING: Cannot read LegacyResultsTxt from INI file, set to 0 by default\n");
     i=0;
   }
   else if(i != 0 && i != 1)
