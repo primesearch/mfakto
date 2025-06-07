@@ -432,7 +432,8 @@ void getOSJSON(char* string) {
 
 
 void print_result_line(mystuff_t *mystuff, int factorsfound)
-/* printf the final result line (STDOUT and resultfile) */
+// printf the final result line to STDOUT and to resultfile if LegacyResultsTxt set to 1.
+// Prints JSON string to the jsonresultfile for Mersenne numbers as well.
 {
   char UID[110]; /* 50 (V5UserID) + 50 (ComputerID) + 8 + spare */
   char aidjson[111];
@@ -483,8 +484,11 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
 
   if(mystuff->mode == MODE_NORMAL)
   {
-    txtresultfile = fopen_and_lock(mystuff->resultfile, "a");
-    if(mystuff->print_timestamp == 1)print_timestamp(txtresultfile);
+    if (mystuff->legacy_results_txt == 1)
+    {
+      txtresultfile = fopen_and_lock(mystuff->resultfile, "a");
+      if(mystuff->print_timestamp == 1)print_timestamp(txtresultfile);
+    }
     jsonresultfile = fopen_and_lock(mystuff->jsonresultfile, "a");
   }
   bool partialresult = (mystuff->mode == MODE_NORMAL) && (mystuff->stats.class_counter < max_class_number);
@@ -509,8 +513,11 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
   }
   if(mystuff->mode == MODE_NORMAL)
   {
-    fprintf(txtresultfile, "%s%s\n", UID, txtstring);
-    unlock_and_fclose(txtresultfile);
+    if (mystuff->legacy_results_txt == 1)
+    {
+      fprintf(txtresultfile, "%s%s\n", UID, txtstring);
+      unlock_and_fclose(txtresultfile);
+    }
     fprintf(jsonresultfile, "%s\n", jsonstring);
     unlock_and_fclose(jsonresultfile);
   }
@@ -520,7 +527,7 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
 void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bits)
 {
   char UID[110]; /* 50 (V5UserID) + 50 (ComputerID) + 8 + spare */
-  FILE *resultfile = NULL;
+  FILE *txtresultfile = NULL;
   unsigned int max_class_number;
 
   if (mystuff->more_classes)  max_class_number = 960;
@@ -531,10 +538,10 @@ void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bi
   else
     UID[0]=0;
 
-  if(mystuff->mode == MODE_NORMAL)
+  if(mystuff->mode == MODE_NORMAL && mystuff->legacy_results_txt == 1)
   {
-    resultfile = fopen_and_lock(mystuff->resultfile, "a");
-    if(mystuff->print_timestamp == 1 && factor_number == 0)print_timestamp(resultfile);
+    txtresultfile = fopen_and_lock(mystuff->resultfile, "a");
+    if(mystuff->print_timestamp == 1 && factor_number == 0)print_timestamp(txtresultfile);
   }
 
   if(factor_number < 10)
@@ -544,9 +551,9 @@ void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bi
       if(mystuff->printmode == 1 && factor_number == 0)logprintf(mystuff, "\n");
       logprintf(mystuff, "M%u has a factor: %s (%f bits, %f GHz-d)\n", mystuff->exponent, factor, bits, mystuff->stats.ghzdays);
     }
-    if(mystuff->mode == MODE_NORMAL)
+    if(mystuff->mode == MODE_NORMAL && mystuff->legacy_results_txt == 1)
     {
-      fprintf(resultfile, "%sM%u has a factor: %s [TF:%d:%d%s:%s %s]\n",
+      fprintf(txtresultfile, "%sM%u has a factor: %s [TF:%d:%d%s:%s %s]\n",
         UID, mystuff->exponent, factor, mystuff->bit_min, mystuff->bit_max_stage,
         ((mystuff->stopafterfactor == 2) && (mystuff->stats.class_counter < max_class_number)) ? "*" : "" ,
         MFAKTO_VERSION, mystuff->stats.kernelname);
@@ -555,10 +562,13 @@ void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bi
   else /* factor_number >= 10 */
   {
     if(mystuff->mode != MODE_SELFTEST_SHORT)      printf("M%u: %d additional factors not shown\n",      mystuff->exponent, factor_number-10);
-    if(mystuff->mode == MODE_NORMAL)fprintf(resultfile,"%sM%u: %d additional factors not shown\n", UID, mystuff->exponent, factor_number-10);
+    if(mystuff->mode == MODE_NORMAL && mystuff->legacy_results_txt == 1)
+    {
+      fprintf(txtresultfile,"%sM%u: %d additional factors not shown\n", UID, mystuff->exponent, factor_number-10);
+    }
   }
 
-  if(mystuff->mode == MODE_NORMAL)unlock_and_fclose(resultfile);
+  if(mystuff->mode == MODE_NORMAL && mystuff->legacy_results_txt == 1)unlock_and_fclose(txtresultfile);
 }
 
 
