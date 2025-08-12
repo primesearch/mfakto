@@ -131,7 +131,7 @@ int init_CLstreams(int gs_reinit_only)
     for(i=0;i<(mystuff.num_streams);i++)
     {
       mystuff.stream_status[i] = UNUSED;
-      if ((mystuff.h_ktab[i] = (cl_uint*)malloc(mystuff.threads_per_grid * sizeof(cl_uint) + 4)) == NULL)
+      if( (mystuff.h_ktab[i] = (cl_uint *) malloc( mystuff.threads_per_grid * sizeof(cl_uint) + 4)) == NULL )
       {
         printf("ERROR: malloc(h_ktab[%d]) failed\n", i);
         return 1;
@@ -142,16 +142,16 @@ int init_CLstreams(int gs_reinit_only)
                         mystuff.threads_per_grid * sizeof(cl_uint),
                         mystuff.h_ktab[i],
                         &status);
-      if (status != CL_SUCCESS)
+      if(status != CL_SUCCESS)
       {
-          std::cout << "Error " << status << " (" << ClErrorString(status) << "): clCreateBuffer (h_ktab[" << i << "]) \n";
-          return 1;
+        std::cout<<"Error " << status << " (" << ClErrorString(status) << "): clCreateBuffer (h_ktab[" << i << "]) \n";
+        return 1;
       }
     }
-    if ((mystuff.h_RES = (cl_uint*)malloc(32 * sizeof(cl_uint) + 48)) == NULL)  // only 32 uints required, but OpenCL libs read&write after that (valgrind error)
+    if( (mystuff.h_RES = (cl_uint *) malloc(32 * sizeof(cl_uint) + 48)) == NULL )  // only 32 uints required, but OpenCL libs read&write after that (valgrind error)
     {
-        printf("ERROR: malloc(h_RES) failed\n");
-        return 1;
+      printf("ERROR: malloc(h_RES) failed\n");
+      return 1;
     }
     memset(mystuff.h_RES, 0, sizeof(*mystuff.h_RES));
     mystuff.d_RES = clCreateBuffer(context,
@@ -159,16 +159,16 @@ int init_CLstreams(int gs_reinit_only)
                       32 * sizeof(cl_uint),
                       mystuff.h_RES,
                       &status);
-    if (status != CL_SUCCESS)
+    if(status != CL_SUCCESS)
     {
-        std::cout << "Error " << status << " (" << ClErrorString(status) << "): clCreateBuffer (d_RES)\n";
-        return 1;
+      std::cout<<"Error " << status << " (" << ClErrorString(status) << "): clCreateBuffer (d_RES)\n";
+      return 1;
     }
   #ifdef CHECKS_MODBASECASE
-    if ((mystuff.h_modbasecase_debug = (cl_uint*)malloc(32 * sizeof(cl_uint) + 4)) == NULL)
+    if( (mystuff.h_modbasecase_debug = (cl_uint *) malloc(32 * sizeof(cl_uint) + 4)) == NULL )
     {
-        printf("ERROR: malloc(h_modbasecase_debug) failed\n");
-        return 1;
+      printf("ERROR: malloc(h_modbasecase_debug) failed\n");
+      return 1;
     }
     memset(mystuff.h_modbasecase_debug, 0, sizeof(mystuff.h_modbasecase_debug));
     mystuff.d_modbasecase_debug = clCreateBuffer(context,
@@ -176,10 +176,10 @@ int init_CLstreams(int gs_reinit_only)
                       32 * sizeof(cl_uint),
                       mystuff.h_modbasecase_debug,
                       &status);
-    if (status != CL_SUCCESS)
+    if(status != CL_SUCCESS)
     {
-        std::cout << "Error " << status << " (" << ClErrorString(status) << "): clCreateBuffer (d_modbasecase_debug)\n";
-        return 1;
+      std::cout<<"Error " << status << " (" << ClErrorString(status) << "): clCreateBuffer (d_modbasecase_debug)\n";
+      return 1;
     }
   #endif
   }
@@ -197,10 +197,10 @@ int init_CLstreams(int gs_reinit_only)
                       1,
                       sizeof(cl_mem),
                       (void *)&mystuff.d_calc_bit_to_clear_info);
-    if (status != CL_SUCCESS)
+    if(status != CL_SUCCESS)
     {
-        std::cout << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_calc_bit_to_clear_info)\n";
-        return 1;
+      std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_calc_bit_to_clear_info)\n";
+      return 1;
     }
 
     // CL_CALC_BIT_TO_CLEAR
@@ -210,19 +210,19 @@ int init_CLstreams(int gs_reinit_only)
                       2,
                       sizeof(cl_mem),
                       (void *)&mystuff.d_calc_bit_to_clear_info);
-    if (status != CL_SUCCESS)
+    if(status != CL_SUCCESS)
     {
-        std::cout << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_calc_bit_to_clear_info)\n";
-        return 1;
+      std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_calc_bit_to_clear_info)\n";
+      return 1;
     }
     status = clSetKernelArg(kernel_info[CL_CALC_BIT_TO_CLEAR].kernel,
                       3,
                       sizeof(cl_mem),
                       (void *)&mystuff.d_sieve_info);
-    if (status != CL_SUCCESS)
+    if(status != CL_SUCCESS)
     {
-        std::cout << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_sieve_info)\n";
-        return 1;
+      std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_sieve_info)\n";
+      return 1;
     }
 
     // CL_SIEVE
@@ -231,19 +231,19 @@ int init_CLstreams(int gs_reinit_only)
                       0,
                       sizeof(cl_mem),
                       (void *)&mystuff.d_bitarray);
-    if (status != CL_SUCCESS)
+    if(status != CL_SUCCESS)
     {
-        std::cout << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_bitarray)\n";
-        return 1;
+      std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_bitarray)\n";
+      return 1;
     }
     status = clSetKernelArg(kernel_info[CL_SIEVE].kernel,
                       1,
                       sizeof(cl_mem),
                       (void *)&mystuff.d_sieve_info);
-    if (status != CL_SUCCESS)
+    if(status != CL_SUCCESS)
     {
-        std::cout << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_sieve_info)\n";
-        return 1;
+      std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (d_sieve_info)\n";
+      return 1;
     }
     // param 2 (primes_per_thread) is variable, can't set it now.
   }
@@ -265,15 +265,12 @@ int init_CL(int num_streams, cl_int *devnumber)
   cl_platform_id* platformlist = NULL;
   cl_device_type devtype = CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
 
-  if (mystuff.verbosity > 0) {
-      printf("Select device - "); 
-      fflush(NULL);
-  }
+  if (mystuff.verbosity > 0) {printf("Select device - "); fflush(NULL);}
   status = clGetPlatformIDs(0, NULL, &numplatforms);
-  if (status != CL_SUCCESS)
+  if(status != CL_SUCCESS)
   {
-      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetPlatformIDs(num)\n";
-      return 1;
+    std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetPlatformIDs(num)\n";
+    return 1;
   }
 
   if (*devnumber < 0)
@@ -291,7 +288,7 @@ int init_CL(int num_streams, cl_int *devnumber)
   {
     platformlist = new cl_platform_id[numplatforms];
     status = clGetPlatformIDs(numplatforms, platformlist, NULL);
-    if (status != CL_SUCCESS)
+    if(status != CL_SUCCESS)
     {
       std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetPlatformIDs\n";
       return 1;
@@ -307,7 +304,7 @@ int init_CL(int num_streams, cl_int *devnumber)
         char buf[128];
         status = clGetPlatformInfo(platform, CL_PLATFORM_VENDOR,
                         sizeof(buf), buf, NULL);
-        if (status != CL_SUCCESS)
+        if(status != CL_SUCCESS)
         {
           std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetPlatformInfo(VENDOR)\n";
           return 1;
@@ -316,7 +313,7 @@ int init_CL(int num_streams, cl_int *devnumber)
 
         status = clGetPlatformInfo(platform, CL_PLATFORM_VERSION,
                         sizeof(buf), buf, NULL);
-        if (status != CL_SUCCESS)
+        if(status != CL_SUCCESS)
         {
           std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetPlatformInfo(VERSION)\n";
           return 1;
@@ -330,7 +327,7 @@ int init_CL(int num_streams, cl_int *devnumber)
         return 1;
       }
     }
-    else for (i = 0; i < numplatforms; i++) // autoselect: search for AMD
+    else for(i=0; i < numplatforms; i++) // autoselect: search for AMD
     {
       char buf[128] = {0};
       cl_uint device_count;
@@ -338,7 +335,7 @@ int init_CL(int num_streams, cl_int *devnumber)
 
       status = clGetPlatformInfo(platformlist[i], CL_PLATFORM_VENDOR,
                         sizeof(buf), buf, NULL);
-      if (status != CL_SUCCESS)
+      if(status != CL_SUCCESS)
       {
         std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetPlatformInfo(VENDOR)\n";
         return 1;
@@ -353,7 +350,7 @@ int init_CL(int num_streams, cl_int *devnumber)
 
       status = clGetPlatformInfo(platformlist[i], CL_PLATFORM_VERSION,
                         sizeof(buf), buf, NULL);
-      if (status != CL_SUCCESS)
+      if(status != CL_SUCCESS)
       {
         std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetPlatformInfo(VERSION)\n";
         return 1;
@@ -373,7 +370,7 @@ int init_CL(int num_streams, cl_int *devnumber)
 
   delete[] platformlist;
 
-  if (platform == NULL)
+  if(platform == NULL)
   {
     std::cerr << "Error: No platform found\n";
     return 1;
@@ -386,13 +383,13 @@ int init_CL(int num_streams, cl_int *devnumber)
     clReleaseContext(context);
     std::cout << "GPU not found, fallback to CPU." << std::endl;
     context = clCreateContextFromType(cps, CL_DEVICE_TYPE_CPU, NULL, NULL, &status);
-    if (status != CL_SUCCESS)
+    if(status != CL_SUCCESS)
     {
        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateContextFromType(CPU)\n";
       return 1;
     }
   }
-  else if (status != CL_SUCCESS)
+  else if(status != CL_SUCCESS)
   {
     std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateContextFromType(GPU)\n";
     return 1;
@@ -400,34 +397,34 @@ int init_CL(int num_streams, cl_int *devnumber)
 
   cl_uint num_devices;
   status = clGetContextInfo(context, CL_CONTEXT_NUM_DEVICES, sizeof(num_devices), &num_devices, NULL);
-  if (status != CL_SUCCESS)
+  if(status != CL_SUCCESS)
   {
     std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetContextInfo(CL_CONTEXT_NUM_DEVICES) - assuming one device\n";
     num_devices = 1;
   }
 
   status = clGetContextInfo(context, CL_CONTEXT_DEVICES, 0, NULL, &dev_s);
-  if (status != CL_SUCCESS)
+  if(status != CL_SUCCESS)
   {
     std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetContextInfo(numdevs)\n";
     return 1;
   }
 
-  if (dev_s == 0)
+  if(dev_s == 0)
   {
     std::cerr << "Error: no devices.\n";
     return 1;
   }
 
   devices = (cl_device_id *)malloc(dev_s*sizeof(cl_device_id));  // *sizeof(...) should not be needed (dev_s is in bytes)
-  if (devices == 0)
+  if(devices == 0)
   {
     std::cerr << "Error: Out of memory.\n";
     return 1;
   }
 
   status = clGetContextInfo(context, CL_CONTEXT_DEVICES, dev_s*sizeof(cl_device_id), devices, NULL);
-  if (status != CL_SUCCESS)
+  if(status != CL_SUCCESS)
   {
     std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetContextInfo(devices)\n";
     return 1;
@@ -531,6 +528,7 @@ int init_CL(int num_streams, cl_int *devnumber)
       std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetContextInfo(CL_DEVICE_LOCAL_MEM_SIZE)\n";
       return 1;
     }
+
 #if defined CL_VERSION_2_0
     status = clGetDeviceInfo(devices[i], CL_DEVICE_QUEUE_ON_DEVICE_PROPERTIES, sizeof(deviceinfo.queue_properties), &deviceinfo.queue_properties, NULL);
 #else
@@ -586,57 +584,56 @@ int init_CL(int num_streams, cl_int *devnumber)
   }
 
 #if defined CL_VERSION_2_0
-  cl_command_queue_properties props[3] = { CL_QUEUE_PROPERTIES, 0, 0 };
+    cl_command_queue_properties props[3] = { CL_QUEUE_PROPERTIES, 0, 0 };
 #else
-  cl_command_queue_properties props = 0;
+    cl_command_queue_properties props = 0;
 #endif
-  // GPU sieving is started without synchronization events, but CPU sieving
-  // can execute out of order if appropriate kernels and copy events are
-  // queued with event dependencies. However, the GPU driver does not support
-  // this as of Catalyst 12.9
-  if (mystuff.gpu_sieving == 0) {
-      // determine whether device supports out-of-order operations
-      if (deviceinfo.queue_properties & CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE) {
+    // GPU sieving is started without synchronization events, but CPU sieving
+    // can execute out of order if appropriate kernels and copy events are
+    // queued with event dependencies. However, the GPU driver does not support
+    // this as of Catalyst 12.9
+    if (mystuff.gpu_sieving == 0) {
+        // determine whether device supports out-of-order operations
+        if (deviceinfo.queue_properties & CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE) {
 #if defined CL_VERSION_2_0
-          props[1] = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
+            props[1] = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
 #else
-          props = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
+            props = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
 #endif
-      } else {
-          printf("\nINFO: Device does not support out-of-order operations. Falling back to in-order queues.\n");
-      }
-  }
+        } else {
+            printf("\nINFO: Device does not support out-of-order operations. Falling back to in-order queues.\n");
+        }
+    }
 #if defined CL_VERSION_2_0
-  commandQueue = clCreateCommandQueueWithProperties(context, devices[*devnumber], props, &status);
+    commandQueue = clCreateCommandQueueWithProperties(context, devices[*devnumber], props, &status);
 #else
-  commandQueue = clCreateCommandQueue(context, devices[*devnumber], props, &status);
+    commandQueue = clCreateCommandQueue(context, devices[*devnumber], props, &status);
 #endif
-  if (status != CL_SUCCESS) {
+    if (status != CL_SUCCESS) {
 #if defined CL_VERSION_2_0
-      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueueWithProperties(device #" << (*devnumber + 1) << ")\n";
+        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueueWithProperties(device #" << (*devnumber + 1) << ")\n";
 #else
-      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueue(device #" << (*devnumber + 1) << ")\n";
+        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueue(device #" << (*devnumber + 1) << ")\n";
 #endif
-      return 1;
-  }
+        return 1;
+    }
 
 #if defined CL_VERSION_2_0
-  props[1] |= CL_QUEUE_PROFILING_ENABLE;
-  commandQueuePrf = clCreateCommandQueueWithProperties(context, devices[*devnumber], props, &status);
+    props[1] |= CL_QUEUE_PROFILING_ENABLE;
+    commandQueuePrf = clCreateCommandQueueWithProperties(context, devices[*devnumber], props, &status);
 #else
-  props |= CL_QUEUE_PROFILING_ENABLE;
-  commandQueuePrf = clCreateCommandQueue(context, devices[*devnumber], props, &status);
+    props |= CL_QUEUE_PROFILING_ENABLE;
+    commandQueuePrf = clCreateCommandQueue(context, devices[*devnumber], props, &status);
 #endif
-  if (status != CL_SUCCESS)
-  {
+    if (status != CL_SUCCESS) {
 #if defined CL_VERSION_2_0
-      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueueWithProperties(device #" << (*devnumber + 1) << ") with profiling enabled\n";
+        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueueWithProperties(device #" << (*devnumber + 1) << ") with profiling enabled\n";
 #else
-      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueue(device #" << (*devnumber + 1) << ") with profiling enabled\n";
+        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueue(device #" << (*devnumber + 1) << ") with profiling enabled\n";
 #endif
-    return 1;
-  }
-  return CL_SUCCESS;
+        return 1;
+    }
+    return CL_SUCCESS;
 }
 
 /*
@@ -1383,10 +1380,10 @@ cl_int run_calc_mod_inv(cl_uint numblocks, size_t localThreads, cl_event *run_ev
                  0,
                  NULL,
                  run_event);
-  if (status != CL_SUCCESS)
+  if(status != CL_SUCCESS)
   {
-      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel (clEnqueueNDRangeKernel) " << kernel_info[CL_CALC_MOD_INV].kernelname << "\n";
-      return 1;
+    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel (clEnqueueNDRangeKernel) " << kernel_info[CL_CALC_MOD_INV].kernelname << "\n";
+    return 1;
   }
 #ifdef CL_PERFORMANCE_INFO
   clFinish(QUEUE);
@@ -1498,10 +1495,10 @@ cl_int run_calc_bit_to_clear(cl_uint numblocks, size_t localThreads, cl_event *r
                  0,
                  NULL,
                  run_event);
-  if (status != CL_SUCCESS)
+  if(status != CL_SUCCESS)
   {
-      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel(clEnqueueNDRangeKernel) " << kernel_info[CL_CALC_BIT_TO_CLEAR].kernelname << "\n";
-      return 1;
+    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel (clEnqueueNDRangeKernel) " << kernel_info[CL_CALC_BIT_TO_CLEAR].kernelname << "\n";
+    return 1;
   }
 
 #ifdef CL_PERFORMANCE_INFO
@@ -1623,10 +1620,10 @@ cl_int run_cl_sieve(cl_uint numblocks, size_t localThreads, cl_event *run_event,
                  0,
                  NULL,
                  run_event);
-  if (status != CL_SUCCESS)
+  if(status != CL_SUCCESS)
   {
-      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel (clEnqueueNDRangeKernel) " << kernel_info[CL_SIEVE].kernelname << "\n";
-      return 1;
+    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel (clEnqueueNDRangeKernel) " << kernel_info[CL_SIEVE].kernelname << "\n";
+    return 1;
   }
 
 /////////////////////////////////////////////////
@@ -1715,138 +1712,132 @@ int run_mod_kernel(cl_ulong hi, cl_ulong lo, cl_ulong q, cl_float qr, cl_ulong *
 #endif
 )
 */
-    cl_int   status;
-    cl_event mod_evt;
+  cl_int   status;
+  cl_event mod_evt;
 
-    *res_hi = *res_lo = 0;
+  *res_hi = *res_lo = 0;
 
-    status = clSetKernelArg(kernel_info[_TEST_MOD_].kernel,
-        0,
-        sizeof(cl_ulong),
-        (void*)&hi);
-    if (status != CL_SUCCESS)
-    {
-        std::cout << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (hi)\n";
-        return 1;
-    }
-    status = clSetKernelArg(kernel_info[_TEST_MOD_].kernel,
-        1,
-        sizeof(cl_ulong),
-        (void*)&lo);
-    if (status != CL_SUCCESS)
-    {
-        std::cout << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (lo)\n";
-        return 1;
-    }
-    status = clSetKernelArg(kernel_info[_TEST_MOD_].kernel,
-        2,
-        sizeof(cl_ulong),
-        (void*)&q);
-    if (status != CL_SUCCESS)
-    {
-        std::cout << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (q)\n";
-        return 1;
-    }
-    status = clSetKernelArg(kernel_info[_TEST_MOD_].kernel,
-        3,
-        sizeof(cl_float),
-        (void*)&qr);
-    if (status != CL_SUCCESS)
-    {
-        std::cout << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (qr)\n";
-        return 1;
-    }
-    status = clSetKernelArg(kernel_info[_TEST_MOD_].kernel,
-        4,
-        sizeof(cl_mem),
-        (void*)&mystuff.d_RES);
-    if (status != CL_SUCCESS)
-    {
-        std::cout << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (RES)\n";
-        return 1;
-    }
-    // dummy arg if KERNEL_TRACE is enabled: ignore errors if not.
-    status = clSetKernelArg(kernel_info[_TEST_MOD_].kernel,
-        5,
-        sizeof(cl_uint),
-        (void*)&status);
+  status = clSetKernelArg(kernel_info[_TEST_MOD_].kernel,
+                    0,
+                    sizeof(cl_ulong),
+                    (void *)&hi);
+  if(status != CL_SUCCESS)
+  {
+    std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (hi)\n";
+    return 1;
+  }
+  status = clSetKernelArg(kernel_info[_TEST_MOD_].kernel,
+                    1,
+                    sizeof(cl_ulong),
+                    (void *)&lo);
+  if(status != CL_SUCCESS)
+  {
+    std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (lo)\n";
+    return 1;
+  }
+  status = clSetKernelArg(kernel_info[_TEST_MOD_].kernel,
+                    2,
+                    sizeof(cl_ulong),
+                    (void *)&q);
+  if(status != CL_SUCCESS)
+  {
+    std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (q)\n";
+    return 1;
+  }
+  status = clSetKernelArg(kernel_info[_TEST_MOD_].kernel,
+                    3,
+                    sizeof(cl_float),
+                    (void *)&qr);
+  if(status != CL_SUCCESS)
+  {
+    std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (qr)\n";
+    return 1;
+  }
+  status = clSetKernelArg(kernel_info[_TEST_MOD_].kernel,
+                    4,
+                    sizeof(cl_mem),
+                    (void *)&mystuff.d_RES);
+  if(status != CL_SUCCESS)
+  {
+    std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (RES)\n";
+    return 1;
+  }
+  // dummy arg if KERNEL_TRACE is enabled: ignore errors if not.
+  status = clSetKernelArg(kernel_info[_TEST_MOD_].kernel,
+                    5,
+                    sizeof(cl_uint),
+                    (void *)&status);
 
-    size_t globalThreads = mystuff.threads_per_grid / mystuff.vectorsize;
-    size_t localThreads = (globalThreads > deviceinfo.maxThreadsPerBlock) ? deviceinfo.maxThreadsPerBlock : globalThreads;
+  status = clEnqueueTask(QUEUE,
+                 kernel_info[_TEST_MOD_].kernel,
+                 0,
+                 NULL,
+                 &mod_evt);
+  if(status != CL_SUCCESS)
+  {
+    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueueing kernel (clEnqueueTask)\n";
+    return 1;
+  }
 
-    status = clEnqueueNDRangeKernel(QUEUE,
-        kernel_info[_TEST_MOD_].kernel,
-        1,
-        NULL,
-        &globalThreads,
-        &localThreads,
-        0,
-        NULL,
-        &mod_evt);
-    if (status != CL_SUCCESS)
-    {
-        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Enqueueing kernel (clEnqueueNDRangeKernel)\n";
-        return 1;
-    }
-
-    status = clWaitForEvents(1, &mod_evt);
-    if (status != CL_SUCCESS)
-    {
-        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Waiting for mod call to finish. (clWaitForEvents)\n";
-        return 1;
-    }
-#ifdef CL_PERFORMANCE_INFO
-    cl_ulong startTime;
-    cl_ulong endTime;
-    /* Get kernel profiling info */
-    status = clGetEventProfilingInfo(mod_evt,
-        CL_PROFILING_COMMAND_START,
-        sizeof(cl_ulong),
-        &startTime,
-        0);
-    if (status != CL_SUCCESS)
-    {
-        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): in clGetEventProfilingInfo.(startTime)\n";
-        return 1;
-    }
-    status = clGetEventProfilingInfo(mod_evt,
-        CL_PROFILING_COMMAND_END,
-        sizeof(cl_ulong),
-        &endTime,
-        0);
-    if (status != CL_SUCCESS)
-    {
-        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): in clGetEventProfilingInfo.(endTime)\n";
-        return 1;
-    }
-    std::cout << "mod_kernel finished in " << (endTime - startTime) / 1e3 << " us.\n";
+  status = clWaitForEvents(1, &mod_evt);
+  if(status != CL_SUCCESS)
+  {
+    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Waiting for mod call to finish. (clWaitForEvents)\n";
+    return 1;
+  }
+  #ifdef CL_PERFORMANCE_INFO
+              cl_ulong startTime;
+              cl_ulong endTime;
+              /* Get kernel profiling info */
+              status = clGetEventProfilingInfo(mod_evt,
+                                CL_PROFILING_COMMAND_START,
+                                sizeof(cl_ulong),
+                                &startTime,
+                                0);
+              if(status != CL_SUCCESS)
+               {
+                std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): in clGetEventProfilingInfo.(startTime)\n";
+                return 1;
+              }
+              status = clGetEventProfilingInfo(mod_evt,
+                                CL_PROFILING_COMMAND_END,
+                                sizeof(cl_ulong),
+                                &endTime,
+                                0);
+              if(status != CL_SUCCESS)
+               {
+                std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): in clGetEventProfilingInfo.(endTime)\n";
+                return 1;
+              }
+              std::cout<< "mod_kernel finished in " << (endTime - startTime)/1e3 << " us.\n" ;
 #endif
 
-    status = clReleaseEvent(mod_evt);
-    if (status != CL_SUCCESS)
-    {
-        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Release mod event object. (clReleaseEvent)\n";
-        return 1;
-    }
-    status = clEnqueueReadBuffer(QUEUE,
-        mystuff.d_RES,
-        CL_TRUE,
-        0,
-        32 * sizeof(int),
-        mystuff.h_RES,
-        0,
-        NULL,
-        NULL);
+  status = clReleaseEvent(mod_evt);
+  if(status != CL_SUCCESS)
+  {
+    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Release mod event object. (clReleaseEvent)\n";
+    return 1;
+  }
+  status = clEnqueueReadBuffer(QUEUE,
+                mystuff.d_RES,
+                CL_TRUE,
+                0,
+                32 * sizeof(int),
+                mystuff.h_RES,
+                0,
+                NULL,
+                NULL);
 
-    if (status != CL_SUCCESS)
-    {
-        std::cout << "Error " << status << " (" << ClErrorString(status) << "): clEnqueueReadBuffer RES failed. (clEnqueueReadBuffer)\n";
-        return 1;
-    }
-    *res_hi = mystuff.h_RES[0];
-    *res_lo = mystuff.h_RES[1];
+  if(status != CL_SUCCESS)
+  {
+    std::cout << "Error " << status << " (" << ClErrorString(status) << "): clEnqueueReadBuffer RES failed. (clEnqueueReadBuffer)\n";
+    return 1;
+  }
+  *res_hi = mystuff.h_RES[0];
+  *res_lo = mystuff.h_RES[1];
 
-    return 0;
+  return 0;
+
 }
 
 int run_kernel15(cl_kernel l_kernel, cl_uint exp, int75 k_base, int stream, cl_uint8 b_in, cl_mem res, cl_int shiftcount, cl_int bin_max)
@@ -2232,7 +2223,7 @@ int run_kernel(cl_kernel l_kernel, cl_uint exp, int stream, cl_mem res)
                  &mystuff.exec_events[stream]);
   if(status != CL_SUCCESS)
   {
-    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel(clEnqueueNDRangeKernel), stream " << stream << "\n";
+    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel (clEnqueueNDRangeKernel), stream " << stream << "\n";
     return 1;
   }
   clFlush(QUEUE);
@@ -2314,10 +2305,10 @@ __kernel void cl_barrett32_77_gs(__private uint exp, const int96_t k_base, const
                     (void *)&b_preinit
 #endif
         );
-    if (status != CL_SUCCESS)
+    if(status != CL_SUCCESS)
     {
-        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (b_in)\n";
-        return 1;
+      std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Setting kernel argument. (b_in)\n";
+      return 1;
     }
   }
 #ifdef DETAILED_INFO
@@ -2508,7 +2499,7 @@ __kernel void cl_barrett32_77_gs(__private uint exp, const int96_t k_base, const
 
   if(status != CL_SUCCESS)
   {
-    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel(clEnqueueNDRangeKernel)\n";
+    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel (clEnqueueNDRangeKernel)\n";
     return 1;
   }
 
