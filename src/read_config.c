@@ -23,6 +23,9 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #define strcasecmp _stricmp
 #endif
 #include <errno.h>
+#ifdef __MINGW32__
+#include <inttypes.h>
+#endif
 
 #include "params.h"
 #include "my_types.h"
@@ -64,36 +67,40 @@ int my_read_int(char *inifile, char *name, int *value)
 
 static int my_read_ulong(char *inifile, char *name, unsigned long long int *value)
 {
-  FILE *in;
-  char buf[100];
-  int found=0;
+    FILE* in;
+    char buf[101];
+    int found = 0;
 
-  in=fopen(inifile,"r");
-  if(!in)
-  {
-    if (!inifile_unavailable)
+    in = fopen(inifile, "r");
+    if (!in)
     {
-      char msg[80];
-      inifile_unavailable = 1;
-      sprintf(msg, "Cannot load INI file \"%.55s\"", inifile);
-      perror(msg);
+        if (!inifile_unavailable)
+        {
+            char msg[80];
+            inifile_unavailable = 1;
+            snprintf(msg, sizeof(msg) - 1, "Cannot load INI file \"%.55s\"", inifile);
+            perror(msg);
+        }
+        return 1;
+    }
+    while (fgets(buf, 100, in) && !found)
+    {
+        if (!strncmp(buf, name, strlen(name)) && buf[strlen(name)] == '=')
+        {
+#ifdef __MINGW32__
+            if (sscanf(&(buf[strlen(name) + 1]), "%"PRIu64, value) == 1) {
+#else
+            if (sscanf(&(buf[strlen(name) + 1]), "%llu", value) == 1) {
+#endif
+                found = 1;
+            }
+        }
+    }
+    fclose(in);
+    if (found) {
+        return 0;
     }
     return 1;
-  }
-  while(fgets(buf,100,in) && !found)
-  {
-    if(!strncmp(buf,name,strlen(name)) && buf[strlen(name)]=='=')
-    {
-      #ifdef __MINGW32__
-        if(sscanf(&(buf[strlen(name)+1]),"%I64u",value)==1)found=1;
-      #else
-        if(sscanf(&(buf[strlen(name)+1]),"%llu",value)==1)found=1;
-      #endif
-    }
-  }
-  fclose(in);
-  if(found)return 0;
-  return 1;
 }
 
 int my_read_string(char *inifile, char *name, char *string, unsigned int len)

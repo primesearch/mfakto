@@ -26,9 +26,8 @@ Contents
 1.3    macOS
 2      Running mfakto
 2.1    Supported GPUs
-2.2    Linux
+2.2    Linux and macOS
 2.3    Windows
-2.4    macOS
 3      Getting work and reporting results
 4      Known issues
 4.1    Non-issues
@@ -37,14 +36,15 @@ Contents
 7      Plans
 
 
-#####################
-# 0 What is mfakto? #
-#####################
+##################
+# 0 About mfakto #
+##################
 
 mfakto is an OpenCL port of mfaktc that aims to have the same features and
 functions. mfaktc is a program that trial factors Mersenne numbers. It stands
 for "Mersenne faktorisation* with CUDA" and was written for Nvidia GPUs. Both
-programs are used primarily in the Great Internet Mersenne Prime Search.
+programs are used primarily in the Great Internet Mersenne Prime Search. mfakto
+can also run on CPUs, although this is not done in practice.
 
 Primality tests are computationally intensive, but we can save time by finding
 small factors. GPUs are very efficient at this task due to their parallel
@@ -52,9 +52,7 @@ nature. Only one factor is needed to prove a number composite.
 
 mfakto uses a modified Sieve of Eratosthenes to generate a list of possible
 factors for a given Mersenne number. It then uses modular exponentiation to
-test these factors. Although this step is only done on the GPU in practice,
-mfakto can perform both steps on either the CPU or GPU. You can find more
-details at the GIMPS website:
+test these factors. You can find more details at the GIMPS website:
 https://mersenne.org/various/math.php#trial_factoring
 
 * portmanteau of the English word "factorisation" and the German word
@@ -73,16 +71,18 @@ General requirements:
 #############
 
 Requires:
-- ROCm
+- C compiler
+  - can be installed with "sudo apt install gcc"
+- C++ compiler
+  - can be installed with "sudo apt install g++"
+- OpenCL headers
+  - can be installed with "sudo apt install ocl-icd-opencl-dev"
 
 Steps:
-- install ROCm
-- navigate to the mfakto folder
 - cd src
-- verify that the AMD_APP_DIR variable in the makefile points to the ROCm
-  directory
+- optional: run "make clean" to remove any build artifacts
 - make
-- mfakto should compile without errors in its root folder
+  - mfakto should compile without errors
 
 #######################
 # 1.2.1 Windows: MSVC #
@@ -176,9 +176,10 @@ Requires:
 
 Steps:
 - cd src
-- make -f Makefile.macOS
-- mfakto should compile out of the box as macOS contains a native OpenCL
-  implementation
+- optional: run "make clean" to remove any build artifacts
+- make
+  - mfakto should compile out of the box as macOS contains a native OpenCL
+    implementation
 
 ####################
 # 2 Running mfakto #
@@ -240,12 +241,13 @@ those that do not divide a Mersenne number. If this happens, run the exponent
 and bit level again on a different device, or on the CPU using Prime95.
 Lowering GridSize in mfakto.ini can reduce the chance of error.
 
-#############
-# 2.2 Linux #
-#############
+#######################
+# 2.2 Linux and macOS #
+#######################
 
-- build mfakto using the above instructions
-- run mfakto
+- build mfakto using the above instructions (only needs to be done once)
+- go to the mfakto root folder and run "./mfakto" to launch the executable
+- mfakto should run without any additional software
 
 ###############
 # 2.3 Windows #
@@ -258,16 +260,9 @@ OS-specific requirements:
 Steps:
 - build mfakto using the above instructions or download a stable version. Only
   the 64-bit binary is currently distributed.
-- go to the mfakto folder and launch the executable
+- go to the mfakto root folder and launch the executable
 - mfakto defaults to the first OpenCL-supported GPU it finds. Use the -d option
   to run mfakto on a specific device.
-
-#############
-# 2.4 macOS #
-#############
-
-- build mfakto using the above instructions
-- mfakto should run without any additional software
 
 ########################################
 # 3 Getting work and reporting results #
@@ -391,11 +386,6 @@ Submitting results:
   results when multiple factors are found in the same class. See the above
   "Supported GPUs" section for details.
 
-- self-tests can fail on Intel HD Graphics unless VectorSize is set to 1 in the
-  INI file. On some macOS systems, the issue may persist regardless of the
-  vector size. We have not determined the exact list of affected versions, but
-  tests have shown that macOS Ventura does not have this issue.
-
 - the '-d c' option fails for some CPUs; this is under investigation
 
 - some have reported mfakto does not work on certain Nvidia hardware; this is
@@ -411,12 +401,12 @@ Submitting results:
 
 - mfakto can find factors outside the given range.
   This is because mfakto works on huge factor blocks, controlled by GridSize in
-  the INI file. The default value GridSize=3 means mfakto runs up to 1048576
+  the INI file. The default value of GridSize=3 means mfakto runs up to 1048576
   factor candidates at once, per class. So the last block of each class is
-  filled with factor candidates above the upper limit. This is a huge overhead
-  for small ranges but can be safely ignored for larger ranges. For example,
-  the average overhead is 0.5% for a class with 100 blocks but only 0.05% for
-  one with 1000 blocks.
+  filled up with factor candidates to above the upper bit level. This is a huge
+  overhead for small ranges but can be safely ignored for larger ranges.
+  For example, the average overhead is 0.5% for a class with 100 blocks but
+  only 0.05% for one with 1000 blocks.
 
 ############
 # 5 Tuning #
