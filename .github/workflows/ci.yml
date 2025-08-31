@@ -26,15 +26,19 @@ jobs:
       CPP: g++
     steps:
     - uses: actions/checkout@v4
+
     - name: Install dependencies
       run: |
         sudo apt-get install -y ocl-icd-opencl-dev pocl-opencl-icd
+
     - name: Build
       run: |
         make -C src -O -j "$(nproc)" CC=${CC} CPP=${CPP}
+
     - name: Test
       run: |
         ./mfakto -d 11
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -50,6 +54,7 @@ jobs:
           README.txt
           tf_debug.h
           todo.txt
+
     - name: Create artifacts and release assets
       if: startsWith(github.ref, 'refs/tags/')
       run: |
@@ -70,24 +75,29 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: ilammy/msvc-dev-cmd@v1
+
     - name: Install dependencies
       run: |
         Invoke-WebRequest $env:OCL_URL -OutFile OpenCL-SDK.zip
         unzip OpenCL-SDK.zip
         mkdir $env:OCL_ROOT\lib\x86_64
         cp $env:OCL_ROOT\lib\*.lib $env:OCL_ROOT\lib\x86_64
+
     - name: Build
       run: |
         msbuild mfaktoVS12.vcxproj /property:OCL_ROOT="$env:OCL_ROOT" /property:Configuration=Release
+
     - name: Create artifacts and release assets
       run: |
         Copy-Item -Path Changelog-mfakto.txt, COPYING, README-SpecialVersions.txt, README.txt, todo.txt, src/mfakto.ini -Destination x64/Release/
         Compress-Archive -DestinationPath mfakto-windows-msvc.zip -CompressionLevel Optimal -Path x64/Release/*
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: mfakto-windows-msvc
         path: x64/Release/
+
     - name: Release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
@@ -103,16 +113,20 @@ jobs:
       CPP: g++
     steps:
     - uses: actions/checkout@v4
+
     - name: Configure paths
       run: |
         echo "C:\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
         echo "C:\msys64\usr\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
     - name: Install dependencies
       run: |
         pacman -S --needed --noconfirm mingw-w64-x86_64-opencl-icd mingw-w64-x86_64-opencl-headers
+
     - name: Build
       run: |
         make -C src -O -j $env:NUMBER_OF_PROCESSORS CC=$env:CC CPP=$env:CPP AMD_APP_INCLUDE="-IC:\msys64\mingw64\include" AMD_APP_LIB="-LC:\msys64\mingw64\lib"
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -128,10 +142,12 @@ jobs:
           README.txt
           tf_debug.h
           todo.txt
+
     - name: Create artifacts and release assets
       if: startsWith(github.ref, 'refs/tags/')
       run: |
         Compress-Archive -DestinationPath mfakto-windows-msys2.zip -CompressionLevel Optimal -Path *.cl, Changelog-mfakto.txt, COPYING, datatypes.h, mfakto.exe, mfakto.ini, README-SpecialVersions.txt, README.txt, tf_debug.h, todo.txt
+
     - name: Release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
@@ -139,7 +155,7 @@ jobs:
         files: |
            mfakto-windows-msys2.zip
 
-  MacOS:
+  macOS:
     name: macOS
     runs-on: ${{ matrix.os }}
     strategy:
@@ -151,21 +167,44 @@ jobs:
       CPP: clang++
     steps:
     - uses: actions/checkout@v4
-    - name: Install dependencies
+
+    # - name: Install dependencies
+    #   run: |
+    #     brew install pocl
+
+    # workaround for PoCL issues, see https://github.com/actions/runner-images/issues/12775#issuecomment-3219867978
+    - name: Install PoCL 6.0.1
       run: |
-        brew install pocl
+        echo "Installing PoCL 6.0.1..."
+        pocl_commit="165dae39781a8150f265d2fae6ea036964dbaad8"
+        pocl_rb_link="https://raw.githubusercontent.com/Homebrew/homebrew-core/$pocl_commit/Formula/p/pocl.rb"
+        mkdir -p /tmp/pocl
+        curl -fsSL "$pocl_rb_link" -o /tmp/pocl/pocl.rb
+        brew install /tmp/pocl/pocl.rb
+
+    - name: Verify PoCL Installation
+      run: |
+        echo "PATH=$PATH"
+        poclcc --version || echo "PoCL compiler not found"
+        brew info pocl
+    # end workaround
+
     - name: Build with PoCL
       run: |
         make -C src -j "$(sysctl -n hw.ncpu)" CC=${CC} CPP=${CPP} AMD_APP_INCLUDE="$(pkg-config --cflags pocl)" AMD_APP_LIB="$(pkg-config --libs pocl)"
+
     - name: Test
       run: |
         ./mfakto -d 11
+
     - name: Clean up build
       run: |
         make -C src clean
+
     - name: Build for native OpenCL
       run: |
         make -C src -j "$(sysctl -n hw.ncpu)" CC=${CC} CPP=${CPP}
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -181,10 +220,12 @@ jobs:
           README.txt
           tf_debug.h
           todo.txt
+
     - name: Create artifacts and release assets
       if: startsWith(github.ref, 'refs/tags/')
       run: |
         tar cvjf mfakto-${{ matrix.os }}.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
+
     - name: Release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
