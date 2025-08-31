@@ -68,7 +68,7 @@ int my_read_int(char *inifile, char *name, int *value)
 static int my_read_ulong(char *inifile, char *name, unsigned long long int *value)
 {
     FILE* in;
-    char buf[100];
+    char buf[101];
     int found = 0;
 
     in = fopen(inifile, "r");
