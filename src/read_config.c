@@ -78,7 +78,7 @@ static int my_read_ulong(char *inifile, char *name, unsigned long long int *valu
         {
             char msg[80];
             inifile_unavailable = 1;
-            sprintf(msg, "Cannot load INI file \"%.55s\"", inifile);
+            snprintf(msg, sizeof(msg) - 1, "Cannot load INI file \"%.55s\"", inifile);
             perror(msg);
         }
         return 1;
