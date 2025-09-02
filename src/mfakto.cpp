@@ -529,6 +529,21 @@ int init_CL(int num_streams, cl_int *devnumber)
       return 1;
     }
 
+#if defined CL_VERSION_2_0
+    status = clGetDeviceInfo(devices[i], CL_DEVICE_QUEUE_ON_DEVICE_PROPERTIES, sizeof(deviceinfo.queue_properties), &deviceinfo.queue_properties, NULL);
+#else
+    status = clGetDeviceInfo(devices[i], CL_DEVICE_QUEUE_PROPERTIES, sizeof(deviceinfo.queue_properties), &deviceinfo.queue_properties, NULL);
+#endif
+    if (status != CL_SUCCESS)
+    {
+#if defined CL_VERSION_2_0
+        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetContextInfo(CL_DEVICE_QUEUE_ON_DEVICE_PROPERTIES)\n";
+#else
+        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetContextInfo(CL_DEVICE_QUEUE_PROPERTIES)\n";
+#endif
+        return 1;
+    }
+
     if (mystuff.verbosity > 1)
       std::cout << "Device " << (i+1)  << "/" << num_devices << ": " << deviceinfo.d_name << " (" << deviceinfo.v_name << "),\ndevice version: "
         << deviceinfo.d_ver << ", driver version: " << deviceinfo.dr_version << "\nExtensions: " << deviceinfo.exts
@@ -568,36 +583,57 @@ int init_CL(int num_streams, cl_int *devnumber)
       deviceinfo.maxThreadsPerGrid *= deviceinfo.wi_sizes[i];
   }
 
-  cl_command_queue_properties props = 0;             // GPU sieve is started without synchronization events
-  if (mystuff.gpu_sieving == 0)                      // but CPU sieve can run out-of-order, if possible
-    props = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;  // kernels and copy-jobs are queued with event dependencies, so this should work ...
-                                                     // but so far the GPU driver does not support that anyway (as of Catalyst 12.9)
-
-  commandQueue = clCreateCommandQueue(context, devices[*devnumber], props, &status);
-  if(status != CL_SUCCESS)
-  {
-    props = 0; // Intel HD does not support out-of-order
+#if defined CL_VERSION_2_0
+    cl_command_queue_properties props[3] = { CL_QUEUE_PROPERTIES, 0, 0 };
+#else
+    cl_command_queue_properties props = 0;
+#endif
+    // GPU sieving is started without synchronization events, but CPU sieving
+    // can execute out of order if appropriate kernels and copy events are
+    // queued with event dependencies. However, the GPU driver does not support
+    // this as of Catalyst 12.9
+    if (mystuff.gpu_sieving == 0) {
+        // determine whether device supports out-of-order operations
+        if (deviceinfo.queue_properties & CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE) {
+#if defined CL_VERSION_2_0
+            props[1] = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
+#else
+            props = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
+#endif
+        } else {
+            printf("\nINFO: Device does not support out-of-order operations. Falling back to in-order queues.\n");
+        }
+    }
+#if defined CL_VERSION_2_0
+    commandQueue = clCreateCommandQueueWithProperties(context, devices[*devnumber], props, &status);
+#else
     commandQueue = clCreateCommandQueue(context, devices[*devnumber], props, &status);
-    if(status != CL_SUCCESS)
-    {
-      std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueue(dev#" << (*devnumber+1) << ")\n";
-      return 1;
+#endif
+    if (status != CL_SUCCESS) {
+#if defined CL_VERSION_2_0
+        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueueWithProperties(device #" << (*devnumber + 1) << ")\n";
+#else
+        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueue(device #" << (*devnumber + 1) << ")\n";
+#endif
+        return 1;
     }
-    else
-    {
-      printf("\nINFO: Device does not support out-of-order operations. Fallback to in-order queues.\n");
+
+#if defined CL_VERSION_2_0
+    props[1] |= CL_QUEUE_PROFILING_ENABLE;
+    commandQueuePrf = clCreateCommandQueueWithProperties(context, devices[*devnumber], props, &status);
+#else
+    props |= CL_QUEUE_PROFILING_ENABLE;
+    commandQueuePrf = clCreateCommandQueue(context, devices[*devnumber], props, &status);
+#endif
+    if (status != CL_SUCCESS) {
+#if defined CL_VERSION_2_0
+        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueueWithProperties(device #" << (*devnumber + 1) << ") with profiling enabled\n";
+#else
+        std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueue(device #" << (*devnumber + 1) << ") with profiling enabled\n";
+#endif
+        return 1;
     }
-  }
-
-  props |= CL_QUEUE_PROFILING_ENABLE;
-
-  commandQueuePrf = clCreateCommandQueue(context, devices[*devnumber], props, &status);
-  if(status != CL_SUCCESS)
-  {
-    std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clCreateCommandQueuePrf(dev#" << (*devnumber+1) << ")\n";
-    return 1;
-  }
-  return CL_SUCCESS;
+    return CL_SUCCESS;
 }
 
 /*
@@ -717,9 +753,11 @@ void set_gpu_type()
                "Please test by changing VectorSize to 2 in %s and restarting mfakto.\n\n", mystuff.inifile);
       }
     }
-    else if (strstr(deviceinfo.d_name, "CPU")           ||
-             strstr(deviceinfo.v_name, "GenuineIntel")  ||
-             strstr(deviceinfo.v_name, "AuthenticAMD"))
+    else if (
+        strstr(deviceinfo.d_name, "CPU")            ||
+        strstr(deviceinfo.d_name, "cpu")            ||
+        strstr(deviceinfo.v_name, "GenuineIntel")   ||
+        strstr(deviceinfo.v_name, "AuthenticAMD"))
     {
       mystuff.gpu_type = GPU_CPU;
     }
@@ -760,7 +798,7 @@ void set_gpu_type()
 #ifdef _MSC_VER
     // avoid warning C33010 in Visual Studio; this should not be reachable
     if (mystuff.gpu_type < GPUKernels::AUTOSELECT_KERNEL || mystuff.gpu_type > GPUKernels::UNKNOWN_GS_KERNEL) {
-        std::cerr << "Error: kernel out of range in set_gpu_type()";
+        std::cerr << "Error: kernel out of range in set_gpu_type()\n";
         exit(1);
     }
 #endif
@@ -1344,7 +1382,7 @@ cl_int run_calc_mod_inv(cl_uint numblocks, size_t localThreads, cl_event *run_ev
                  run_event);
   if(status != CL_SUCCESS)
   {
-    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel(clEnqueueNDRangeKernel) " << kernel_info[CL_CALC_MOD_INV].kernelname << "\n";
+    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel (clEnqueueNDRangeKernel) " << kernel_info[CL_CALC_MOD_INV].kernelname << "\n";
     return 1;
   }
 #ifdef CL_PERFORMANCE_INFO
@@ -1459,7 +1497,7 @@ cl_int run_calc_bit_to_clear(cl_uint numblocks, size_t localThreads, cl_event *r
                  run_event);
   if(status != CL_SUCCESS)
   {
-    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel(clEnqueueNDRangeKernel) " << kernel_info[CL_CALC_BIT_TO_CLEAR].kernelname << "\n";
+    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel (clEnqueueNDRangeKernel) " << kernel_info[CL_CALC_BIT_TO_CLEAR].kernelname << "\n";
     return 1;
   }
 
@@ -1737,7 +1775,7 @@ int run_mod_kernel(cl_ulong hi, cl_ulong lo, cl_ulong q, cl_float qr, cl_ulong *
                  &mod_evt);
   if(status != CL_SUCCESS)
   {
-    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueueing kernel(clEnqueueTask)\n";
+    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueueing kernel (clEnqueueTask)\n";
     return 1;
   }
 
@@ -2185,7 +2223,7 @@ int run_kernel(cl_kernel l_kernel, cl_uint exp, int stream, cl_mem res)
                  &mystuff.exec_events[stream]);
   if(status != CL_SUCCESS)
   {
-    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel(clEnqueueNDRangeKernel), stream " << stream << "\n";
+    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel (clEnqueueNDRangeKernel), stream " << stream << "\n";
     return 1;
   }
   clFlush(QUEUE);
@@ -2461,7 +2499,7 @@ __kernel void cl_barrett32_77_gs(__private uint exp, const int96_t k_base, const
 
   if(status != CL_SUCCESS)
   {
-    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel(clEnqueueNDRangeKernel)\n";
+    std::cerr<< "Error " << status << " (" << ClErrorString(status) << "): Enqueuing kernel (clEnqueueNDRangeKernel)\n";
     return 1;
   }
 
@@ -2576,7 +2614,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
                 NULL);
   if(status != CL_SUCCESS)
   {
-    std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Copying h_RES(clEnqueueWriteBuffer)\n";
+    std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Copying h_RES (clEnqueueWriteBuffer)\n";
     return RET_ERROR; // # factors found ;-)
   }
 #ifdef CHECKS_MODBASECASE
@@ -2593,7 +2631,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
                 NULL);
   if(status != CL_SUCCESS)
   {
-    std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Copying h_modbasecase_debug(clEnqueueWriteBuffer)\n";
+    std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Copying h_modbasecase_debug (clEnqueueWriteBuffer)\n";
     return RET_ERROR; // # factors found ;-)
   }
 #endif
@@ -2714,7 +2752,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
 
         if(status != CL_SUCCESS)
         {
-            std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Copying h_ktab(clEnqueueWriteBuffer)\n";
+            std::cout<<"Error " << status << " (" << ClErrorString(status) << "): Copying h_ktab (clEnqueueWriteBuffer)\n";
             return RET_ERROR; // # factors found ;-)
         }
       }
@@ -2876,7 +2914,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
 #ifdef _MSC_VER
                 // avoid warning C33010 in Visual Studio; this should not be reachable
                 if (use_kernel < GPUKernels::AUTOSELECT_KERNEL || use_kernel > GPUKernels::UNKNOWN_GS_KERNEL) {
-                    std::cerr << "Error: kernel out of range in tf_class_opencl()";
+                    std::cerr << "Error: kernel out of range in tf_class_opencl()\n";
                     return RET_ERROR;
                 }
 #endif
