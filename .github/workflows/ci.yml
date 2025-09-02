@@ -165,8 +165,8 @@ jobs:
     env:
       CC: clang
       CPP: clang++
-      # needed for Homebrew 4.6.4 and above to work
-      HOMEBREW_DEVELOPER: "1"
+      # needed for Homebrew 4.6.4 and above
+      HOMEBREW_DEVELOPER: '1'
     steps:
     - uses: actions/checkout@v4
 
@@ -174,22 +174,20 @@ jobs:
     #   run: |
     #     brew install pocl
 
-    # workaround for PoCL issues, see https://github.com/actions/runner-images/issues/12775#issuecomment-3226624291
+    # workaround for Homebrew bug - see https://github.com/Homebrew/brew/issues/20568
+    # to do: remove this once the macOS runners have been updated to use
+    # Homebrew 4.6.8 or above
+    - name: Update Homebrew to latest stable version
+      run: brew update
+
+    # workaround for PoCL 7.0[.x] issues - see https://github.com/actions/runner-images/issues/12775#issuecomment-3226624291
     - name: Install PoCL 6.0.1
       run: |
-        echo "Installing PoCL 6.0.1..."
         pocl_commit="165dae39781a8150f265d2fae6ea036964dbaad8"
         pocl_rb_link="https://raw.githubusercontent.com/Homebrew/homebrew-core/$pocl_commit/Formula/p/pocl.rb"
         mkdir -p /tmp/pocl
         curl -fsSL "$pocl_rb_link" -o /tmp/pocl/pocl.rb
         brew install --formula /tmp/pocl/pocl.rb
-
-    - name: Verify PoCL installation
-      run: |
-        echo "PATH=$PATH"
-        poclcc --version || echo "PoCL compiler not found"
-        brew info pocl
-    # end workaround
 
     - name: Build with PoCL
       run: |
