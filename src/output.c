@@ -571,21 +571,37 @@ void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bi
   if(mystuff->mode == MODE_NORMAL && mystuff->legacy_results_txt == 1)unlock_and_fclose(txtresultfile);
 }
 
+/* estimate the GHz-days for current job
+GHz-days = <magic constant> * pow(2, bit level - 48) * 1680 / $exponent
 
-double primenet_ghzdays(unsigned int exponent, int bit_min, int bit_max)
-/* estimate the GHZ-days for the current job
-GHz-days = <magic constant> * pow(2, $bitlevel - 48) * 1680 / $exponent
+magic constant is 0.016968 for TF to 65 bits and above
+magic constant is 0.017832 for 63 and 64 bits
+magic constant is 0.011160 for 62 bits and below
 
-magic constant is 0.016968 for TF to 65-bit and above
-magic constant is 0.017832 for 63-and 64-bit
-magic constant is 0.011160 for 62-bit and below
-
-example using M50,000,000 from 2^69-2^70:
+example using M50,000,000 from 2^69 to 2^70:
  = 0.016968 * pow(2, 70 - 48) * 1680 / 50000000
- = 2.3912767291392 GHz-days*/
+ = 2.3912767291392 GHz-days */
+double primenet_ghzdays(unsigned int exponent, int bit_min, int bit_max)
 {
-  // just use the 65-bit constant, that's close enough
-  return 0.016968 * (double)(1ULL << (bit_min - 47)) * 1680 / exponent * ((1 << (bit_max-bit_min)) -1);
+  double ghzdays = 0.0;
+  bit_min++;
+
+  while (bit_min <= bit_max && bit_min <= 62) {
+      ghzdays += GHZDAYS_MAGIC_TF_BOT * pow(2.0, (double)bit_min - 48.0);
+      bit_min++;
+  }
+  while (bit_min <= bit_max && bit_min <= 64) {
+      ghzdays += GHZDAYS_MAGIC_TF_MID * pow(2.0, (double)bit_min - 48.0);
+      bit_min++;
+  }
+  while (bit_min <= bit_max) {
+      ghzdays += GHZDAYS_MAGIC_TF_TOP * pow(2.0, (double)bit_min - 48.0);
+      bit_min++;
+  }
+
+  ghzdays *= 1680.0 / (double)exponent;
+
+  return ghzdays;
 }
 
 const char* ClErrorString( const cl_int errcode )
