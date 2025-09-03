@@ -43,23 +43,24 @@ void print_help(char *string)
 
   printf("Usage: %s [options]\n", string);
   printf("  -h | --help            display this help\n");
-  printf("  -d <xy>                specify to use OpenCL platform number x and\n");
-  printf("                         device number y in this program\n");
-  printf("  -d c                   force using all CPUs\n");
-  printf("  -d g                   force using the first GPU\n");
-  printf("  -v <n>                 verbosity level: 0=terse, 1=normal, 2=verbose, 3=debug\n");
-  printf("  -tf <exp> <min> <max>  trial factor M<exp> from <min> to <max> bits\n");
-  printf("                         instead of parsing the worktodo file\n");
+  printf("  -d <xy>                specify OpenCL platform <x> and device <y>\n");
+  printf("                         note: mfakto defaults to the AMD platform when a\n");
+  printf("                               single-digit argument is passed to -d\n");
+  printf("  -d c                   run on the CPU (all cores)\n");
+  printf("  -d g                   run on the first GPU found\n");
+  printf("  -v <n>                 set verbosity (min = 0, default = 1, more = 2, max = 3)\n");
+  printf("  -tf <exp> <min> <max>  trial factor M<exp> from <min> to <max> bits, ignores\n");
+  printf("                         worktodo file\n");
   printf("  -i | --inifile <file>  load <file> as INI file (default: mfakto.ini)\n");
   printf("  -st                    self-test using the optimal kernel per test case\n");
   printf("  -st2                   self-test using all possible kernels\n");
   printf("\n");
   printf("options for debugging purposes\n");
-  printf("  --timertest            test of timer functions\n");
-  printf("  --sleeptest            test of sleep functions\n");
-  printf("  --perftest [n]         performance tests, repeat each test <n> times (def: 10)\n");
-  printf("  --CLtest               test of some OpenCL functions\n");
-  printf("                         specify -d before --CLtest to test specified device\n");
+  printf("  --timertest            test timer functions\n");
+  printf("  --sleeptest            test sleep functions\n");
+  printf("  --perftest [n]         run performance test <n> times (default: 10)\n");
+  printf("  --CLtest               test selected OpenCL functions\n");
+  printf("                         use -d option before --CLtest to test specified device\n");
 }
 
 
