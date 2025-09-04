@@ -1,6 +1,6 @@
 version 0.16
 ==============================
-- includes features merged in from mfaktc 0.23
+- includes features merged in from mfaktc 0.23.x and 0.24.0
 
 new features:
 - added results.json.txt to comply with PrimeNet results reporting standards
@@ -71,8 +71,8 @@ new features:
   - use the UseBinfile option to customize the kernel file name
 - added a MoreClasses option to mfakto.ini to allow for a "less classes"
   version
-  - very short assignments will benefit from a reduced overhead when GPU
-    sieving is enabled
+  - very short assignments will benefit from reduced overhead with GPU sieving
+    enabled
 - added a FlushInterval option to mfakto.ini to fine-tune the number of kernels
   in the GPU queue; this address the high CPU load in newer AMD drivers
 
@@ -88,7 +88,7 @@ enhancements:
 
 bug fixes:
 - GPUSieveSize being a multiple of GPUSieveProcessSize is now enforced
-- fix a small memory leak of around 0.5 kB per assignment
+- fixed a small memory leak of around 0.5 kB per assignment
 
 build:
 - mfakto can now be compiled with MinGW (thanks to kracker)
