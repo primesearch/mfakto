@@ -306,7 +306,6 @@ enhancements:
 - slightly faster sieve initialization per class
 
 other changes:
-- dropped 2- and 16-wide vectors
 - added a few test cases to the short self-test
 
 version 0.5 (2011-06-19)
