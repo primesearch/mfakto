@@ -34,7 +34,6 @@ along with mfaktc.  If not, see <http://www.gnu.org/licenses/>.
 
 void print_help(char *string)
 {
-  printf("mfakto (%s)\n", MFAKTO_VERSION);
   printf("Copyright (c) 2009-2014\n");
   printf("  Oliver Weihe (o.weihe@t-online.de)\n");
   printf("  Bertram Franz (bertramf@gmx.net)\n\n");
