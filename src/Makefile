@@ -112,7 +112,7 @@ all: $(ALL_TARGETS)
 	$(LD) $^ $(LDFLAGS) -o $@
 
 clean:
-	$(RM) *.o *~ depend *.i *.ii
+	$(RM) *.o *~ depend *.bc *.i *.ii
 
 sieve.o : sieve.c
 	$(CC) $(CFLAGS) $(CFLAGS_EXTRA_SIEVE) -c $< -o $@
