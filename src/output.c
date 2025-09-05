@@ -1,6 +1,6 @@
 /*
 This file is part of mfaktc.
-Copyright (C) 2009 - 2014  Oliver Weihe (o.weihe@t-online.de)
+Copyright (c) 2009 - 2014  Oliver Weihe (o.weihe@t-online.de)
                            Bertram Franz (bertramf@gmx.net)
 
 mfaktc is free software: you can redistribute it and/or modify
@@ -34,25 +34,27 @@ along with mfaktc.  If not, see <http://www.gnu.org/licenses/>.
 
 void print_help(char *string)
 {
-  printf("mfakto (%s) Copyright (C) 2009-2014,\n", MFAKTO_VERSION);
+  printf("mfakto (%s)\n", MFAKTO_VERSION);
+  printf("Copyright (c) 2009-2014\n");
   printf("  Oliver Weihe (o.weihe@t-online.de)\n");
-  printf("  Bertram Franz (bertramf@gmx.net)\n");
+  printf("  Bertram Franz (bertramf@gmx.net)\n\n");
   printf("This program comes with ABSOLUTELY NO WARRANTY; for details see COPYING.\n");
   printf("This is free software, and you are welcome to redistribute it\n");
   printf("under certain conditions; see COPYING for details.\n\n\n");
 
   printf("Usage: %s [options]\n", string);
   printf("  -h | --help            display this help\n");
-  printf("  -d <xy>                specify OpenCL platform <x> and device <y>\n");
+  printf("  -d <xy>                specify OpenCL platform <x> and device <y> to use\n");
   printf("                         note: mfakto defaults to the AMD platform when a\n");
   printf("                               single-digit argument is passed to -d\n");
   printf("  -d c                   run on the CPU (all cores)\n");
   printf("  -d g                   run on the first GPU found\n");
-  printf("  -v <n>                 set verbosity (min = 0, default = 1, more = 2, max = 3)\n");
+  printf("  -v <n>                 verbosity level: terse = 0, default = 1, more = 2,\n");
+  printf("                                          maximum = 3\n");
   printf("  -tf <exp> <min> <max>  trial factor M<exp> from <min> to <max> bits, ignores\n");
   printf("                         worktodo file\n");
-  printf("  -i | --inifile <file>  load <file> as INI file (default: mfakto.ini)\n");
-  printf("  -st                    self-test using the optimal kernel per test case\n");
+  printf("  -i | --inifile <file>  load a specific INI file (default: mfakto.ini)\n");
+  printf("  -st                    self-test using the optimal kernel for each test case\n");
   printf("  -st2                   self-test using all possible kernels\n");
   printf("\n");
   printf("options for debugging purposes\n");
