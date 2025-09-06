@@ -10,11 +10,6 @@ new features:
 enhancements:
 - added RDNA 3 support
 
-build:
-- continuous integration via GitHub Actions (thanks to Pavel Roskin and
-  Henning Gerhardt)
-- removed the dependency on ROCm as it is not needed
-
 bug fixes:
 - fixed double precision issues in barrett15 kernels
 - fixed support for Intel Compute Runtime with VectorSize > 1 (thanks to Pavel
@@ -22,8 +17,14 @@ bug fixes:
 - added a workaround for failures in the cl_barrett15_74 kernel on macOS Sonoma
   (thanks to Pavel Roskin)
 
+build:
+- continuous integration via GitHub Actions (thanks to Pavel Roskin and
+  Henning Gerhardt)
+- removed the dependency on ROCm as it is not needed
+
 other changes:
-- replaced deprecated function calls with OpenCL 2.0 APIs
+- updated the code to use OpenCL 2.0 instead of deprecated OpenCL 1.0 APIs when
+  possible
 - updated some default settings in mfakto.ini to match mfaktc.ini (thanks to
   James Heinrich)
   - Stages changed from 1 to 0
@@ -37,8 +38,9 @@ other changes:
 version 0.15
 ==============================
 new features:
-- implemented menu / key-press evaluation to dynamically adjust settings like
+- implemented a keyboard shortcut menu to dynamically adjust settings like
   SievePrimes, SieveSize and SieveProcessSize (and others)
+  - note: kernel selection is not currently available
 
 enhancements:
 - more GPU models are now detected
@@ -46,9 +48,8 @@ enhancements:
 
 bug fixes:
 - SieveCPUMask on Linux had "random" results
-- specifying a device number greater than 1 via the -d option caused kernel
-  compilation to not work correctly
-  was specified via the -d option
+- specifying a device number greater than 1 via the -d option caused the kernel
+  to not compile correctly
 - the verbosity level was not passed to valid_assignment()
 - the '-d g' option was hard-coded to use an invalid device number
 - the DETAILED_INFO and CHECKS_MODBASECASE debug options no longer cause

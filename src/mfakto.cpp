@@ -381,7 +381,7 @@ int init_CL(int num_streams, cl_int *devnumber)
   if (status == CL_DEVICE_NOT_FOUND)
   {
     clReleaseContext(context);
-    std::cout << "GPU not found, fallback to CPU." << std::endl;
+    std::cout << "Could not find a supported GPU, falling back to CPU." << std::endl;
     context = clCreateContextFromType(cps, CL_DEVICE_TYPE_CPU, NULL, NULL, &status);
     if(status != CL_SUCCESS)
     {
