@@ -555,11 +555,10 @@ int init_CL(int num_streams, cl_int *devnumber)
 
   if (strstr(deviceinfo.exts, "global_int32_base_atomics") == NULL)
   {
-    printf("\nWARNING: Device does not support atomic operations. This may lead to errors\n"
-           "         when multiple factors are found in the same class. Possible errors\n"
-           "         include reporting just one of the factors, or (less likely) scrambled\n"
-           "         factors. If the reported factor(s) are not accepted by primenet,\n"
-           "         please re-run this test on the CPU, or on a GPU with atomics.\n");
+    printf("\nWarning: Device does not support atomic operations. mfakto may report only\n"
+           "      one factor or an invalid one when multiple factors are found in the same\n"
+           "      class. If the reported factor(s) are not accepted by the PrimeNet server,\n"
+           "      then please re-run the bit range on the CPU, or a GPU with atomics.\n");
   }
 
   /*if (strstr(deviceinfo.exts, "cl_khr_fp64") == NULL)
