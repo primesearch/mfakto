@@ -1,206 +1,371 @@
 version 0.16
-- merge features from mfaktc 0.23
-- json results output
-- logging
-- RDNA3 support
-- fix barrett15 double precision issues
+==============================
+- includes features merged in from mfaktc 0.23.x and 0.24.0
 
-version 0.15 (...)
+new features:
+- added results.json.txt to comply with PrimeNet results reporting standards
+- implemented runtime logging
+  - set Logging=1 in the INI file to enable
+
+enhancements:
+- added RDNA 3 support
+
+build:
+- continuous integration via GitHub Actions (thanks to Pavel Roskin and
+  Henning Gerhardt)
+- removed the dependency on ROCm as it is not needed
+
+bug fixes:
+- fixed double precision issues in barrett15 kernels
+- fixed support for Intel Compute Runtime with VectorSize > 1 (thanks to Pavel
+  Roskin)
+- added a workaround for failures in the cl_barrett15_74 kernel on macOS Sonoma
+  (thanks to Pavel Roskin)
+
+other changes:
+- replaced deprecated function calls with OpenCL 2.0 APIs
+- updated some default settings in mfakto.ini to match mfaktc.ini (thanks to
+  James Heinrich)
+  - Stages changed from 1 to 0
+  - StopAfterFactor changed from 2 to 1
+- requested by James Heinrich: results are no longer saved to deprecated
+  results.txt by default (thanks to NStorm)
+  - please use results.json.txt for submissions
+  - set LegacyResultsTxt=1 in mfaktc.ini to restore old behavior and re-enable
+    logging to results.txt
+
+version 0.15
+==============================
+new features:
+- implemented menu / key-press evaluation to dynamically adjust settings like
+  SievePrimes, SieveSize and SieveProcessSize (and others)
+
+enhancements:
 - more GPU models are now detected
 - some support for Intel HD Graphics
+
+bug fixes:
+- SieveCPUMask on Linux had "random" results
+- specifying a device number greater than 1 via the -d option caused kernel
+  compilation to not work correctly
+  was specified via the -d option
+- the verbosity level was not passed to valid_assignment()
+- the '-d g' option was hard-coded to use an invalid device number
+- the DETAILED_INFO and CHECKS_MODBASECASE debug options no longer cause
+  compilation to fail
+- the line "Overflow!" was printed ad infinitum when the DETAILED_INFO debug
+  option was enabled
+- the number of threads per grid could be set to zero when less than the
+  vector size * maximum threads per block
+
+build:
 - mfakto now compiles and runs on macOS
 - updated Windows build instructions and fixed some errors
 - fixed some Linux compilation issues
 - removed dependency on AMD APP SDK as it has been discontinued
-- menu / key-press evaluation to dynamically adjust settings like
-  SievePrimes, SieveSize, SieveProcessSize (and others)
-- bug fix: SieveCPUMask on Linux had "random" results
-- bug fix: kernel compilation did not work correctly if a device number
-  greater than 1 was specified via the -d option
-- bug fix: verbosity level was not passed to valid_assignment()
-- bug fix: the '-d g' option was hard-coded to use an invalid device number
-- bug fix: the DETAILED_INFO and CHECKS_MODBASECASE debug options no longer
-  cause compilation to fail
-- bug fix: the line "Overflow!" was printed ad infinitum when the DETAILED_INFO
-  debug option was enabled
-- bug fix: the number of threads per grid could be set to zero when less than
-  the vector size * maximum threads per block
 
 version 0.14 (2014-04-17)
-- --perftest enhancements including GPU sieve evaluation (for optimizing GPUSievePrimes etc.)
-- successfully resync when the working directory was temporarily lost (ejected USB device or interrupted network drive)
-- save and reload compiled OpenCL kernels => reduce startup time (UseBinfile config variable)
-- MoreClasses config variable to allow for a "less classes" version for very short assignments (GPU sieve only)
-- BugFix: enforce GPUSieveSize being a multiple of GPUSieveProcessSize
-- FlushInterval config variable to fine tune the number of kernels in the GPU queue => address high CPU load issue of newer AMD drivers
-- MinGW build (thanks to kracker)
-- slight performance improvement for the montgomery kernels
-- improved English wording in program output, ini file etc. (thanks to kracker)
-- recognition of new GPUs (8xxx, R9, new APUs) (thanks to kracker)
-- added a warning when using VectorSize=1
-- fix for a small memory leak (~0.5kB per assignment)
-- compatible with windows 8.1
+==============================
+new features:
+- mfakto can now save and reload compiled OpenCL kernels to reduce startup time
+  - use the UseBinfile option to customize the kernel file name
+- added a MoreClasses option to mfakto.ini to allow for a "less classes"
+  version
+  - very short assignments will benefit from reduced overhead with GPU sieving
+    enabled
+- added a FlushInterval option to mfakto.ini to fine-tune the number of kernels
+  in the GPU queue; this address the high CPU load in newer AMD drivers
+
+enhancements:
+- the --perftest option has been extended to GPU sieve evaluation
+  - this is useful for optimizing GPUSievePrimes, etc.
+- added code to sync with the working directory if access is temporarily lost
+  (such as due to an ejected USB device or interrupted network drive)
+- slight performance improvement in the Montgomery multiplication kernels
+- recognition of additional GPUs, such as the Radeon HD 8000 and Radeon 200
+  series, and new APUs (thanks to kracker)
+- mfakto is now compatible with Windows 8.1
+
+bug fixes:
+- GPUSieveSize being a multiple of GPUSieveProcessSize is now enforced
+- fixed a small memory leak of around 0.5 kB per assignment
+
+build:
+- mfakto can now be compiled with MinGW (thanks to kracker)
+
+other changes:
+- improved English wording in program output and INI file, etc. (thanks to
+  kracker)
+- added a warning for VectorSize=1
 
 version 0.13 (2013-05-19)
+==============================
+new features:
 - most important: GPU sieving (thanks to George Woltman)
-  o set SieveOnGPU=1 to enable
-  o use GPUSievePrimes, GPUSieveSize, GPUSieveProcessSize to tweak it
-    (see mfakto.ini for details)
-  o on lower-end GPUs GPU sieving works as well, but may result in ~20% less
-    throughput than CPU sieving: try it out.
-  o almost no CPU utilization, but Catalyst 13.4 and 13.5 have a bug so mfakto
-    will consume up to one CPU core. Stay below 13.4 for now.
-- performance improvements for all kernels between 2 and 20% (also visible when CPU sieving)
-  o use of more intrinsics like amd_bitalign and mad_hi
-  o direct use of comparison results
-  o skipping a few calculations due to better judgement of required precision
-  o new kernels (thanks for the ideas and CUDA examples to George Woltman and Oliver Weihe)
-  o big set of kernels based on 15-bit-math (speedup for Cayman and GCN)
+  - set SieveOnGPU=1 in mfakto.ini to enable
+  - use GPUSievePrimes, GPUSieveSize, GPUSieveProcessSize to tweak it (see
+    mfakto.ini for details)
+  - GPU sieving also works on lower-end GPUs, but may have around 20% less
+    throughput than CPU sieving
+    - try out different settings to determine the best configuration
+  - known issue: Catalyst 13.4 and 13.5 have a bug that could cause mfakto to
+    use up to one CPU core. Stay below 13.4 or downgrade to a previous version
 - closer alignment with mfaktc
-  o -v switch (also available as a Verbosity config variable)
-  o output adjustments
-  o internal file and function structure
-- better diagnostics through improved tracing and error number decoding
-- prepare for running on Intel HD4000 or NVIDIA devices (not fully functional yet)
-- --perftest mode to test CPU sieving performance (to be extended for kernel performance tests)
-- allow setting CPU affinity for the CPU sieve thread (SieveCPUMask config variable)
-- 30k extra test cases now available in the -st2 selftest
+  - verbosity level can now be configured with the Verbosity option in the INI
+    file, or the -v switch
+  - output adjustments
+  - updated internal file and function structure
+- added a --perftest option to test CPU sieving performance; this will be
+  extended to kernels
+- the SieveCPUMask option can now be used to set the affinity of the CPU
+  sieving thread
+  - this has no effect on operating systems that do not support setting CPU
+    affinity
+
+enhancements:
+- all kernels are now between 2% and 20% faster
+  - performance of CPU sieving is also improved
+  - increased use of intrinsics like amd_bitalign and mad_hi
+  - direct use of comparison functions
+  - removed some unnecessary calculations due to better judgment of required
+    precision
+  - new kernels (thanks to George Woltman and Oliver Weihe for the ideas and
+    CUDA examples)
+  - many new kernels based on 15-bit math
+    - users should see improved performance on Cayman and GCN devices
+- better diagnostics through improved tracing and error code handling
+- an extra 30,000 test cases are now available in the -st2 self-test
+
+other changes:
+- made some changes "under the hood" to prepare for Intel HD 4000 and NVIDIA
+  device support
+  note: these GPUs are not fully supported yet
 
 version 0.12 (2012-07-29)
-- IMPORTANT: bugfix for missing factors for certain exponent ranges.
-  Thanks to dabaichi and Axelsson for bug report and help on
-  http://mersenneforum.org/showthread.php?t=13977&page=16#383
-- handling of <worktodo>.add (worktodo file name as configured, with suffix
-  replaced): will be appended to <worktodo> between 5 and ~10 minutes after
-  the add file's creation, or when moving to the next assignment
-- new mfakto.ini key SieveCPUMask to set the siever thread's CPU affinity
-- auto-detection of the GPU-type, along with new GPUType key in mfakto.ini,
-  removed PreferKernel key
-- optimization for GCN (Graphics Core Next: HD77xx, HD78xx, HD79xx)
+==============================
+new features:
+- added worktodo.add file support
+  - assignments in worktodo.add are appended to worktodo.txt between five and
+    approximately 10 minutes after the file's creation or on completing an
+    assignment
+- added a SieveCPUMask option to the INI file
+  - note: this will become functional in mfakto 0.13
+
+- added automatic detection of GPU type
+  - can be overridden with the GPUType option in mfakto.ini
+  - removed the PreferKernel option
+
+enhancements:
+- increased performance for Radeon HD 7700 - 7900 series due to optimization for
+  Graphics Core Next
 - improved estimation of the number of compute units
-- bugfix: occasional abort on very high SievePrimes (> 450,000)
-- progress line output format: percent complete now %5.1f (was %6.2f),
-  exponent now %-10u (was %d)
-- bugfix: if a kernel file cannot be found, tell it's name instead of
-  KERNEL_FILE (thanks to Axelsson)
-- approx. 30,000 new test cases (factors) for pre-release testing
-  (thanks to James Heinrich)
+
+bug fixes:
+- critical change: fixed missing factors for certain exponent ranges
+  - thanks to dabaichi and Axelsson for the bug report and help at
+    http://mersenneforum.org/showthread.php?t=13977&page=16#383
+- occasional abort on very high SievePrimes, usually above 450,000
+- mfakto now prints the kernel's name instead of "KERNEL_FILE" if a kernel
+  could not be found (thanks to Axelsson)
+
+other changes:
+- tweaked the progress line output format
+  - percentage complete changed from %6.2f to %5.1f
+  - current exponent changed from %d to %-10u
+- added around 30,000 new test cases (factors) to the test data for pre-release
+  testing (thanks to James Heinrich)
 
 version 0.11 (2012-05-21)
-- new 24-bit barrett kernel for FCs up to 2^70 - very fast!
-- new 15-bit barrett kernel for FCs up to 2^73 - almost as fast,
-  especially on Cayman this one has a speedup of 50%
-- new SievePrimesMin ini-file variable to replace the so-far fix
-  value of 5000
-- new V5UserID and ComputerID ini-file variables that let you configure
-  these ID's for the results file output (so far only useful for mersenne.ca)
-- new TimeStampInResults ini-file variable allows to configure that each
-  output line in the results file should be preceded by a time stamp
-- new ProgressHeader and PrintFormat ini-file variables to adapt the
-  information that is printed after each class is finished. See the included
-	mfakto.ini file for details.
-- On Linux: Siever code is now compiled with gcc4.6: ~10% faster sieve
-- file locking: worktodo and results files accesses are now synchronized
-  using a lock file (.lck appended to the file name).
-- evaluation of GHz-days of assignments, and current speed as GHz-days/day
-- Ctrl-C handler already in selftest to get a summary of so-far-completed
-  tests
-- new --pertest option to test the siever performance depending on SievePrimes
-  and SieveSizeLimit (if that is not fix at compile time)
-- using a fix power of 2 for the number of GPU threads (still set via
-  GridSize)
-- removed many compiler-warnings
+==============================
+new features:
+- added several new INI file options
+  - SievePrimesMin to replace the fixed value of 5000
+  - V5UserID and ComputerID for recording the username and computer name in the
+    results file, similar to Prime95
+  - TimeStampInResults to record timestamps in results.txt
+  - ProgressHeader and PrintFormat to adjust the progress information printed
+    after each class. See the included mfakto.ini file for details
+- added a --perftest option to test the sieving performance, depending on
+  SievePrimes
+  - also tests SieveSizeLimit if it is not fixed at compile time
+
+enhancements:
+- new 24-bit Barrett reduction kernel for FCs up to 70 bits
+  - should be very fast :-)
+- new 15-bit Barrett reduction kernel for FCs up to 73 bits
+  - almost as fast as the 24-bit kernel
+  - testing on a Radeon HD 6900 series (Cayman) GPU has shown a 50% speedup
+- implemented file locking to reduce concurrency
+  - access to the worktodo.txt and results files is now synchronized using a
+    lock file (such files have a .lck suffix)
+- mfakto can now evaluate the PrimeNet credit of an assignment (GHz-days) and
+  the current throughput (GHz-days per day)
+- pressing Ctrl + C during a self-test will display a summary of tests
+  completed so far
+
+bug fixes:
+- removed many compiler warnings
+
+build:
+- the sieving code is now compiled with gcc 4.6 on Linux
+  - this improves the sieving performance by around 20%
+
+other changes:
+- the number of GPU threads is now a fixed power of 2
+  - no changes to the GridSize option
 
 version 0.10 (2011-12-19)
-- added workaround for compatibility with Catalyst 11.10 and above
-- MODBASECASE for barrett kernels enabled
-- Checkpoints now keep a backup (.bu) that is automatically read if the
-  .cpt file is corrupt
-- mfakto now allows reading checkpoints from any version of mfaktc and mfakto
-  as long as the other parameters and the checksum are OK
-- When Checkpoint files cannot be used, there are some diagnostic messages
-- added some optimization options to the Linux Makefile
-- split mul24 kernel in two bitranges 0-64 and 61-72 allowing for some
-  optimizations: +10-20% for 70-bit assignments using the mul24 kernel
-- merged mfaktc 0.18 features:
-  + inifile parameter CheckpointDelay (see below)
-	+ extended selftest (-st2)
-	+ minor bugfix reporting a bitlevel as incompletely tested if a factor was
-	  found in the last class
-	+ Changes to the factor found result line as discussed in the mersenne forum
-	+ Linux: the signal handler now also catches SIGTERM
-- Writing checkpoints can now be limited:
-  + set CheckpointDelay <s> to write a checkpoint only if at least s seconds
-	  have passed since the last checkpoint
-	+ set Checkpoint <n>, n>1 to write a checkpoint only after n classes have
-	  been tested (set to n=1 to enable CheckpointDelay)
-- added commandline parameter  -i|--inifile <file>
-  to load <file> as inifile (default: mfakto.ini), allowing multiple instances
-	of mfakto in the same directory
-- added ResultsFile parameter to inifile
-- added program support for GPU-sieving (siever kernel not yet functional!)
+==============================
+new features:
+- checkpoints are now backed up
+  - mfakto will attempt to use the backup file if a checkpoint is corrupt or
+    otherwise unreadable
+  - backup files have a .bu suffix
+- merged in features from mfaktc 0.18
+  - the CheckpointDelay option as described below
+  - extended self-test (-st2)
+  - updated the factor found result line as discussed at the GIMPS forum
+  - the signal handler now also catches SIGTERM
+- users can now limit how often checkpoints are written
+  - set CheckpointDelay=<s> in mfakto.ini to have mfakto wait s seconds between
+    checkpoint saves
+  - use Checkpoint=1 to enable CheckpointDelay
+  - set Checkpoint=<n> for n > 1 to write a checkpoint only after n classes
+    have been processed
+- added a --inifile command-line option for loading custom INI files, to
+  support multiple mfakto instances in the same directory
+  - usage: --inifile <file>
+  - the shorthand '-i <file>' is also accepted
+  - defaults to mfakto.ini
+- added a ResultsFile parameter to the INI file
+
+enhancements:
+- mfakto now allows reading checkpoints from any mfaktc or mfakto version as
+  long as the other parameters and the checksum are OK
+- diagnostic messages are now displayed if a checkpoint is unusable
+- optimized the mul24 kernel by splitting it into two ranges: up to 64 bits,
+  and 61 to 72 bits
+  - this results in a 10-20% performance gain for 70-bit assignments
+
+bug fixes:
+- added workaround for known issues with Catalyst 11.10 and above
+- mfaktc 0.18 change: fixed an edge case where a factor found in the last class
+  caused mfakto to report the bit range as incomplete
+
+build:
+- added some optimization options to the Linux makefile
+
+other changes:
+- enabled MODBASECASE for Barrett reduction kernels
+- added preliminary support for GPU sieving
+  - note: the sieving kernel is not yet functional
 
 version 0.9 (2011-10-01)
-- fixed bug in 72-bit kernel that might miss small factors (<48 bit)
-  unfortunately, the fix slows this kernel by ~3-5%
-- added test for the above bug to the selftest
+==============================
+enhancements:
 - better calculation for SievePrimesAdjust
 
+bug fixes:
+- fixed a bug in the 72-bit kernel that could cause mfakto to miss factors
+  below 48 bits
+  - known issue: this change reduces the kernel's performance by about 3-5%
+  - added a test for the bug to the self-test
+
 version 0.8 (2011-09-13)
-- added --help and parameter checking
-- exclude single-vectored 72-bit-mul24-kernel (not working with AMD APP SDK 2.5)
-- removed THREADS_PER_BLOCK (no longer needed, will be selected automatically
-  based on the GPU capabilities)
-- removed slow 95-bit kernel (not usable anyway)
-- added to mfakto.ini a config setting
-  PreferKernel=mfakto_cl_barrett79|mfakto_cl_71 as HD5xxx and HD6xxx
-  have their top-speed with different kernels
-- tuned the settings for SievePrimesAdjust - should now be usable
+==============================
+new features:
+- added a --help switch and parameter checking
+- added a PreferKernel option to mfakto.ini as some devices require different
+  kernels for optimal performance
+  - use mfakto_cl_barrett79 for the Radeon HD 5000 series
+  - use mfakto_cl_71 for the Radeon HD 6000 series
+
+enhancements:
+- tuned the settings for SievePrimesAdjust (should now be usable)
+
+other changes:
+- excluded the single-vector 72-bit mul24 kernel as it is incompatible with the
+  AMD APP SDK 2.5
+- removed THREADS_PER_BLOCK as it is no longer needed
+  - mfakto will now automatically choose the value based on GPU capabilities
+- removed the slow and unusable 95-bit kernel
 
 version 0.7 (2011-08-10)
-- vectorized barrett kernels
+==============================
+new features:
+- vectorized the Barrett reduction kernels
+- added a '-d c' switch to force running on CPU
+- added an option to enable debuggable kernel code
+
+enhancements:
+- removed crash workaround from Barrett reduction kernels: 3% faster
+  - no longer needed since Catalyst 11.7
+- improved error handling and added more robust checks for invalid
+  configurations
+- fixed and optimized CPU pre-processing limits
+
+bug fixes:
+- fixed index evaluation in Barrett reduction kernels
+- fixed shifts of greater than 31 bits in Barrett reduction kernels
+- resolved a few compiler warnings
+
+other changes:
 - re-enabled the MODBASECASE checks
-- removed crash-workaround from barrett kernels
-  (no longer needed since Catalyst 11.7): +3%
-- fixed index-evaluation in barrett kernels
-- fix for bitshifts of >31 bits in barrett kernels
-- fixed a few compiler warnings
-- improved error handling for bad config
-- added "-d c" switch to force running on CPU
-- added warning when no atomics are available
-- added option for debuggable kernel code
-- fixed/optimized limits for preprocessing on CPU
+- added warning for devices that do not support atomic operations
 
 version 0.6 (2011-07-09)
-- ported barrett kernels for 79 and 92 bit factor sizes
-- added support for GPUs without atomics (HD4xxx)
-- dropped 2- and 16-wide vectors
-- optimization in the 24-bit kernels: +3%
-- added a few testcases to the short selftest
-- SievePrimes auto-adjust now working (still not optimal)
-- slightly faster sieve-initialization per class
+==============================
+new features:
+- automatic adjustment of SievePrimes is now functional
+  - note: not optimal and needs tuning
+
+enhancements:
+- extended Barrett reduction kernels to 79- and 92-bit factor sizes
+- added support for GPUs without atomic operations, such as the Radeon HD 4000
+  series
+- optimization in the 24-bit kernels: 3% faster
+- slightly faster sieve initialization per class
+
+other changes:
+- added a few test cases to the short self-test
 
 version 0.5 (2011-06-19)
-- fixed 72-bit subtraction (in various places) as per TheJudger's comment
-  on www.mersenneforum.org - Thanks for the hint!
-- fixed boundaries for 95-bit kernel (-st failures)
-- added vectorized versions of the 72-bit kernel (2, 4, 8, 16 wide)
-- added VectorSize config item to select one of the vectorized kernels
-- added GridSize=4 (up to 2M threads per grid)
-- combined the "if (a>b) sub(a,b)" to a "sub_if_gt" without any "if"s
-  (only conditional moves - prerequisite for the vector approach)
-- moved the new DETAILED_INFO and CL_PERFORMANCE_INFO debug defines to
-  params.h
-- added GPLv3 headers everywhere
+==============================
+new features:
+- added vectorized 72-bit kernels with 2-, 4-, 8- and 16-wide vectors
+  - use the new VectorSize option in mfakto.ini to choose the version
+
+enhancements:
+- mfakto now supports up to 2.1 million threads per grid with GridSize=4
+
+bug fixes:
+- fixed 72-bit subtraction in various places (thanks to Oliver's comment on
+  http://mersenneforum.org for the hint)
+- fixed boundaries for the 95-bit kernel (and resolved the -st failures)
+
+other changes:
+- replaced the "(a > b) ? a - b : a" statements with sub_if_gt_*() functions
+  without if-conditionals
+  - this is a prerequisite for the vector approach
+- moved the new DETAILED_INFO and CL_PERFORMANCE_INFO debug macros to params.h
+- added GPLv3 headers to source files
 
 version 0.4 (2011-06-09)
-- first version to go out to some people
-- cleanup of
-  - unused code
-	- cuda-references and workarounds
-  - removed OpenCL-example-code
-- merged in the signal handler from mfaktc 0.18-pre2
-- 71-bit-mul24-kernel working for all tests:
+==============================
+- initial version distributed to selected users
+
+new features:
+- merged in signal handler from mfaktc 0.18-pre2
+
+enhancements:
+- unrolled the modulo loop in the 95-bit kernel: 10% faster
+
+bug fixes:
+- the 71-bit mul24 kernel is working for all tests
   - fixed bit-shifting offset in square_72_144_shl
 	- fixed carry in sub72
-- unrolled the modulo loop in the 95-bit kernel: 10% faster
+
+other changes:
+- cleaned up unused code
+	- CUDA references and workarounds
+  - OpenCL examples

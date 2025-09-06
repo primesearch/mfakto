@@ -371,9 +371,6 @@ Submitting results:
   option for Windows users is to increase the GPU processing time:
   https://support.microsoft.com/en-us/help/2665946
 
-- SievePrimesAdjust is not always optimal. Experiment to find the best
-  SievePrimes value and set SievePrimesAdjust=0 in your mfakto.ini file.
-
 - GPU is not found, fallback to CPU
   This happens on Linux when there is no X server. It can also happen on
   Windows when the GPU is not the primary display adapter. Try running mfakto
