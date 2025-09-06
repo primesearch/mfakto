@@ -34,6 +34,8 @@ other changes:
   - please use results.json.txt for submissions
   - set LegacyResultsTxt=1 in mfaktc.ini to restore old behavior and re-enable
     logging to results.txt
+- added code to handle situations where the device's clock speed could not be
+  determined
 
 version 0.15
 ==============================

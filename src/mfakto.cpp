@@ -803,7 +803,17 @@ void set_gpu_type()
     }
 #endif
     printf("  number of multiprocessors %d (%d compute elements)\n", deviceinfo.units, deviceinfo.units * gpu_types[mystuff.gpu_type].CE_per_multiprocessor);
-    printf("  clock rate                %d MHz\n", deviceinfo.max_clock);
+    // for some devices, CL_DEVICE_MAX_CLOCK_FREQUENCY can return 0 or 1 MHz
+    if (deviceinfo.max_clock < 5) {
+      printf("  clock rate                unavailable\n");
+      if (mystuff.verbosity > 1) {
+        printf("\nInfo: mfakto could not determine the clock rate. Some devices might not report\n");
+        printf("      this information due to firmware or driver limitations, or software\n");
+        printf("      conflicts. However, this does not affect mfakto's performance.\n");
+      }
+    } else {
+      printf("  clock rate                %d MHz\n", deviceinfo.max_clock);
+    }
 
     printf("\nAutomatic parameters\n");
 
