@@ -224,17 +224,17 @@ typedef struct _print_parameter
 
 typedef struct _stats_t
 {
-  char     progressheader[256];       /* userconfigureable progress header */
-  char     progressformat[256];       /* userconfigureable progress line */
+  char     progressheader[256];       /* user-configurable progress header */
+  char     progressformat[256];       /* user-configurable progress line */
   cl_uint  class_number;              /* the number of the last processed class */
   cl_uint  grid_count;                /* number of grids processed in the last processed class */
   cl_ulong class_time;                /* time (in ms) needed to process the last processed class */
-  unsigned long long bit_level_time;  /* time (in ms) since the bitlevel was started */
+  unsigned long long bit_level_time;  /* time (in ms) since the bit level was started */
   cl_ulong cpu_wait_time;             /* time (ms) CPU was waiting for the GPU */
   float    cpu_wait;                  /* percentage CPU was waiting for the GPU */
   cl_uint  output_counter;            /* count how often the status line was written since last headline */
   cl_uint  class_counter;             /* number of finished classes of the current job */
-  double   ghzdays;                   /* primenet GHZdays for the current assignment (current stage) */
+  double   ghzdays;                   /* PrimeNet GHz-days for the current assignment (current stage) */
   char     kernelname[32];
 }stats_t;
 
@@ -308,8 +308,8 @@ typedef struct _mystuff_t
   char jsonresultfile[51];
   char logfile[51];
   FILE *logfileptr;
-  char V5UserID[51];           /* primenet V5UserID and ComputerID */
-  char ComputerID[51];         /* currently only used for screen/result output */
+  char V5UserID[51];           /* PrimeNet user ID and computer ID */
+  char ComputerID[51];
   char assignment_key[MAX_LINE_LENGTH + 1]; /* the assignment ID */
   char factors_string[500];    /* store factors in global state */
   char CompileOptions[151];    /* additional compile options */

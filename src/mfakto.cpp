@@ -381,7 +381,7 @@ int init_CL(int num_streams, cl_int *devnumber)
   if (status == CL_DEVICE_NOT_FOUND)
   {
     clReleaseContext(context);
-    std::cout << "GPU not found, fallback to CPU." << std::endl;
+    std::cout << "Could not find a supported GPU, falling back to CPU." << std::endl;
     context = clCreateContextFromType(cps, CL_DEVICE_TYPE_CPU, NULL, NULL, &status);
     if(status != CL_SUCCESS)
     {
@@ -555,11 +555,10 @@ int init_CL(int num_streams, cl_int *devnumber)
 
   if (strstr(deviceinfo.exts, "global_int32_base_atomics") == NULL)
   {
-    printf("\nWARNING: Device does not support atomic operations. This may lead to errors\n"
-           "         when multiple factors are found in the same class. Possible errors\n"
-           "         include reporting just one of the factors, or (less likely) scrambled\n"
-           "         factors. If the reported factor(s) are not accepted by primenet,\n"
-           "         please re-run this test on the CPU, or on a GPU with atomics.\n");
+    printf("\nWarning: Device does not support atomic operations. mfakto may report only\n"
+           "      one factor or an invalid one when multiple factors are found in the same\n"
+           "      class. If the reported factor(s) are not accepted by the PrimeNet server,\n"
+           "      then please re-run the bit range on the CPU, or a GPU with atomics.\n");
   }
 
   /*if (strstr(deviceinfo.exts, "cl_khr_fp64") == NULL)
@@ -749,8 +748,9 @@ void set_gpu_type()
       gpu_types[mystuff.gpu_type].CE_per_multiprocessor = 40; // though VLIW5, only 40 instead of 80 compute elements
       if (mystuff.vectorsize > 3)
       {
-        printf("WARNING: Your device may perform better with a vector size of 2. "
-               "Please test by changing VectorSize to 2 in %s and restarting mfakto.\n\n", mystuff.inifile);
+        printf("Warning: Using a vector size of 2 may result in better performance on your\n"
+               "     device. Please try changing VectorSize to 2 in %s and restarting\n"
+               "     mfakto.\n\n", mystuff.inifile);
       }
     }
     else if (
@@ -772,19 +772,22 @@ void set_gpu_type()
     }
     else
     {
-      printf("WARNING: Unknown GPU name, assuming GCN. Please post the device "
-          "name \"%s (%s)\" to http://www.mersenneforum.org/showthread.php?t=15646 "
-          "to have it added to mfakto. Set GPUType in %s to select a GPU type yourself "
-          "to avoid this warning.\n", deviceinfo.d_name, deviceinfo.v_name, mystuff.inifile);
+      printf("Warning: Unknown GPU name, assuming a GCN (Graphics Core Next) device. Please\n"
+          "      post the name to the GIMPS forum or GitHub to have it added to mfakto.\n\n"
+          "      Device name:   %s (%s)\n"
+          "      mfakto thread: http://mersenneforum.org/showthread.php?t=15646\n"
+          "      GitHub:        https://github.com/primesearch/mfakto/issues\n\n"
+          "      You can also set GPUType in %s to avoid this message.\n",
+          deviceinfo.d_name, deviceinfo.v_name, mystuff.inifile);
       mystuff.gpu_type = GPU_GCN;
     }
   }
 
   if (((mystuff.gpu_type >= GPU_GCN) && (mystuff.gpu_type <= GPU_GCN3)) && (mystuff.vectorsize > 3))
   {
-    printf("\nWARNING: Your GPU was detected as GCN (Graphics Core Next). "
-      "These chips perform very slow with vector sizes of 4 or higher. "
-      "Please change to VectorSize=2 in %s and restart mfakto for optimal performance.\n\n",
+    printf("\nWarning: Your GPU was detected as a GCN (Graphics Core Next) device. mfakto is\n"
+      "      very slow on these chips with a vector size of 4 or above. Please set\n"
+      "      VectorSize=2 in %s and restart mfakto for optimal performance.\n\n",
       mystuff.inifile);
   }
 
@@ -803,7 +806,17 @@ void set_gpu_type()
     }
 #endif
     printf("  number of multiprocessors %d (%d compute elements)\n", deviceinfo.units, deviceinfo.units * gpu_types[mystuff.gpu_type].CE_per_multiprocessor);
-    printf("  clock rate                %d MHz\n", deviceinfo.max_clock);
+    // for some devices, CL_DEVICE_MAX_CLOCK_FREQUENCY can return 0 or 1 MHz
+    if (deviceinfo.max_clock < 5) {
+      printf("  clock rate                unavailable\n");
+      if (mystuff.verbosity > 1) {
+        printf("\nInfo: mfakto could not determine the clock rate. Some devices might not report\n");
+        printf("      this information due to firmware or driver limitations, or software\n");
+        printf("      conflicts. However, this does not affect mfakto's performance.\n");
+      }
+    } else {
+      printf("  clock rate                %d MHz\n", deviceinfo.max_clock);
+    }
 
     printf("\nAutomatic parameters\n");
 
