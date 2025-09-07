@@ -367,27 +367,6 @@ int read_config(mystuff_t *mystuff)
     #endif
 
     mystuff->cpu_mask = ul;
-  /*****************************************************************************/
-  /* not used in mfakto (yet)
-    if(my_read_int(mystuff->inifile, "AllowSleep", &i))
-    {
-      logprintf(mystuff, "Warning: Cannot read AllowSleep from inifile, set to 0 by default\n");
-      i=0;
-    }
-    else if(i != 0 && i != 1)
-    {
-      logprintf(mystuff, "Warning: AllowSleep must be 0 or 1, set to 0 by default\n");
-      i=0;
-    }
-    if(mystuff->verbosity >= 1)
-    {
-      if(i == 0)logprintf(mystuff, "  AllowSleep                no\n");
-      else      logprintf(mystuff, "  AllowSleep                yes\n");
-    }
-    mystuff->allowsleep = i;
-    */
-/*****************************************************************************/
-
   }
   else // SieveOnGPU
   {
