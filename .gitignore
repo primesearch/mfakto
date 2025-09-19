@@ -32,6 +32,7 @@ ipch/
 Release/
 Debug/
 x64/
+vcpkg_installed/
 
 # device-specific files
 *.ckp
