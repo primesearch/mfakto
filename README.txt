@@ -2,7 +2,7 @@
 
 This is a developmental version of mfakto. It has been verified to produce
 correct results. However, there may be bugs and incomplete features, and
-performance may not be optimal on some devices. Please help improve mfakto by
+performance may be suboptimal on some devices. Please help improve mfakto by
 doing tests, providing feedback and reporting issues. Of course, code
 contributions are always welcome.
 
@@ -89,19 +89,14 @@ Steps:
 #######################
 
 Requires:
-- Microsoft Visual Studio
+- Visual Studio 2022
 
 Steps:
-- open mfaktoVS12.sln in Visual Studio. You can use any recent version as
-  Visual Studio will automatically update your project settings. If the option
-  does not appear, right-click the solution and select "Retarget solution" from
-  the menu
-- select Build > Build Solution to download and install dependencies, and
-  compile mfakto
-
-Additional notes:
-- You may have to relaunch Visual Studio before it recognizes changes to
-  environment variables.
+- launch Visual Studio and open the solution file mfaktoVS12.sln
+- select Build > Build Solution to compile mfakto. IntelliSense will report
+  errors in the code due to undefined identifiers, but they are safe to ignore
+  as Visual Studio will automatically download and install the dependencies.
+  You can then select Project > Rescan Solution to resolve the errors
 
 ########################
 # 1.2.2 Windows: MinGW #

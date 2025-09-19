@@ -93,22 +93,26 @@ than an equal SIEVE_SIZE_LIMIT #define.
 //#define DEBUG_FACTOR_FIRST
 
 
-/******************************************************************************
-*******************************************************************************
-*** DO NOT EDIT DEFINES BELOW THIS LINE UNLESS YOU REALLY KNOW WHAT YOU DO! ***
-*** DO NOT EDIT DEFINES BELOW THIS LINE UNLESS YOU REALLY KNOW WHAT YOU DO! ***
-*** DO NOT EDIT DEFINES BELOW THIS LINE UNLESS YOU REALLY KNOW WHAT YOU DO! ***
-*******************************************************************************
-******************************************************************************/
+/*******************************************************************************
+********************************************************************************
+*** DO NOT EDIT DEFINES BELOW THIS LINE UNLESS YOU REALLY KNOW WHAT THEY DO! ***
+*** DO NOT EDIT DEFINES BELOW THIS LINE UNLESS YOU REALLY KNOW WHAT THEY DO! ***
+*** DO NOT EDIT DEFINES BELOW THIS LINE UNLESS YOU REALLY KNOW WHAT THEY DO! ***
+********************************************************************************
+*******************************************************************************/
 
-#define SHORT_MFAKTO_VERSION "0.16-beta.2" /* DO NOT CHANGE! */
+/*
+Please discuss with the community before making changes to version numbers!
+*/
+
+#define SHORT_MFAKTO_VERSION "0.16-beta.2"
 
 #ifdef _MSC_VER
-  #define MFAKTO_VERSION "mfakto " SHORT_MFAKTO_VERSION "-Win" /* DO NOT CHANGE! */
+  #define MFAKTO_VERSION "mfakto " SHORT_MFAKTO_VERSION "-Win"
 #elif defined __MINGW32__
-#define MFAKTO_VERSION "mfakto " SHORT_MFAKTO_VERSION "-MGW" /* DO NOT CHANGE! */
+#define MFAKTO_VERSION "mfakto " SHORT_MFAKTO_VERSION "-MGW"
 #else
-  #define MFAKTO_VERSION "mfakto " SHORT_MFAKTO_VERSION /* DO NOT CHANGE! */
+  #define MFAKTO_VERSION "mfakto " SHORT_MFAKTO_VERSION
 #endif
 
 
