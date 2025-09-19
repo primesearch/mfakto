@@ -1,10 +1,10 @@
 ** Preface for mfakto 0.16-beta.2 **
 
 This is a developmental version of mfakto. It has been verified to produce
-correct results. However, performance has not been optimized and there may be
-bugs and incomplete features. Please help improve mfakto by doing tests,
-providing feedback and reporting issues. Of course, code contributions are
-always welcome too.
+correct results. However, there may be bugs and incomplete features, and
+performance may not be optimal on some devices. Please help improve mfakto by
+doing tests, providing feedback and reporting issues. Of course, code
+contributions are always welcome.
 
 You can get support via the following means:
 
@@ -90,35 +90,16 @@ Steps:
 
 Requires:
 - Microsoft Visual Studio
-- an OpenCL SDK
 
 Steps:
-- download and install the OpenCL SDK from AMD:
-  https://github.com/GPUOpen-LibrariesAndSDKs/OCL-SDK/releases
 - open mfaktoVS12.sln in Visual Studio. You can use any recent version as
   Visual Studio will automatically update your project settings. If the option
   does not appear, right-click the solution and select "Retarget solution" from
-  the menu.
-- open the project properties and select the configuration and platform
-- go to C/C++ > General > Additional Include Directories and ensure it contains
-  the path to the OpenCL headers:
-
-      $(OCL_ROOT)\include
-
-- now go to Linker > General > Additional Library Directories and ensure it
-  contains the correct paths:
-
-      32 bits: $(OCL_ROOT)\lib\x86
-      64 bits: $(OCL_ROOT)\lib\x86_64
-
-- select Build > Build Solution to compile mfakto
+  the menu
+- select Build > Build Solution to download and install dependencies, and
+  compile mfakto
 
 Additional notes:
-- As an alternative, you can use the OpenCL SDK from the Khronos Group instead:
-  https://github.com/KhronosGroup/OpenCL-SDK/releases
-- Please note the AMD installer automatically sets the OCL_ROOT environment
-  variable. Developers using a different SDK will have to manually configure
-  the library and include paths in the project properties.
 - You may have to relaunch Visual Studio before it recognizes changes to
   environment variables.
 
@@ -301,6 +282,9 @@ Using the GPU to 72 website:
 Using the MISFIT application:
     MISFIT is a Windows tool that automatically requests assignments and
     submits results. You can get it here: https://mersenneforum.org/misfit
+
+    Important note: this program has reached end-of-life and is no longer
+    supported. It is highly recommended to use AutoPrimeNet instead.
 
 From mersenne.ca:
     James Heinrich's website mersenne.ca offers assignments for exponents up

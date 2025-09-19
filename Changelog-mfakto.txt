@@ -24,6 +24,8 @@ build:
 - continuous integration via GitHub Actions (thanks to Pavel Roskin and
   Henning Gerhardt)
 - removed the dependency on ROCm as it is not needed
+- Visual Studio: dependencies are now automatically downloaded and installed
+  via vcpkg
 
 other changes:
 - updated the code to use OpenCL 2.0 instead of deprecated OpenCL 1.0 APIs when
@@ -197,7 +199,7 @@ new features:
 
 enhancements:
 - new 24-bit Barrett reduction kernel for FCs up to 70 bits
-  - should be very fast :-)
+  - very fast due to an optimized squaring function
 - new 15-bit Barrett reduction kernel for FCs up to 73 bits
   - almost as fast as the 24-bit kernel
   - testing on a Radeon HD 6900 series (Cayman) GPU has shown a 50% speedup
