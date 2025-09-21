@@ -69,23 +69,17 @@ jobs:
   WindowsMSVC:
     name: Windows MSVC
     runs-on: windows-2022
-    env:
-      OCL_ROOT: "OpenCL-SDK-v2024.05.08-Win-x64"
-      OCL_URL: https://github.com/KhronosGroup/OpenCL-SDK/releases/download/v2024.05.08/OpenCL-SDK-v2024.05.08-Win-x64.zip
     steps:
     - uses: actions/checkout@v4
     - uses: ilammy/msvc-dev-cmd@v1
 
     - name: Install dependencies
       run: |
-        Invoke-WebRequest $env:OCL_URL -OutFile OpenCL-SDK.zip
-        unzip OpenCL-SDK.zip
-        mkdir $env:OCL_ROOT\lib\x86_64
-        cp $env:OCL_ROOT\lib\*.lib $env:OCL_ROOT\lib\x86_64
+        vcpkg integrate install --vcpkg-root=c:\vcpkg
 
     - name: Build
       run: |
-        msbuild mfaktoVS12.vcxproj /property:OCL_ROOT="$env:OCL_ROOT" /property:Configuration=Release
+        msbuild mfaktoVS12.vcxproj /property:Configuration=Release
 
     - name: Create artifacts and release assets
       run: |

@@ -129,6 +129,8 @@
       <Filter>kernel files</Filter>
     </None>
     <None Include="README.txt" />
+    <None Include="vcpkg.json" />
+    <None Include="vcpkg-configuration.json" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="kernel files">
