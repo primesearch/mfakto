@@ -15,9 +15,9 @@ enhancements:
 
 bug fixes:
 - fixed double precision issues in barrett15 kernels
-- fixed support for Intel Compute Runtime with VectorSize > 1 (thanks to Pavel
+- Intel Compute Runtime is now supported for all vector sizes (thanks to Pavel
   Roskin)
-- added a workaround for failures in the cl_barrett15_74 kernel on macOS Sonoma
+- added a workaround for cl_barrett15_74 kernel failures on macOS Sonoma
   (thanks to Pavel Roskin)
 
 build:
@@ -39,8 +39,8 @@ other changes:
   - please use results.json.txt for submissions
   - set LegacyResultsTxt=1 in mfaktc.ini to restore old behavior and re-enable
     logging to results.txt
-- re-organized mfakto.ini to be more user-friendly
-  - based on James Heinrich's changes to mfaktc.ini
+- merged in James Heinrich's changes to mfaktc.ini and re-organized mfakto.ini
+  to be more user-friendly
 
 version 0.15
 ==============================

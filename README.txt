@@ -16,7 +16,7 @@ You can get support via the following means:
 # mfakto README #
 #################
 
-Contents
+Table of contents
 
 0      What is mfakto?
 1      Compilation
