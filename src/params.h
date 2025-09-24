@@ -111,6 +111,7 @@ than an equal SIEVE_SIZE_LIMIT #define.
   #define MFAKTO_VERSION "mfakto " SHORT_MFAKTO_VERSION /* DO NOT CHANGE! */
 #endif
 
+#define MFAKTO_CHECKSUM_VERSION   1
 
 // MORE_CLASSES and SIEVE_SIZE are used for CPU-sieving only. GPU-sieving uses a config setting
 /*

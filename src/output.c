@@ -435,19 +435,23 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
 /* printf the final result line (STDOUT and resultfile) */
 {
   char UID[110]; /* 50 (V5UserID) + 50 (ComputerID) + 8 + spare */
-  char aidjson[111];
-  char userjson[61]; /* 50 (V5UserID) + 11 spare */
-  char computerjson[65];  /* 50 (ComputerID) + 15 spare */
-  char factorjson[513];
+  int string_length = 0, factors_list_length = 0, factors_quote_list_length = 0, json_checksum;
+  char aidjson[MAX_LINE_LENGTH + 11];
+  char userjson[62]; /* 50 (V5UserID) + 11 spare + null character */
+  char computerjson[66];  /* 50 (ComputerID) + 15 spare + null character */
+  char factorjson[514];
+  char factors_list[500];
+  char factors_quote_list[500];
   char osjson[200];
   char txtstring[200];
+  char json_checksum_string[750];
   char timestamp[50];
 
   unsigned int max_class_number;
 
   FILE *txtresultfile=NULL;
 
-  char jsonstring[1100];
+  char jsonstring[1350];
   FILE *jsonresultfile=NULL;
 
   if (mystuff->more_classes)  max_class_number = 960;
@@ -473,10 +477,34 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
   else
     computerjson[0] = 0;
 
-  if (mystuff->factors_string[0])
-    sprintf(factorjson, ", \"factors\":[%s]", mystuff->factors_string);
-  else
-    factorjson[0] = 0;
+  if (factorsfound) {
+      int i = 0;
+      qsort(mystuff->factors, MAX_FACTORS_PER_JOB, sizeof(mystuff->factors[0]), cmp_int96);
+      while (i < MAX_FACTORS_PER_JOB && mystuff->factors[i].d0 == 0 && mystuff->factors[i].d1 == 0 && mystuff->factors[i].d2 == 0) {
+          i++;
+      }
+      char factor[MAX_DEZ_96_STRING_LENGTH];
+      print_dez96(mystuff->factors[i++], factor);
+      factors_list_length       = sprintf(factors_list, "%s", factor);
+      factors_quote_list_length = sprintf(factors_quote_list, "\"%s\"", factor);
+      for (; i < MAX_FACTORS_PER_JOB; i++) {
+          if (mystuff->factors[i].d0 == 0 && mystuff->factors[i].d1 == 0 && mystuff->factors[i].d2 == 0) {
+              continue;
+          }
+          print_dez96(mystuff->factors[i], factor);
+          factors_list_length += sprintf(factors_list + factors_list_length, ",%s", factor);
+          factors_quote_list_length += sprintf(factors_quote_list + factors_quote_list_length, ",\"%s\"", factor);
+      }
+  } else {
+      factors_list[0]       = 0;
+      factors_quote_list[0] = 0;
+  }
+
+  if (factors_quote_list[0])
+      snprintf(factorjson, sizeof(factorjson), ", \"factors\":[%s]", factors_quote_list);
+  else {
+      factorjson[0] = 0;
+  }
 
   getOSJSON(osjson);
   get_utc_timestamp(timestamp);
@@ -500,8 +528,13 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
       mystuff->exponent, mystuff->bit_min, mystuff->bit_max_stage,
       MFAKTO_VERSION, mystuff->stats.kernelname);
   }
-  sprintf(jsonstring, "{\"exponent\":%u, \"worktype\":\"TF\", \"status\":\"%s\", \"bitlo\":%2d, \"bithi\":%2d, \"rangecomplete\":%s%s, \"program\":{\"name\":\"mfakto\", \"version\":\"%s\", \"subversion\":\"%s\"}, \"timestamp\":\"%s\"%s%s%s%s}",
-      mystuff->exponent, factorsfound > 0 ? "F" : "NF", mystuff->bit_min, mystuff->bit_max_stage, partialresult ? "false" : "true", factorjson, SHORT_MFAKTO_VERSION, mystuff->stats.kernelname, timestamp, userjson, computerjson, aidjson, osjson);
+
+  snprintf(json_checksum_string, sizeof(json_checksum_string), "%u;TF;%s;;%d;%d;%u;;;mfaktc;%s;%s;%s;%s;%s;%s", mystuff->exponent,
+             factors_list, mystuff->bit_min, mystuff->bit_max_stage, !partialresult, SHORT_MFAKTO_VERSION, mystuff->stats.kernelname, details,
+             getOS(), getArchitecture(), timestamp);
+  json_checksum = crc32_checksum(json_checksum_string, strlen(json_checksum_string));
+  sprintf(jsonstring, "{\"exponent\":%u, \"worktype\":\"TF\", \"status\":\"%s\", \"bitlo\":%2d, \"bithi\":%2d, \"rangecomplete\":%s%s, \"program\":{\"name\":\"mfakto\", \"version\":\"%s\", \"subversion\":\"%s\"}, \"timestamp\":\"%s\"%s%s%s%s, \"checksum\":{\"version\":%u, \"checksum\":\"%08X\"}}",
+      mystuff->exponent, factorsfound > 0 ? "F" : "NF", mystuff->bit_min, mystuff->bit_max_stage, partialresult ? "false" : "true", factorjson, SHORT_MFAKTO_VERSION, mystuff->stats.kernelname, timestamp, userjson, computerjson, aidjson, osjson, MFAKTO_CHECKSUM_VERSION, json_checksum);
 
   if(mystuff->mode != MODE_SELFTEST_SHORT)
   {
