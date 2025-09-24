@@ -1256,7 +1256,7 @@ int main(int argc, char **argv)
 /* print current configuration */
   if(mystuff.verbosity >= 1)
   {
-    logprintf(&mystuff, "Compile-time options\n");
+    logprintf(&mystuff, "\nCompile-time options\n");
     if (mystuff.gpu_sieving == 0)
     {
 #ifdef SIEVE_SIZE_LIMIT

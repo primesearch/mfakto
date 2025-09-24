@@ -224,17 +224,17 @@ typedef struct _print_parameter
 
 typedef struct _stats_t
 {
-  char     progressheader[256];       /* userconfigureable progress header */
-  char     progressformat[256];       /* userconfigureable progress line */
+  char     progressheader[256];       /* user-configurable progress header */
+  char     progressformat[256];       /* user-configurable progress line */
   cl_uint  class_number;              /* the number of the last processed class */
   cl_uint  grid_count;                /* number of grids processed in the last processed class */
   cl_ulong class_time;                /* time (in ms) needed to process the last processed class */
-  unsigned long long bit_level_time;  /* time (in ms) since the bitlevel was started */
+  unsigned long long bit_level_time;  /* time (in ms) since the bit level was started */
   cl_ulong cpu_wait_time;             /* time (ms) CPU was waiting for the GPU */
   float    cpu_wait;                  /* percentage CPU was waiting for the GPU */
   cl_uint  output_counter;            /* count how often the status line was written since last headline */
   cl_uint  class_counter;             /* number of finished classes of the current job */
-  double   ghzdays;                   /* primenet GHZdays for the current assignment (current stage) */
+  double   ghzdays;                   /* PrimeNet GHz-days for the current assignment (current stage) */
   char     kernelname[32];
 }stats_t;
 
@@ -289,34 +289,34 @@ typedef struct _mystuff_t
 
   cl_uint  vectorsize;
   cl_uint  printmode;
-//  cl_uint  allowsleep;    // not used in mfakto (yet)
   cl_uint  small_exp;
   cl_uint  print_timestamp;
   cl_uint  quit;
-  cl_ulong cpu_mask;         /* CPU affinity mask for the siever thread */
-  cl_int   verbosity;        /* -1 = uninitialized, 0 = reduced number of screen printfs, 1= default, >= 2 = some additional printfs */
+  cl_ulong cpu_mask;           /* CPU affinity mask for the siever thread */
+  cl_int   verbosity;          /* -1 = uninitialized, 0 = reduced number of screen printfs, 1= default, >= 2 = some additional printfs */
   cl_int   logging;
+  cl_int   legacy_results_txt; /* 0 = output to results.txt disabled (default), 1 = output to results.txt enabled */
   cl_uint  selftestsize;
-  cl_uint  force_rebuild;    /* 1: delete the previous binfile */
+  cl_uint  force_rebuild;      /* 1: delete the previous binfile */
 
-  stats_t  stats;            /* stats for the status line */
+  stats_t  stats;              /* stats for the status line */
 
-  char workfile[51];         /* allow filenames up to 50 chars... */
-  char inifile[51];	         /* allow filenames up to 50 chars... */
+  char workfile[51];           /* allow filenames up to 50 chars... */
+  char inifile[51];	       /* allow filenames up to 50 chars... */
   char resultfile[51];
   char jsonresultfile[51];
   char logfile[51];
   FILE *logfileptr;
-  char V5UserID[51];         /* primenet V5UserID and ComputerID */
-  char ComputerID[51];       /* currently only used for screen/result output */
+  char V5UserID[51];           /* PrimeNet user ID and computer ID */
+  char ComputerID[51];
   char assignment_key[MAX_LINE_LENGTH + 1]; /* the assignment ID */
-  char factors_string[500];            /* store factors in global state */
-  char CompileOptions[151];  /* additional compile options */
-  char binfile[51];          /* compiled kernels file to use, empty if not desired */
+  char factors_string[500];    /* store factors in global state */
+  char CompileOptions[151];    /* additional compile options */
+  char binfile[51];            /* compiled kernels file to use, empty if not desired */
 
-  cl_uint override_v;        /* override INI file when setting verbosity */
+  cl_uint override_v;          /* override INI file when setting verbosity */
 
-}mystuff_t;			/* FIXME: proper name needed */
+}mystuff_t;		       /* FIXME: proper name needed */
 
 typedef struct
 {
@@ -324,6 +324,7 @@ typedef struct
     cl_ulong gl_cache, gl_mem, l_mem;
     cl_uint max_clock, units, w_dim;
     size_t wg_size, wi_sizes[10], maxThreadsPerBlock, maxThreadsPerGrid;
+    cl_command_queue_properties queue_properties;
 } OpenCL_deviceinfo_t;
 
 typedef struct _kernel_info

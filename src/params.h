@@ -93,22 +93,26 @@ than an equal SIEVE_SIZE_LIMIT #define.
 //#define DEBUG_FACTOR_FIRST
 
 
-/******************************************************************************
-*******************************************************************************
-*** DO NOT EDIT DEFINES BELOW THIS LINE UNLESS YOU REALLY KNOW WHAT YOU DO! ***
-*** DO NOT EDIT DEFINES BELOW THIS LINE UNLESS YOU REALLY KNOW WHAT YOU DO! ***
-*** DO NOT EDIT DEFINES BELOW THIS LINE UNLESS YOU REALLY KNOW WHAT YOU DO! ***
-*******************************************************************************
-******************************************************************************/
+/*******************************************************************************
+********************************************************************************
+*** DO NOT EDIT DEFINES BELOW THIS LINE UNLESS YOU REALLY KNOW WHAT THEY DO! ***
+*** DO NOT EDIT DEFINES BELOW THIS LINE UNLESS YOU REALLY KNOW WHAT THEY DO! ***
+*** DO NOT EDIT DEFINES BELOW THIS LINE UNLESS YOU REALLY KNOW WHAT THEY DO! ***
+********************************************************************************
+*******************************************************************************/
 
-#define SHORT_MFAKTO_VERSION "0.16-beta.2" /* DO NOT CHANGE! */
+/*
+Please discuss with the community before making changes to version numbers!
+*/
+
+#define SHORT_MFAKTO_VERSION "0.16-beta.2"
 
 #ifdef _MSC_VER
-  #define MFAKTO_VERSION "mfakto " SHORT_MFAKTO_VERSION "-Win" /* DO NOT CHANGE! */
+  #define MFAKTO_VERSION "mfakto " SHORT_MFAKTO_VERSION "-Win"
 #elif defined __MINGW32__
-#define MFAKTO_VERSION "mfakto " SHORT_MFAKTO_VERSION "-MGW" /* DO NOT CHANGE! */
+#define MFAKTO_VERSION "mfakto " SHORT_MFAKTO_VERSION "-MGW"
 #else
-  #define MFAKTO_VERSION "mfakto " SHORT_MFAKTO_VERSION /* DO NOT CHANGE! */
+  #define MFAKTO_VERSION "mfakto " SHORT_MFAKTO_VERSION
 #endif
 
 #define MFAKTO_CHECKSUM_VERSION   1
@@ -227,3 +231,7 @@ The following lines define the min, default and max value.
 
 /* For worktodo.txt files */
 #define MAX_LINE_LENGTH 100
+
+#define GHZDAYS_MAGIC_TF_TOP           0.016968 // magic constant for TF to 65 bits and above
+#define GHZDAYS_MAGIC_TF_MID           0.017832 // magic constant for 63 and 64 bits
+#define GHZDAYS_MAGIC_TF_BOT           0.011160 // magic constant for 62 bits and below

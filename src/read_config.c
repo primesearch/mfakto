@@ -23,6 +23,9 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #define strcasecmp _stricmp
 #endif
 #include <errno.h>
+#ifdef __MINGW32__
+#include <inttypes.h>
+#endif
 
 #include "params.h"
 #include "my_types.h"
@@ -64,36 +67,40 @@ int my_read_int(char *inifile, char *name, int *value)
 
 static int my_read_ulong(char *inifile, char *name, unsigned long long int *value)
 {
-  FILE *in;
-  char buf[100];
-  int found=0;
+    FILE* in;
+    char buf[101];
+    int found = 0;
 
-  in=fopen(inifile,"r");
-  if(!in)
-  {
-    if (!inifile_unavailable)
+    in = fopen(inifile, "r");
+    if (!in)
     {
-      char msg[80];
-      inifile_unavailable = 1;
-      sprintf(msg, "Cannot load INI file \"%.55s\"", inifile);
-      perror(msg);
+        if (!inifile_unavailable)
+        {
+            char msg[80];
+            inifile_unavailable = 1;
+            snprintf(msg, sizeof(msg) - 1, "Cannot load INI file \"%.55s\"", inifile);
+            perror(msg);
+        }
+        return 1;
+    }
+    while (fgets(buf, 100, in) && !found)
+    {
+        if (!strncmp(buf, name, strlen(name)) && buf[strlen(name)] == '=')
+        {
+#ifdef __MINGW32__
+            if (sscanf(&(buf[strlen(name) + 1]), "%"PRIu64, value) == 1) {
+#else
+            if (sscanf(&(buf[strlen(name) + 1]), "%llu", value) == 1) {
+#endif
+                found = 1;
+            }
+        }
+    }
+    fclose(in);
+    if (found) {
+        return 0;
     }
     return 1;
-  }
-  while(fgets(buf,100,in) && !found)
-  {
-    if(!strncmp(buf,name,strlen(name)) && buf[strlen(name)]=='=')
-    {
-      #ifdef __MINGW32__
-        if(sscanf(&(buf[strlen(name)+1]),"%I64u",value)==1)found=1;
-      #else
-        if(sscanf(&(buf[strlen(name)+1]),"%llu",value)==1)found=1;
-      #endif
-    }
-  }
-  fclose(in);
-  if(found)return 0;
-  return 1;
 }
 
 int my_read_string(char *inifile, char *name, char *string, unsigned int len)
@@ -145,14 +152,14 @@ int read_config(mystuff_t *mystuff)
   {
     if(my_read_int(mystuff->inifile, "Verbosity", &i))
     {
-      logprintf(mystuff, "WARNING: Cannot read Verbosity from INI file, set to 1 by default\n");
+      logprintf(mystuff, "Warning: Cannot read Verbosity from INI file, set to 1 by default\n");
       mystuff->verbosity = 1;
     }
     else
       mystuff->verbosity = i;
   }
 
-  if(mystuff->verbosity >= 1)logprintf(mystuff, 
+  if(mystuff->verbosity >= 1)logprintf(mystuff,
                                     "\nRuntime options\n"
                                     "  INI file                  %s\n"
                                     "  Verbosity                 %d\n", mystuff->inifile, mystuff->verbosity);
@@ -161,12 +168,12 @@ int read_config(mystuff_t *mystuff)
 
   if(my_read_int(mystuff->inifile, "SieveOnGPU", &i))
   {
-    logprintf(mystuff, "WARNING: Cannot read SieveOnGPU from INI file, set to 0 by default\n");
+    logprintf(mystuff, "Warning: Cannot read SieveOnGPU from INI file, set to 0 by default\n");
     i=0;
   }
   else if(i != 0 && i != 1)
   {
-    logprintf(mystuff, "WARNING: SieveOnGPU must be 0 or 1, set to 0 by default\n");
+    logprintf(mystuff, "Warning: SieveOnGPU must be 0 or 1, set to 0 by default\n");
     i=0;
   }
   if(mystuff->verbosity >= 1)
@@ -186,12 +193,12 @@ int read_config(mystuff_t *mystuff)
 
     if(my_read_int(mystuff->inifile, "SievePrimesMin", &i))
     {
-      logprintf(mystuff, "WARNING: Cannot read SievePrimesMin from INI file, using default value (%d)\n", 5000);
+      logprintf(mystuff, "Warning: Cannot read SievePrimesMin from INI file, using default value (%d)\n", 5000);
       i = 5000;
     }
     else if((i < SIEVE_PRIMES_MIN) || (i >= SIEVE_PRIMES_MAX))
     {
-      logprintf(mystuff, "WARNING: SievePrimesMin must be between %d and %d, using default value (%d)\n",
+      logprintf(mystuff, "Warning: SievePrimesMin must be between %d and %d, using default value (%d)\n",
           SIEVE_PRIMES_MIN, SIEVE_PRIMES_MAX, 5000);
       i = 5000;
     }
@@ -202,12 +209,12 @@ int read_config(mystuff_t *mystuff)
 
     if(my_read_int(mystuff->inifile, "SievePrimesMax", &i))
     {
-      logprintf(mystuff, "WARNING: Cannot read SievePrimesMax from INI file, using default value (%d)\n", 200000);
+      logprintf(mystuff, "Warning: Cannot read SievePrimesMax from INI file, using default value (%d)\n", 200000);
       i = 200000;
     }
     else if((i < (int) mystuff->sieve_primes_min) || (i > SIEVE_PRIMES_MAX))
     {
-      logprintf(mystuff, "WARNING: SievePrimesMax must be between SievePrimesMin(%d) and %d, using default value (%d)\n",
+      logprintf(mystuff, "Warning: SievePrimesMax must be between SievePrimesMin(%d) and %d, using default value (%d)\n",
           mystuff->sieve_primes_min, SIEVE_PRIMES_MAX, 200000);
       i = 200000;
     }
@@ -217,19 +224,19 @@ int read_config(mystuff_t *mystuff)
   /*****************************************************************************/
     if(my_read_int(mystuff->inifile, "SievePrimes", &i))
     {
-      logprintf(mystuff, "WARNING: Cannot read SievePrimes from INI file, using default value (%d)\n", SIEVE_PRIMES_DEFAULT);
+      logprintf(mystuff, "Warning: Cannot read SievePrimes from INI file, using default value (%d)\n", SIEVE_PRIMES_DEFAULT);
       i = SIEVE_PRIMES_DEFAULT;
     }
     else
     {
       if((cl_uint)i>mystuff->sieve_primes_max)
       {
-        logprintf(mystuff, "WARNING: Read SievePrimes=%d from INI file, using max value (%d)\n", i, mystuff->sieve_primes_max);
+        logprintf(mystuff, "Warning: Read SievePrimes=%d from INI file, using max value (%d)\n", i, mystuff->sieve_primes_max);
         i = mystuff->sieve_primes_max;
       }
       else if( i < (int) mystuff->sieve_primes_min)
       {
-        logprintf(mystuff, "WARNING: Read SievePrimes=%d from INI file, using min value (%d)\n", i, mystuff->sieve_primes_min);
+        logprintf(mystuff, "Warning: Read SievePrimes=%d from INI file, using min value (%d)\n", i, mystuff->sieve_primes_min);
         i = mystuff->sieve_primes_min;
       }
     }
@@ -240,12 +247,12 @@ int read_config(mystuff_t *mystuff)
 
     if(my_read_int(mystuff->inifile, "SievePrimesAdjust", &i))
     {
-      logprintf(mystuff, "WARNING: Cannot read SievePrimesAdjust from INI file, using default value (0)\n");
+      logprintf(mystuff, "Warning: Cannot read SievePrimesAdjust from INI file, using default value (0)\n");
       i = 0;
     }
     else if(i != 0 && i != 1)
     {
-      logprintf(mystuff, "WARNING: SievePrimesAdjust must be 0 or 1, using default value (0)\n");
+      logprintf(mystuff, "Warning: SievePrimesAdjust must be 0 or 1, using default value (0)\n");
       i = 0;
     }
     if(mystuff->verbosity >= 1) logprintf(mystuff, "  SievePrimesAdjust         %d\n",i);
@@ -259,12 +266,12 @@ int read_config(mystuff_t *mystuff)
 #else
     if(my_read_int(mystuff->inifile, "SieveSizeLimit", &i))
     {
-      logprintf(mystuff, "WARNING: Cannot read SieveSizeLimit from INI file, using default value (32)\n");
+      logprintf(mystuff, "Warning: Cannot read SieveSizeLimit from INI file, using default value (32)\n");
       i=32;
     }
     else if(i <= 13*17*19*23/8192)
     {
-      logprintf(mystuff, "WARNING: SieveSizeLimit must be > %d, using default value (32)\n", 13*17*19*23/8192);
+      logprintf(mystuff, "Warning: SieveSizeLimit must be > %d, using default value (32)\n", 13*17*19*23/8192);
       i=32;
     }
     if(mystuff->verbosity >= 1)logprintf(mystuff, "  SieveSizeLimit            %d kiB\n", i);
@@ -276,19 +283,19 @@ int read_config(mystuff_t *mystuff)
 
     if(my_read_int(mystuff->inifile, "NumStreams", &i))
     {
-      logprintf(mystuff, "WARNING: Cannot read NumStreams from INI file, using default value (%d)\n",NUM_STREAMS_DEFAULT);
+      logprintf(mystuff, "Warning: Cannot read NumStreams from INI file, using default value (%d)\n",NUM_STREAMS_DEFAULT);
       i=NUM_STREAMS_DEFAULT;
     }
     else
     {
       if(i>NUM_STREAMS_MAX)
       {
-        logprintf(mystuff, "WARNING: Read NumStreams=%d from INI file, using max value (%d)\n",i,NUM_STREAMS_MAX);
+        logprintf(mystuff, "Warning: Read NumStreams=%d from INI file, using max value (%d)\n",i,NUM_STREAMS_MAX);
         i=NUM_STREAMS_MAX;
       }
       else if(i<NUM_STREAMS_MIN)
       {
-        logprintf(mystuff, "WARNING: Read NumStreams=%d from INI file, using min value (%d)\n",i,NUM_STREAMS_MIN);
+        logprintf(mystuff, "Warning: Read NumStreams=%d from INI file, using min value (%d)\n",i,NUM_STREAMS_MIN);
         i=NUM_STREAMS_MIN;
       }
     }
@@ -300,19 +307,19 @@ int read_config(mystuff_t *mystuff)
   /* CPU streams not used by mfakto
     if(my_read_int(mystuff->inifile, "CPUStreams", &i))
     {
-      logprintf(mystuff, "WARNING: Cannot read CPUStreams from inifile, using default value (%d)\n",CPU_STREAMS_DEFAULT);
+      logprintf(mystuff, "Warning: Cannot read CPUStreams from inifile, using default value (%d)\n",CPU_STREAMS_DEFAULT);
       i=CPU_STREAMS_DEFAULT;
     }
     else
     {
       if(i>CPU_STREAMS_MAX)
       {
-        logprintf(mystuff, "WARNING: Read CPUStreams=%d from inifile, using max value (%d)\n",i,CPU_STREAMS_MAX);
+        logprintf(mystuff, "Warning: Read CPUStreams=%d from inifile, using max value (%d)\n",i,CPU_STREAMS_MAX);
         i=CPU_STREAMS_MAX;
       }
       else if(i<CPU_STREAMS_MIN)
       {
-        logprintf(mystuff, "WARNING: Read CPUStreams=%d from inifile, using min value (%d)\n",i,CPU_STREAMS_MIN);
+        logprintf(mystuff, "Warning: Read CPUStreams=%d from inifile, using min value (%d)\n",i,CPU_STREAMS_MIN);
         i=CPU_STREAMS_MIN;
       }
     }
@@ -323,19 +330,19 @@ int read_config(mystuff_t *mystuff)
 
     if(my_read_int(mystuff->inifile, "GridSize", &i))
     {
-      logprintf(mystuff, "WARNING: Cannot read GridSize from INI file, using default value (3)\n");
+      logprintf(mystuff, "Warning: Cannot read GridSize from INI file, using default value (3)\n");
       i = 3;
     }
     else
     {
       if(i > 4)
       {
-        logprintf(mystuff, "WARNING: Read GridSize=%d from INI file, using max value (4)\n", i);
+        logprintf(mystuff, "Warning: Read GridSize=%d from INI file, using max value (4)\n", i);
         i = 4;
       }
       else if(i < 0)
       {
-        logprintf(mystuff, "WARNING: Read GridSize=%d from INI file, using min value (0)\n", i);
+        logprintf(mystuff, "Warning: Read GridSize=%d from INI file, using min value (0)\n", i);
         i = 0;
       }
     }
@@ -350,7 +357,7 @@ int read_config(mystuff_t *mystuff)
 
     if(my_read_ulong(mystuff->inifile, "SieveCPUMask", &ul))
     {
-      logprintf(mystuff, "WARNING: Cannot read SieveCPUMask from INI file, set to 0 by default\n");
+      logprintf(mystuff, "Warning: Cannot read SieveCPUMask from INI file, set to 0 by default\n");
       ul=0;
     }
     #ifdef __MINGW32__
@@ -360,27 +367,6 @@ int read_config(mystuff_t *mystuff)
     #endif
 
     mystuff->cpu_mask = ul;
-  /*****************************************************************************/
-  /* not used in mfakto (yet)
-    if(my_read_int(mystuff->inifile, "AllowSleep", &i))
-    {
-      logprintf(mystuff, "WARNING: Cannot read AllowSleep from inifile, set to 0 by default\n");
-      i=0;
-    }
-    else if(i != 0 && i != 1)
-    {
-      logprintf(mystuff, "WARNING: AllowSleep must be 0 or 1, set to 0 by default\n");
-      i=0;
-    }
-    if(mystuff->verbosity >= 1)
-    {
-      if(i == 0)logprintf(mystuff, "  AllowSleep                no\n");
-      else      logprintf(mystuff, "  AllowSleep                yes\n");
-    }
-    mystuff->allowsleep = i;
-    */
-/*****************************************************************************/
-
   }
   else // SieveOnGPU
   {
@@ -389,12 +375,12 @@ int read_config(mystuff_t *mystuff)
 
     if(my_read_int(mystuff->inifile, "MoreClasses", &i))
     {
-      logprintf(mystuff, "WARNING: Cannot read MoreClasses from INI file, set to 1 by default\n");
+      logprintf(mystuff, "Warning: Cannot read MoreClasses from INI file, set to 1 by default\n");
       i=1;
     }
     else if(i != 0 && i != 1)
     {
-      logprintf(mystuff, "WARNING: MoreClasses must be 0 or 1, set to 1 by default\n");
+      logprintf(mystuff, "Warning: MoreClasses must be 0 or 1, set to 1 by default\n");
       i=1;
     }
     if(mystuff->verbosity >= 1)
@@ -409,19 +395,19 @@ int read_config(mystuff_t *mystuff)
 
     if(my_read_int(mystuff->inifile, "GPUSievePrimes", &i))
     {
-      logprintf(mystuff, "WARNING: Cannot read GPUSievePrimes from INI file, using default value (%d)\n",GPU_SIEVE_PRIMES_DEFAULT);
+      logprintf(mystuff, "Warning: Cannot read GPUSievePrimes from INI file, using default value (%d)\n",GPU_SIEVE_PRIMES_DEFAULT);
       i = GPU_SIEVE_PRIMES_DEFAULT;
     }
     else
     {
       if(i > GPU_SIEVE_PRIMES_MAX)
       {
-        logprintf(mystuff, "WARNING: Read GPUSievePrimes=%d from INI file, using max value (%d)\n",i,GPU_SIEVE_PRIMES_MAX);
+        logprintf(mystuff, "Warning: Read GPUSievePrimes=%d from INI file, using max value (%d)\n",i,GPU_SIEVE_PRIMES_MAX);
         i = GPU_SIEVE_PRIMES_MAX;
       }
       else if(i < GPU_SIEVE_PRIMES_MIN)
       {
-        logprintf(mystuff, "WARNING: Read GPUSievePrimes=%d from INI file, using min value (%d)\n",i,GPU_SIEVE_PRIMES_MIN);
+        logprintf(mystuff, "Warning: Read GPUSievePrimes=%d from INI file, using min value (%d)\n",i,GPU_SIEVE_PRIMES_MIN);
         i = GPU_SIEVE_PRIMES_MIN;
       }
     }
@@ -432,25 +418,25 @@ int read_config(mystuff_t *mystuff)
 
     if(my_read_int(mystuff->inifile, "GPUSieveProcessSize", &i))
     {
-      logprintf(mystuff, "WARNING: Cannot read GPUSieveProcessSize from INI file, using default value (%d)\n",GPU_SIEVE_PROCESS_SIZE_DEFAULT);
+      logprintf(mystuff, "Warning: Cannot read GPUSieveProcessSize from INI file, using default value (%d)\n",GPU_SIEVE_PROCESS_SIZE_DEFAULT);
       i = GPU_SIEVE_PROCESS_SIZE_DEFAULT;
     }
     else
     {
       if(i % 8 != 0)
       {
-        logprintf(mystuff, "WARNING: GPUSieveProcessSize must be a multiple of 8\n");
+        logprintf(mystuff, "Warning: GPUSieveProcessSize must be a multiple of 8\n");
         i &= 0xFFFFFFF8;
         logprintf(mystuff, "         --> changed GPUSieveProcessSize to %d\n", i);
       }
       if(i > GPU_SIEVE_PROCESS_SIZE_MAX)
       {
-        logprintf(mystuff, "WARNING: Read GPUSieveProcessSize=%d from INI file, using max value (%d)\n",i,GPU_SIEVE_PROCESS_SIZE_MAX);
+        logprintf(mystuff, "Warning: Read GPUSieveProcessSize=%d from INI file, using max value (%d)\n",i,GPU_SIEVE_PROCESS_SIZE_MAX);
         i = GPU_SIEVE_PROCESS_SIZE_MAX;
       }
       else if(i < GPU_SIEVE_PROCESS_SIZE_MIN)
       {
-        logprintf(mystuff, "WARNING: Read GPUSieveProcessSize=%d from INI file, using min value (%d)\n",i,GPU_SIEVE_PROCESS_SIZE_MIN);
+        logprintf(mystuff, "Warning: Read GPUSieveProcessSize=%d from INI file, using min value (%d)\n",i,GPU_SIEVE_PROCESS_SIZE_MIN);
         i = GPU_SIEVE_PROCESS_SIZE_MIN;
       }
     }
@@ -461,25 +447,25 @@ int read_config(mystuff_t *mystuff)
 
     if(my_read_int(mystuff->inifile, "GPUSieveSize", &i))
     {
-      logprintf(mystuff, "WARNING: Cannot read GPUSieveSize from INI file, using default value (%d)\n",GPU_SIEVE_SIZE_DEFAULT);
+      logprintf(mystuff, "Warning: Cannot read GPUSieveSize from INI file, using default value (%d)\n",GPU_SIEVE_SIZE_DEFAULT);
       i = GPU_SIEVE_SIZE_DEFAULT;
     }
     else
     {
       if(i > GPU_SIEVE_SIZE_MAX)
       {
-        logprintf(mystuff, "WARNING: Read GPUSieveSize=%d from INI file, using max value (%d)\n",i,GPU_SIEVE_SIZE_MAX);
+        logprintf(mystuff, "Warning: Read GPUSieveSize=%d from INI file, using max value (%d)\n",i,GPU_SIEVE_SIZE_MAX);
         i = GPU_SIEVE_SIZE_MAX;
       }
       else if(i < GPU_SIEVE_SIZE_MIN)
       {
-        logprintf(mystuff, "WARNING: Read GPUSieveSize=%d from INI file, using min value (%d)\n",i,GPU_SIEVE_SIZE_MIN);
+        logprintf(mystuff, "Warning: Read GPUSieveSize=%d from INI file, using min value (%d)\n",i,GPU_SIEVE_SIZE_MIN);
         i = GPU_SIEVE_SIZE_MIN;
       }
       if (i * 1024 * 1024 % mystuff->gpu_sieve_processing_size != 0)
       {
         // can only happen when GPUSieveProcessSize=24 ==> make i divisible by 3
-        logprintf(mystuff, "WARNING: GPUSieveSize=%dM must be a multiple of GPUSieveProcessSize=%dk, ", i, mystuff->gpu_sieve_processing_size / 1024);
+        logprintf(mystuff, "Warning: GPUSieveSize=%dM must be a multiple of GPUSieveProcessSize=%dk, ", i, mystuff->gpu_sieve_processing_size / 1024);
         i -= i%3;
         while (i < GPU_SIEVE_SIZE_MIN) i+=3;  // make sure it's not too low
         logprintf(mystuff, "adjusting GPUSieveSize to %dM\n", i);
@@ -492,14 +478,14 @@ int read_config(mystuff_t *mystuff)
 
     if(my_read_int(mystuff->inifile, "FlushInterval", &i))
     {
-      logprintf(mystuff, "WARNING: Cannot read FlushInterval from INI file, using default value 0\n");
+      logprintf(mystuff, "Warning: Cannot read FlushInterval from INI file, using default value 0\n");
       i = 0;
     }
     else
     {
       if(i < 0)
       {
-        logprintf(mystuff, "WARNING: Read FlushInterval=%d from INI file, using min value (0)\n",i);
+        logprintf(mystuff, "Warning: Read FlushInterval=%d from INI file, using min value (0)\n",i);
         i = 0;
       }
     }
@@ -512,7 +498,7 @@ int read_config(mystuff_t *mystuff)
   if(my_read_string(mystuff->inifile, "WorkFile", mystuff->workfile, 50))
   {
     sprintf(mystuff->workfile, "worktodo.txt");
-    logprintf(mystuff, "WARNING: Cannot read WorkFile from INI file, using default (%s)\n", mystuff->workfile);
+    logprintf(mystuff, "Warning: Cannot read WorkFile from INI file, using default (%s)\n", mystuff->workfile);
   }
   if(mystuff->verbosity >= 1)logprintf(mystuff, "  WorkFile                  %s\n", mystuff->workfile);
 
@@ -521,7 +507,7 @@ int read_config(mystuff_t *mystuff)
   if(my_read_string(mystuff->inifile, "ResultsFile", mystuff->resultfile, 50))
   {
     sprintf(mystuff->resultfile, "results.txt");
-    logprintf(mystuff, "WARNING: Cannot read ResultsFile from INI file, using default (%s)\n", mystuff->resultfile);
+    logprintf(mystuff, "Warning: Cannot read ResultsFile from INI file, using default (%s)\n", mystuff->resultfile);
   }
   if(mystuff->verbosity >= 1)logprintf(mystuff, "  ResultsFile               %s\n", mystuff->resultfile);
 
@@ -530,7 +516,7 @@ int read_config(mystuff_t *mystuff)
   if (my_read_string(mystuff->inifile, "JSONResultsFile", mystuff->jsonresultfile, 50))
   {
     sprintf(mystuff->jsonresultfile, "results.json.txt");
-    logprintf(mystuff, "WARNING: Cannot read JSONResultsFile from INI file, using default (%s)\n", mystuff->jsonresultfile);
+    logprintf(mystuff, "Warning: Cannot read JSONResultsFile from INI file, using default (%s)\n", mystuff->jsonresultfile);
   }
   if (mystuff->verbosity >= 1)logprintf(mystuff, "  JSONResultsFile           %s\n", mystuff->jsonresultfile);
 
@@ -539,7 +525,7 @@ int read_config(mystuff_t *mystuff)
   if (my_read_string(mystuff->inifile, "LogFile", mystuff->logfile, 50))
   {
     sprintf(mystuff->logfile, "mfakto.log");
-    logprintf(mystuff, "WARNING: Cannot read LogFile from INI file, using default (%s)\n", mystuff->logfile);
+    logprintf(mystuff, "Warning: Cannot read LogFile from INI file, using default (%s)\n", mystuff->logfile);
   }
   if (mystuff->verbosity >= 1)logprintf(mystuff, "  LogFile                   %s\n", mystuff->logfile);
 
@@ -547,12 +533,12 @@ int read_config(mystuff_t *mystuff)
 
   if(my_read_int(mystuff->inifile, "Checkpoints", &i))
   {
-    logprintf(mystuff, "WARNING: Cannot read Checkpoints from INI file, enabled by default\n");
+    logprintf(mystuff, "Warning: Cannot read Checkpoints from INI file, enabled by default\n");
     i=1;
   }
   else if(i < 0)
   {
-    logprintf(mystuff, "WARNING: Checkpoints must be 0 (disabled) or greater, enabled by default\n");
+    logprintf(mystuff, "Warning: Checkpoints must be 0 (disabled) or greater, enabled by default\n");
     i=1;
   }
   if(mystuff->verbosity >= 1)
@@ -573,17 +559,17 @@ int read_config(mystuff_t *mystuff)
   {
     if(my_read_int(mystuff->inifile, "CheckpointDelay", &i))
     {
-      logprintf(mystuff, "WARNING: Cannot read CheckpointDelay from INI file, set to 300 s by default\n");
+      logprintf(mystuff, "Warning: Cannot read CheckpointDelay from INI file, set to 300 s by default\n");
       i = 300;
     }
     if(i > 3600)
     {
-      logprintf(mystuff, "WARNING: Maximum value for CheckpointDelay is 3600 s\n");
+      logprintf(mystuff, "Warning: Maximum value for CheckpointDelay is 3600 s\n");
       i = 3600;
     }
     if(i < 0)
     {
-      logprintf(mystuff, "WARNING: Minimum value for CheckpointDelay is 0 s\n");
+      logprintf(mystuff, "Warning: Minimum value for CheckpointDelay is 0 s\n");
       i = 0;
     }
     if(mystuff->verbosity >= 1)logprintf(mystuff, "  CheckpointDelay           %d s\n", i);
@@ -594,12 +580,12 @@ int read_config(mystuff_t *mystuff)
 
   if(my_read_int(mystuff->inifile, "Stages", &i))
   {
-    logprintf(mystuff, "WARNING: Cannot read Stages from INI file, enabled by default\n");
+    logprintf(mystuff, "Warning: Cannot read Stages from INI file, enabled by default\n");
     i=1;
   }
   else if(i != 0 && i != 1)
   {
-    logprintf(mystuff, "WARNING: Stages must be 0 or 1, enabled by default\n");
+    logprintf(mystuff, "Warning: Stages must be 0 or 1, enabled by default\n");
     i=1;
   }
   if(mystuff->verbosity >= 1)
@@ -613,18 +599,18 @@ int read_config(mystuff_t *mystuff)
 
   if(my_read_int(mystuff->inifile, "StopAfterFactor", &i))
   {
-    logprintf(mystuff, "WARNING: Cannot read StopAfterFactor from INI file, set to 1 by default\n");
+    logprintf(mystuff, "Warning: Cannot read StopAfterFactor from INI file, set to 1 by default\n");
     i=1;
   }
   else if( (i < 0) || (i > 2) )
   {
-    logprintf(mystuff, "WARNING: StopAfterFactor must be 0, 1 or 2, set to 1 by default\n");
+    logprintf(mystuff, "Warning: StopAfterFactor must be 0, 1 or 2, set to 1 by default\n");
     i=1;
   }
   if(mystuff->verbosity >= 1)
   {
          if(i==0)logprintf(mystuff, "  StopAfterFactor           disabled\n");
-    else if(i==1)logprintf(mystuff, "  StopAfterFactor           bitlevel\n");
+    else if(i==1)logprintf(mystuff, "  StopAfterFactor           bit level\n");
     else if(i==2)logprintf(mystuff, "  StopAfterFactor           class\n");
   }
   mystuff->stopafterfactor = i;
@@ -633,12 +619,12 @@ int read_config(mystuff_t *mystuff)
 
   if(my_read_int(mystuff->inifile, "PrintMode", &i))
   {
-    logprintf(mystuff, "WARNING: Cannot read PrintMode from INI file, set to 0 by default\n");
+    logprintf(mystuff, "Warning: Cannot read PrintMode from INI file, set to 0 by default\n");
     i=0;
   }
   else if(i != 0 && i != 1)
   {
-    logprintf(mystuff, "WARNING: PrintMode must be 0 or 1, set to 0 by default\n");
+    logprintf(mystuff, "Warning: PrintMode must be 0 or 1, set to 0 by default\n");
     i=0;
   }
   if(mystuff->verbosity >= 1)
@@ -653,12 +639,12 @@ int read_config(mystuff_t *mystuff)
 
   if (my_read_int(mystuff->inifile, "Logging", &i))
   {
-      logprintf(mystuff, "WARNING: Cannot read Logging from INI file, set to 0 by default\n");
+      logprintf(mystuff, "Warning: Cannot read Logging from INI file, set to 0 by default\n");
       i = 0;
   }
   else if (i != 0 && i != 1)
   {
-      logprintf(mystuff, "WARNING: Logging must be 0 or 1, set to 0 by default\n");
+      logprintf(mystuff, "Warning: Logging must be 0 or 1, set to 0 by default\n");
       i = 0;
   }
   if (mystuff->verbosity >= 1)
@@ -672,7 +658,7 @@ int read_config(mystuff_t *mystuff)
       mystuff->logfileptr = fopen(mystuff->logfile, "a");
       if (mystuff->logfileptr == NULL)
       {
-          logprintf(mystuff, "WARNING: Cannot open %s for appending, error: %d", mystuff->logfile, errno);
+          logprintf(mystuff, "Warning: Cannot open %s for appending, error: %d", mystuff->logfile, errno);
       }
   }
 
@@ -709,7 +695,7 @@ int read_config(mystuff_t *mystuff)
   {
 //    sprintf(mystuff->stats.progressheader, "    class | candidates |    time |    ETA | avg. rate | SievePrimes | CPU wait");
     sprintf(mystuff->stats.progressheader, "Date   Time     Pct    ETA | Exponent    Bits | GHz-d/day    Sieve     Wait");
-    logprintf(mystuff, "WARNING: no ProgressHeader specified in INI file, using default\n");
+    logprintf(mystuff, "Warning: no ProgressHeader specified in INI file, using default\n");
   }
   if(mystuff->verbosity >= 2)logprintf(mystuff, "  ProgressHeader            \"%s\"\n", mystuff->stats.progressheader);
 
@@ -719,7 +705,7 @@ int read_config(mystuff_t *mystuff)
   if(my_read_string(mystuff->inifile, "ProgressFormat", mystuff->stats.progressformat, 250))
   {
     sprintf(mystuff->stats.progressformat, "%%d %%T  %%p %%e | %%M %%l-%%u |   %%g  %%s  %%W%%%%");
-    logprintf(mystuff, "WARNING: no ProgressFormat specified in INI file, using default\n");
+    logprintf(mystuff, "Warning: no ProgressFormat specified in INI file, using default\n");
   }
   if(mystuff->verbosity >= 2)logprintf(mystuff, "  ProgressFormat            \"%s\"\n", mystuff->stats.progressformat);
 
@@ -733,7 +719,7 @@ int read_config(mystuff_t *mystuff)
   }
   else if(i != 0 && i != 1)
   {
-    logprintf(mystuff, "WARNING: TimeStampInResults must be 0 or 1, set to 0 by default\n");
+    logprintf(mystuff, "Warning: TimeStampInResults must be 0 or 1, set to 0 by default\n");
     i=0;
   }
   if(mystuff->verbosity >= 1)
@@ -745,20 +731,39 @@ int read_config(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
+  if(my_read_int(mystuff->inifile, "LegacyResultsTxt", &i))
+  {
+    logprintf(mystuff, "Warning: Cannot read LegacyResultsTxt from INI file, set to 0 by default\n");
+    i=0;
+  }
+  else if(i != 0 && i != 1)
+  {
+    logprintf(mystuff, "Warning: LegacyResultsTxt must be 0 or 1, set to 0 by default\n");
+    i=0;
+  }
+  if(mystuff->verbosity >= 1)
+  {
+    if(i == 0)logprintf(mystuff, "  LegacyResultsTxt          no\n");
+    else      logprintf(mystuff, "  LegacyResultsTxt          yes\n");
+  }
+  mystuff->legacy_results_txt = i;
+
+/*****************************************************************************/
+
   if(my_read_int(mystuff->inifile, "VectorSize", &i))
   {
-    logprintf(mystuff, "WARNING: Cannot read VectorSize from INI file, set to 4 by default\n");
+    logprintf(mystuff, "Warning: Cannot read VectorSize from INI file, set to 4 by default\n");
     i=4;
   }
   else if((i < 1 || i > 4) && i != 8 && i != 16 )
   {
-    logprintf(mystuff, "WARNING: VectorSize must be one of 1, 2, 3, 4, or 8, set to 4 by default\n");
+    logprintf(mystuff, "Warning: VectorSize must be one of 1, 2, 3, 4, or 8, set to 4 by default\n");
     i=4;
   }
 #ifdef CHECKS_MODBASECASE
   if (i>1)
   {
-    logprintf(mystuff, "WARNING: Reducing vector size from %d to 1 due to CHECKS_MODBASECASE.\n", i);
+    logprintf(mystuff, "Warning: Reducing vector size from %d to 1 due to CHECKS_MODBASECASE.\n", i);
     i=1;
   }
 #endif
@@ -769,7 +774,7 @@ int read_config(mystuff_t *mystuff)
 
   if (my_read_string(mystuff->inifile, "GPUType", tmp, 50))
   {
-    logprintf(mystuff, "WARNING: Cannot read GPUType from INI file, using default (AUTO)\n");
+    logprintf(mystuff, "Warning: Cannot read GPUType from INI file, using default (AUTO)\n");
     strcpy(tmp, "AUTO");
     mystuff->gpu_type = GPU_AUTO;
   }
@@ -786,7 +791,7 @@ int read_config(mystuff_t *mystuff)
     }
     if (mystuff->gpu_type == GPU_UNKNOWN)
     {
-      logprintf(mystuff, "WARNING: Unknown setting \"%s\" for GPUType, using default (AUTO)\n", tmp);
+      logprintf(mystuff, "Warning: Unknown setting \"%s\" for GPUType, using default (AUTO)\n", tmp);
       strcpy(tmp, "AUTO");
       mystuff->gpu_type = GPU_AUTO;
     }
@@ -798,12 +803,12 @@ int read_config(mystuff_t *mystuff)
 
   if(my_read_int(mystuff->inifile, "SmallExp", &i))
   {
-    logprintf(mystuff, "WARNING: Cannot read SmallExp from INI file, set to 0 by default\n");
+    logprintf(mystuff, "Warning: Cannot read SmallExp from INI file, set to 0 by default\n");
     i=0;
   }
   else if(i != 0 && i != 1)
   {
-    logprintf(mystuff, "WARNING: SmallExp must be 0 or 1, set to 0 by default\n");
+    logprintf(mystuff, "Warning: SmallExp must be 0 or 1, set to 0 by default\n");
     i=0;
   }
   if(mystuff->verbosity >= 1)

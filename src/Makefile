@@ -16,18 +16,20 @@
 # along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #
 #
-# Run "make" to compile mfakto. You can pass parameters on the make command
-# line to override defaults. For example, use "make bitness=32 static=yes"
-# to compile a 32-bit binary and link statically.
+# Run "make" to compile mfakto. You can pass parameters to make to override
+# defaults. For example, use "make bitness=32 static=yes" to compile a 32-bit
+# statically linked executable.
 #
-# MacOS Users may see an "out of sync" warning when compiling mfakto. Although
-# harmless, the warning can be silenced by running the following command prior
-# to compilation:
+# macOS users may see a warning about files being "out of sync" - this warning
+# is harmless but can be silenced by running the following command prior to
+# compilation:
 #
 # export SDKROOT=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
 
-
 ARCH := $(shell uname -m)
+
+BITS =
+STATIC =
 
 # check whether to build 32-bit version
 ifdef bitness
@@ -37,7 +39,7 @@ ifdef bitness
   endif
 endif
 
-# Check if static linking is requested
+# check whether to link statically
 ifdef static
   ifeq ($(static), yes)
     STATIC := -static
@@ -48,7 +50,7 @@ endif
 RM = rm -f
 INSTALL = install
 
-# MacOS specific flags
+# macOS-specific flags
 OS = $(shell uname -s)
 ifeq ($(OS), Darwin)
   ARCHFLAGS = -arch $(ARCH)
@@ -58,21 +60,22 @@ else
   OPENCL_LIB = -lOpenCL
 endif
 
-# where is the OpenCL SDK installed?
-AMD_APP_DIR = /opt/rocm/opencl
-AMD_APP_INCLUDE = -I$(AMD_APP_DIR)/include
-AMD_APP_LIB = -L$(AMD_APP_DIR)/lib/$(ARCH)
-
-# Change needed for compilation with amdgpu-pro
-# AMD_APP_DIR = /opt/amdgpu-pro/opencl
+# used for continuous integration in GitHub Actions
+ifndef AMD_APP_INCLUDE
+AMD_APP_INCLUDE =
+endif
+ifndef AMD_APP_LIB
+AMD_APP_LIB =
+endif
 
 # compiler settings for C and C++ files
 CC = gcc
 CPP = g++
 CFLAGS = $(ARCHFLAGS) $(BITS) -Wall $(OPTIMIZE_FLAG) $(AMD_APP_INCLUDE)
+CFLAGS_EXTRA_SIEVE =
 CPPFLAGS =
 
-# Linker
+# linker settings
 LD = $(CPP)
 LDFLAGS = $(ARCHFLAGS) $(BITS) $(STATIC) $(OPTIMIZE_FLAG) $(AMD_APP_LIB) $(OPENCL_LIB)
 
@@ -80,14 +83,12 @@ CC_VERSION = $(shell $(CC) --version)
 
 # optimize or debug
 ifneq (, $(findstring gcc, $(CC_VERSION)))
-  OPTIMIZE_FLAG = -O3 -funroll-loops -ffast-math -finline-functions -frerun-loop-opt -fgcse-sm -fgcse-las -flto
+  OPTIMIZE_FLAG = -O3 -funroll-loops -ffast-math -finline-functions -frerun-loop-opt -fgcse-sm -fgcse-las -flto=auto -save-temps
   CFLAGS_EXTRA_SIEVE = -funroll-all-loops -funsafe-loop-optimizations -fira-region=all -fsched-spec-load -fsched-stalled-insns=10 -fsched-stalled-insns-dep=10 -fno-align-labels
 else ifneq (, $(findstring clang, $(CC_VERSION)))
-  OPTIMIZE_FLAG = -O3 -funroll-loops -ffast-math -finline-functions -flto
-  CFLAGS_EXTRA_SIEVE =
+  OPTIMIZE_FLAG = -O3 -funroll-loops -ffast-math -finline-functions -flto=auto -save-temps
 else
   OPTIMIZE_FLAG = -O3
-  CFLAGS_EXTRA_SIEVE =
 endif
 
 ##############################################################################
@@ -111,7 +112,7 @@ all: $(ALL_TARGETS)
 	$(LD) $^ $(LDFLAGS) -o $@
 
 clean:
-	$(RM) *.o *~ depend
+	$(RM) *.o *~ depend *.bc *.i *.ii
 
 sieve.o : sieve.c
 	$(CC) $(CFLAGS) $(CFLAGS_EXTRA_SIEVE) -c $< -o $@
@@ -133,14 +134,19 @@ sieve.o : sieve.c
 
 .PHONY: all clean
 
-
 ##############################################################################
 
 depend: $(CSRC)
 	$(CC) -MM $(CFLAGS) $(CSRC) > $@.tmp
 	mv $@.tmp $@
 
-ifneq ($(MAKECMDGOALS), clean)
+ifdef MAKECMDGOALS
+	goals := $(MAKECMDGOALS)
+else
+	goals := all
+endif
+
+ifneq ($(goals), clean)
 ifneq (, $(wildcard depend))
 include depend
 endif

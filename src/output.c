@@ -1,6 +1,6 @@
 /*
 This file is part of mfaktc.
-Copyright (C) 2009 - 2014  Oliver Weihe (o.weihe@t-online.de)
+Copyright (c) 2009 - 2014  Oliver Weihe (o.weihe@t-online.de)
                            Bertram Franz (bertramf@gmx.net)
 
 mfaktc is free software: you can redistribute it and/or modify
@@ -34,32 +34,34 @@ along with mfaktc.  If not, see <http://www.gnu.org/licenses/>.
 
 void print_help(char *string)
 {
-  printf("mfakto (%s) Copyright (C) 2009-2014,\n", MFAKTO_VERSION);
+  printf("Copyright (c) 2009-2014\n");
   printf("  Oliver Weihe (o.weihe@t-online.de)\n");
-  printf("  Bertram Franz (bertramf@gmx.net)\n");
+  printf("  Bertram Franz (bertramf@gmx.net)\n\n");
   printf("This program comes with ABSOLUTELY NO WARRANTY; for details see COPYING.\n");
   printf("This is free software, and you are welcome to redistribute it\n");
   printf("under certain conditions; see COPYING for details.\n\n\n");
 
   printf("Usage: %s [options]\n", string);
   printf("  -h | --help            display this help\n");
-  printf("  -d <xy>                specify to use OpenCL platform number x and\n");
-  printf("                         device number y in this program\n");
-  printf("  -d c                   force using all CPUs\n");
-  printf("  -d g                   force using the first GPU\n");
-  printf("  -v <n>                 verbosity level: 0=terse, 1=normal, 2=verbose, 3=debug\n");
-  printf("  -tf <exp> <min> <max>  trial factor M<exp> from <min> to <max> bits\n");
-  printf("                         instead of parsing the worktodo file\n");
-  printf("  -i | --inifile <file>  load <file> as INI file (default: mfakto.ini)\n");
-  printf("  -st                    self-test using the optimal kernel per test case\n");
+  printf("  -d <xy>                specify OpenCL platform <x> and device <y> to use\n");
+  printf("                         note: mfakto defaults to the AMD platform when a\n");
+  printf("                               single-digit argument is passed to -d\n");
+  printf("  -d c                   run on the CPU (all cores)\n");
+  printf("  -d g                   run on the first GPU found\n");
+  printf("  -v <n>                 verbosity level: terse = 0, default = 1, more = 2,\n");
+  printf("                                          maximum = 3\n");
+  printf("  -tf <exp> <min> <max>  trial factor M<exp> from <min> to <max> bits, ignores\n");
+  printf("                         worktodo file\n");
+  printf("  -i | --inifile <file>  load a specific INI file (default: mfakto.ini)\n");
+  printf("  -st                    self-test using the optimal kernel for each test case\n");
   printf("  -st2                   self-test using all possible kernels\n");
   printf("\n");
   printf("options for debugging purposes\n");
-  printf("  --timertest            test of timer functions\n");
-  printf("  --sleeptest            test of sleep functions\n");
-  printf("  --perftest [n]         performance tests, repeat each test <n> times (def: 10)\n");
-  printf("  --CLtest               test of some OpenCL functions\n");
-  printf("                         specify -d before --CLtest to test specified device\n");
+  printf("  --timertest            test timer functions\n");
+  printf("  --sleeptest            test sleep functions\n");
+  printf("  --perftest [n]         run performance test <n> times (default: 10)\n");
+  printf("  --CLtest               test selected OpenCL functions\n");
+  printf("                         use -d option before --CLtest to test specified device\n");
 }
 
 
@@ -432,7 +434,8 @@ void getOSJSON(char* string) {
 
 
 void print_result_line(mystuff_t *mystuff, int factorsfound)
-/* printf the final result line (STDOUT and resultfile) */
+// printf the final result line to STDOUT and to resultfile if LegacyResultsTxt set to 1.
+// Prints JSON string to the jsonresultfile for Mersenne numbers as well.
 {
   char UID[110]; /* 50 (V5UserID) + 50 (ComputerID) + 8 + spare */
   int string_length = 0, factors_list_length = 0, factors_quote_list_length = 0, json_checksum;
@@ -511,8 +514,11 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
 
   if(mystuff->mode == MODE_NORMAL)
   {
-    txtresultfile = fopen_and_lock(mystuff->resultfile, "a");
-    if(mystuff->print_timestamp == 1)print_timestamp(txtresultfile);
+    if (mystuff->legacy_results_txt == 1)
+    {
+      txtresultfile = fopen_and_lock(mystuff->resultfile, "a");
+      if(mystuff->print_timestamp == 1)print_timestamp(txtresultfile);
+    }
     jsonresultfile = fopen_and_lock(mystuff->jsonresultfile, "a");
   }
   bool partialresult = (mystuff->mode == MODE_NORMAL) && (mystuff->stats.class_counter < max_class_number);
@@ -528,7 +534,6 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
       mystuff->exponent, mystuff->bit_min, mystuff->bit_max_stage,
       MFAKTO_VERSION, mystuff->stats.kernelname);
   }
-
   snprintf(json_checksum_string, sizeof(json_checksum_string), "%u;TF;%s;;%d;%d;%u;;;mfaktc;%s;%s;%s;%s;%s;%s", mystuff->exponent,
              factors_list, mystuff->bit_min, mystuff->bit_max_stage, !partialresult, SHORT_MFAKTO_VERSION, mystuff->stats.kernelname, details,
              getOS(), getArchitecture(), timestamp);
@@ -542,8 +547,11 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
   }
   if(mystuff->mode == MODE_NORMAL)
   {
-    fprintf(txtresultfile, "%s%s\n", UID, txtstring);
-    unlock_and_fclose(txtresultfile);
+    if (mystuff->legacy_results_txt == 1)
+    {
+      fprintf(txtresultfile, "%s%s\n", UID, txtstring);
+      unlock_and_fclose(txtresultfile);
+    }
     fprintf(jsonresultfile, "%s\n", jsonstring);
     unlock_and_fclose(jsonresultfile);
   }
@@ -553,7 +561,7 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
 void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bits)
 {
   char UID[110]; /* 50 (V5UserID) + 50 (ComputerID) + 8 + spare */
-  FILE *resultfile = NULL;
+  FILE *txtresultfile = NULL;
   unsigned int max_class_number;
 
   if (mystuff->more_classes)  max_class_number = 960;
@@ -564,10 +572,10 @@ void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bi
   else
     UID[0]=0;
 
-  if(mystuff->mode == MODE_NORMAL)
+  if(mystuff->mode == MODE_NORMAL && mystuff->legacy_results_txt == 1)
   {
-    resultfile = fopen_and_lock(mystuff->resultfile, "a");
-    if(mystuff->print_timestamp == 1 && factor_number == 0)print_timestamp(resultfile);
+    txtresultfile = fopen_and_lock(mystuff->resultfile, "a");
+    if(mystuff->print_timestamp == 1 && factor_number == 0)print_timestamp(txtresultfile);
   }
 
   if(factor_number < 10)
@@ -577,9 +585,9 @@ void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bi
       if(mystuff->printmode == 1 && factor_number == 0)logprintf(mystuff, "\n");
       logprintf(mystuff, "M%u has a factor: %s (%f bits, %f GHz-d)\n", mystuff->exponent, factor, bits, mystuff->stats.ghzdays);
     }
-    if(mystuff->mode == MODE_NORMAL)
+    if(mystuff->mode == MODE_NORMAL && mystuff->legacy_results_txt == 1)
     {
-      fprintf(resultfile, "%sM%u has a factor: %s [TF:%d:%d%s:%s %s]\n",
+      fprintf(txtresultfile, "%sM%u has a factor: %s [TF:%d:%d%s:%s %s]\n",
         UID, mystuff->exponent, factor, mystuff->bit_min, mystuff->bit_max_stage,
         ((mystuff->stopafterfactor == 2) && (mystuff->stats.class_counter < max_class_number)) ? "*" : "" ,
         MFAKTO_VERSION, mystuff->stats.kernelname);
@@ -588,27 +596,46 @@ void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bi
   else /* factor_number >= 10 */
   {
     if(mystuff->mode != MODE_SELFTEST_SHORT)      printf("M%u: %d additional factors not shown\n",      mystuff->exponent, factor_number-10);
-    if(mystuff->mode == MODE_NORMAL)fprintf(resultfile,"%sM%u: %d additional factors not shown\n", UID, mystuff->exponent, factor_number-10);
+    if(mystuff->mode == MODE_NORMAL && mystuff->legacy_results_txt == 1)
+    {
+      fprintf(txtresultfile,"%sM%u: %d additional factors not shown\n", UID, mystuff->exponent, factor_number-10);
+    }
   }
 
-  if(mystuff->mode == MODE_NORMAL)unlock_and_fclose(resultfile);
+  if(mystuff->mode == MODE_NORMAL && mystuff->legacy_results_txt == 1)unlock_and_fclose(txtresultfile);
 }
 
+/* estimate the GHz-days for current job
+GHz-days = <magic constant> * pow(2, bit level - 48) * 1680 / $exponent
 
-double primenet_ghzdays(unsigned int exponent, int bit_min, int bit_max)
-/* estimate the GHZ-days for the current job
-GHz-days = <magic constant> * pow(2, $bitlevel - 48) * 1680 / $exponent
+magic constant is 0.016968 for TF to 65 bits and above
+magic constant is 0.017832 for 63 and 64 bits
+magic constant is 0.011160 for 62 bits and below
 
-magic constant is 0.016968 for TF to 65-bit and above
-magic constant is 0.017832 for 63-and 64-bit
-magic constant is 0.011160 for 62-bit and below
-
-example using M50,000,000 from 2^69-2^70:
+example using M50,000,000 from 2^69 to 2^70:
  = 0.016968 * pow(2, 70 - 48) * 1680 / 50000000
- = 2.3912767291392 GHz-days*/
+ = 2.3912767291392 GHz-days */
+double primenet_ghzdays(unsigned int exponent, int bit_min, int bit_max)
 {
-  // just use the 65-bit constant, that's close enough
-  return 0.016968 * (double)(1ULL << (bit_min - 47)) * 1680 / exponent * ((1 << (bit_max-bit_min)) -1);
+  double ghzdays = 0.0;
+  bit_min++;
+
+  while (bit_min <= bit_max && bit_min <= 62) {
+      ghzdays += GHZDAYS_MAGIC_TF_BOT * pow(2.0, (double)bit_min - 48.0);
+      bit_min++;
+  }
+  while (bit_min <= bit_max && bit_min <= 64) {
+      ghzdays += GHZDAYS_MAGIC_TF_MID * pow(2.0, (double)bit_min - 48.0);
+      bit_min++;
+  }
+  while (bit_min <= bit_max) {
+      ghzdays += GHZDAYS_MAGIC_TF_TOP * pow(2.0, (double)bit_min - 48.0);
+      bit_min++;
+  }
+
+  ghzdays *= 1680.0 / (double)exponent;
+
+  return ghzdays;
 }
 
 const char* ClErrorString( const cl_int errcode )
