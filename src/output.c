@@ -533,7 +533,7 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
              factors_list, mystuff->bit_min, mystuff->bit_max_stage, !partialresult, SHORT_MFAKTO_VERSION, mystuff->stats.kernelname, details,
              getOS(), getArchitecture(), timestamp);
   json_checksum = crc32_checksum(json_checksum_string, strlen(json_checksum_string));
-  sprintf(jsonstring, "{\"exponent\":%u, \"worktype\":\"TF\", \"status\":\"%s\", \"bitlo\":%2d, \"bithi\":%2d, \"rangecomplete\":%s%s, \"program\":{\"name\":\"mfakto\", \"version\":\"%s\", \"subversion\":\"%s\"}, \"timestamp\":\"%s\"%s%s%s%s, \"checksum\":{\"version\":%u, \"checksum\":\"%08X\"}}",
+  sprintf(jsonstring, "{\"exponent\":%u, \"worktype\":\"TF\", \"status\":\"%s\", \"bitlo\":%d, \"bithi\":%d, \"rangecomplete\":%s%s, \"program\":{\"name\":\"mfakto\", \"version\":\"%s\", \"kernel\":\"%s\"}, \"timestamp\":\"%s\"%s%s%s%s, \"checksum\":{\"version\":%u, \"checksum\":\"%08X\"}}",
       mystuff->exponent, factorsfound > 0 ? "F" : "NF", mystuff->bit_min, mystuff->bit_max_stage, partialresult ? "false" : "true", factorjson, SHORT_MFAKTO_VERSION, mystuff->stats.kernelname, timestamp, userjson, computerjson, aidjson, osjson, MFAKTO_CHECKSUM_VERSION, json_checksum);
 
   if(mystuff->mode != MODE_SELFTEST_SHORT)
