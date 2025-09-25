@@ -408,6 +408,32 @@ void get_utc_timestamp(char* timestamp)
     strftime(timestamp, sizeof(char[50]), "%Y-%m-%d %H:%M:%S", utc_time);
 }
 
+const char* getArchitecture()
+{
+#if defined(__x86_64__) || defined(_M_X64)
+    return "x86_64";
+#elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
+    return "x86_32";
+#elif defined(__aarch64__) || defined(_M_ARM64)
+    return "ARM64";
+#else
+    return "";
+#endif
+}
+
+const char* getOS()
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return "Windows";
+#elif defined(__APPLE__)
+    return "Darwin";
+#elif defined(__linux__)
+    return "Linux";
+#elif defined(__unix__)
+    return "Unix";
+#endif
+}
+
 const char* getArchitectureJSON() {
 #if defined(__x86_64__) || defined(_M_X64)
     return ", \"architecture\": \"x86_64\"";
@@ -432,6 +458,22 @@ void getOSJSON(char* string) {
 #endif
 }
 
+static int cmp_int96(const void* p1, const void* p2)
+{
+    int96* a = (int96*)p1, * b = (int96*)p2;
+
+    // clang-format off
+    if (a->d2 > b->d2)      return 1;
+    else if (a->d2 < b->d2) return -1;
+    else
+        if (a->d1 > b->d1)      return 1;
+        else if (a->d1 < b->d1) return -1;
+        else
+            if (a->d0 > b->d0)      return 1;
+            else if (a->d0 < b->d0) return -1;
+            else                    return 0;
+    // clang-format on
+}
 
 void print_result_line(mystuff_t *mystuff, int factorsfound)
 // printf the final result line to STDOUT and to resultfile if LegacyResultsTxt set to 1.
@@ -446,6 +488,7 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
   char factors_list[500];
   char factors_quote_list[500];
   char osjson[200];
+  char details[50];
   char txtstring[200];
   char json_checksum_string[750];
   char timestamp[50];
