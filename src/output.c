@@ -480,7 +480,7 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
 // Prints JSON string to the jsonresultfile for Mersenne numbers as well.
 {
   char UID[110]; /* 50 (V5UserID) + 50 (ComputerID) + 8 + spare */
-  int string_length = 0, factors_list_length = 0, factors_quote_list_length = 0, json_checksum;
+  int factors_list_length = 0, factors_quote_list_length = 0, json_checksum;
   char aidjson[MAX_LINE_LENGTH + 11];
   char userjson[62]; /* 50 (V5UserID) + 11 spare + null character */
   char computerjson[66];  /* 50 (ComputerID) + 15 spare + null character */

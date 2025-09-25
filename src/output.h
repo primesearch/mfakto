@@ -24,9 +24,7 @@ void print_help(char *string);
 void logprintf(mystuff_t* mustuff, const char* fmt, ...);
 
 void print_dez72(int96 a, char *buf);
-void print_dez144(int144 a, char *buf);
 void print_dez96(int96 a, char *buf);
-void print_dez192(int192 a, char *buf);
 void print_dez90(int96 a, char *buf);
 
 unsigned int crc32_checksum(char* string, int chars);
