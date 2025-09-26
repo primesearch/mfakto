@@ -587,7 +587,7 @@ other return value
   unsigned int f_hi, f_med, f_low;
   struct timeval timer;
   time_t time_last_checkpoint, time_add_file_check=0;
-  int factorsfound = 0, numfactors = 0, restart = 0, do_checkpoint = mystuff->checkpoints;
+  int factorsfound = 0, numfactors = 0, restart = 0, factorindex = 0, do_checkpoint = mystuff->checkpoints;
 
   int retval = 0, add_file_exists = 0;
 
@@ -743,6 +743,35 @@ other return value
 
         if(mystuff->mode == MODE_NORMAL)
         {
+            if (numfactors > 0) {
+                int96 factor;
+                for (int idx = 0; idx < factorsfound && idx < 10; idx++) /* 10 is the max factors per class allowed in every kernel */
+                {
+                    factor.d2 = mystuff->h_RES[idx * 3 + 1];
+                    factor.d1 = mystuff->h_RES[idx * 3 + 2];
+                    factor.d0 = mystuff->h_RES[idx * 3 + 3];
+                    if (use_kernel == _71BIT_MUL24 || use_kernel == _63BIT_MUL24)
+                    {
+                        factor.d0 = (factor.d1 << 24) + factor.d0;
+                        factor.d1 = (factor.d2 << 16) + (factor.d1 >> 8);
+                        factor.d2 = factor.d2 >> 16;
+                    }
+                    else if ((use_kernel >= BARRETT73_MUL15_GS && use_kernel <= BARRETT74_MUL15_GS) || (use_kernel >= BARRETT73_MUL15 && use_kernel <= BARRETT74_MUL15) || use_kernel == MG88)
+                    {
+                        factor.d0 = (factor.d1 << 30) + factor.d0;
+                        factor.d1 = (factor.d2 << 28) + (factor.d1 >> 2);
+                        factor.d2 = factor.d2 >> 4;
+                    }
+
+                    mystuff->factors[factorindex++] = factor;
+                    if (factorindex >= MAX_FACTORS_PER_JOB) {
+                        logprintf(mystuff, "ERROR: reached limit of %u factors for this job, try a different range",
+                            MAX_FACTORS_PER_JOB);
+                        return RET_QUIT;
+                    }
+                }
+            }
+
           time_t now = time(NULL);
           if (add_file_exists)
           {
