@@ -450,7 +450,7 @@ void getOSJSON(char* string) {
 #if defined(_WIN32) || defined(_WIN64)
     sprintf(string, ", \"os\":{\"os\": \"Windows\"%s}", getArchitectureJSON());
 #elif defined(__APPLE__)
-    sprintf(string, ", \"os\":{\"os\": \"Darwin\"%s}", getArchitectureJSON());
+    sprintf(string, ", \"os\":{\"os\": \"macOS\"%s}", getArchitectureJSON());
 #elif defined(__linux__)
     sprintf(string, ", \"os\":{\"os\": \"Linux\"%s}", getArchitectureJSON());
 #elif defined(__unix__)
@@ -464,14 +464,12 @@ static int cmp_int96(const void* p1, const void* p2)
 
     // clang-format off
     if (a->d2 > b->d2)      return 1;
-    else if (a->d2 < b->d2) return -1;
-    else
-        if (a->d1 > b->d1)      return 1;
-        else if (a->d1 < b->d1) return -1;
-        else
-            if (a->d0 > b->d0)      return 1;
-            else if (a->d0 < b->d0) return -1;
-            else                    return 0;
+    if (a->d2 < b->d2)      return -1;
+    if (a->d1 > b->d1)      return 1;
+    if (a->d1 < b->d1)      return -1;
+    if (a->d0 > b->d0)      return 1;
+    if (a->d0 < b->d0)      return -1;
+    return 0;
     // clang-format on
 }
 

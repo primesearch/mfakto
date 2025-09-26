@@ -19,33 +19,12 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <string.h>
 
+#include "crc.h"
 #include "params.h"
 #include "timer.h"
 #include "my_types.h"
-extern mystuff_t    mystuff;
 
-unsigned int checkpoint_checksum(char *string, int chars)
-/* generates a CRC-32 like checksum of the string */
-{
-  unsigned int chksum=0;
-  int i,j;
-  
-  for(i=0;i<chars;i++)
-  {
-    for(j=7;j>=0;j--)
-    {
-      if((chksum>>31) == (((unsigned int)(string[i]>>j))&1))
-      {
-        chksum<<=1;
-      }
-      else
-      {
-        chksum = (chksum<<1)^0x04C11DB7;
-      }
-    }
-  }
-  return chksum;
-}
+extern mystuff_t    mystuff;
 
 void checkpoint_write(unsigned int exp, int bit_min, int bit_max, unsigned int cur_class, int num_factors, char *factors_string, unsigned long long int bit_level_time)
 /*
@@ -73,7 +52,7 @@ checkpoint_write() writes the checkpoint file.
               timer_init(&cptimer); */
 
     sprintf(buffer,"%u %d %d %d %s: %d %d %s %llu", exp, bit_min, bit_max, mystuff.num_classes, MFAKTO_VERSION, cur_class, num_factors, strlen(factors_string) ? factors_string : "0", bit_level_time);
-    i=checkpoint_checksum(buffer,(int)strlen(buffer));
+    i=crc32_checksum(buffer,(int)strlen(buffer));
 //              c1 = timer_diff(&cptimer);
     i=fprintf(f,"%u %d %d %d %s: %d %d %s %llu %08X\n", exp, bit_min, bit_max, mystuff.num_classes, MFAKTO_VERSION, cur_class, num_factors, strlen(factors_string) ? factors_string : "0", bit_level_time, i);
 //              c2 = timer_diff(&cptimer);
@@ -146,7 +125,7 @@ returns 0 otherwise
       else sprintf(version, "%s", MFAKTO_VERSION);
       (void) sscanf(ptr,": %d %d %s %llu", cur_class, num_factors, factors_string, bit_level_time);
       sprintf(buffer2,"%u %d %d %d %s: %d %d %s %llu", exp, bit_min, bit_max, mystuff.num_classes, version, *cur_class, *num_factors, factors_string, *bit_level_time);
-      chksum=checkpoint_checksum(buffer2,(int)strlen(buffer2));
+      chksum= crc32_checksum(buffer2,(int)strlen(buffer2));
       // no trainling '\n' for the compare buffer to allow interchanging \n\r and \n files 
       i=sprintf(buffer2,"%u %d %d %d %s: %d %d %s %llu %08X", exp, bit_min, bit_max, mystuff.num_classes, version, *cur_class, *num_factors, factors_string, *bit_level_time, chksum);
       if(*cur_class >= 0 && \
@@ -174,7 +153,7 @@ returns 0 otherwise
   fclose(f);
   if (ret==0)
   {
-    sprintf(filename_save, "M%u.ckp.bad-%08X", exp, checkpoint_checksum(buffer,(int)strlen(buffer))); // append some "random" number (same number means same content)
+    sprintf(filename_save, "M%u.ckp.bad-%08X", exp, crc32_checksum(buffer,(int)strlen(buffer))); // append some "random" number (same number means same content)
     if (rename(filename, filename_save) == 0)
     {
       if (verbosity>0) printf("Renamed bad checkpoint file \"%s\" to \"%s\"\n", filename, filename_save);
