@@ -27,7 +27,7 @@ void print_dez72(int96 a, char *buf);
 void print_dez96(int96 a, char *buf);
 void print_dez90(int96 a, char *buf);
 
-unsigned int crc32_checksum(char* string, int chars);
+unsigned int crc32_checksum(char* string, size_t chars);
 void print_status_line(mystuff_t *mystuff);
 void print_result_line(mystuff_t *mystuff, int factorsfound);
 void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bits);

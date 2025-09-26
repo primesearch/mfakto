@@ -21,7 +21,7 @@ along with mfaktc.  If not, see <http://www.gnu.org/licenses/>.
 #include "crc.h"
 
 /* uses a variant of CRC32 to generate the checksum of a string */
-unsigned int crc32_checksum(char *string, int chars)
+unsigned int crc32_checksum(char *string, size_t chars)
 {
     unsigned int cur_char, chksum = 0xFFFFFFFF;
     int str_idx, cur_bit;
