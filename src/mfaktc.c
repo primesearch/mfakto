@@ -765,7 +765,7 @@ other return value
 
                     mystuff->factors[factorindex++] = factor;
                     if (factorindex >= MAX_FACTORS_PER_JOB) {
-                        logprintf(mystuff, "ERROR: reached limit of %u factors for this job, try a different range",
+                        logprintf(mystuff, "ERROR: reached limit of %u factors for this job, try a different range\n",
                             MAX_FACTORS_PER_JOB);
                         return RET_QUIT;
                     }
