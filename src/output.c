@@ -189,6 +189,36 @@ void print_dez192(int192 a, char *buf)
 }
 */
 
+int96 parse_dez96(char* str)
+{
+    int96 result = { 0, 0, 0 };
+    size_t len = strlen(str);
+    int i;
+    while (*str == '0' && *(str + 1) != '\0') {
+        str++;
+        len--;
+    }
+    if (len == 0 || (len == 1 && *str == '0')) {
+        return result;
+    }
+    for (i = 0; i < len; i++) {
+        if (str[i] < '0' || str[i] > '9') {
+            continue;
+        }
+        int digit = str[i] - '0';
+        unsigned long long int carry;
+        carry = (unsigned long long int)result.d0 * 10 + digit;
+        result.d0 = carry & 0xFFFFFFFF;
+        carry >>= 32;
+        carry += (unsigned long long int)result.d1 * 10;
+        result.d1 = carry & 0xFFFFFFFF;
+        carry >>= 32;
+        carry += (unsigned long long int)result.d2 * 10;
+        result.d2 = carry & 0xFFFFFFFF;
+    }
+    return result;
+}
+
 void print_timestamp(FILE *outfile)
 {
   char* ptr;

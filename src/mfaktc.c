@@ -658,13 +658,33 @@ other return value
 
   if(mystuff->mode == MODE_NORMAL)
   {
-    if((mystuff->checkpoints > 0) && (checkpoint_read(mystuff->exponent, mystuff->bit_min, mystuff->bit_max_stage, &cur_class, &factorsfound, mystuff->factors_string, &(mystuff->stats.bit_level_time), mystuff->verbosity) == 1))
-    {
-      logprintf(mystuff, "\nFound a valid checkpoint file.\n");
-      if(mystuff->verbosity >= 1) logprintf(mystuff, "  last finished class was: %d\n", cur_class);
-      if(mystuff->verbosity >= 1) logprintf(mystuff, "  found %d factor%s already\n", factorsfound, factorsfound == 1 ? "" : "s");
-      if(mystuff->verbosity >= 1) logprintf(mystuff, "  previous work took %llu ms\n\n", mystuff->stats.bit_level_time);
-      else                        logprintf(mystuff, "\n");
+      if (mystuff->checkpoints > 0 && checkpoint_read(mystuff->exponent, mystuff->bit_min, mystuff->bit_max_stage, &cur_class, &factorsfound, mystuff->factors, &(mystuff->stats.bit_level_time), mystuff->verbosity) == 1)
+      {
+          logprintf(mystuff, "\nFound a valid checkpoint file.\n");
+          if (mystuff->verbosity >= 1) {
+              logprintf(mystuff, "  last finished class was: %d\n", cur_class);
+          }
+          if (factorsfound > 0) {
+              factorindex = factorsfound;
+              if (mystuff->verbosity >= 1) {
+                  logprintf(mystuff, "  found %d factor%s already\n", factorsfound, factorsfound == 1 ? "" : "s");
+              }
+              for (i = 0; i < MAX_FACTORS_PER_JOB; i++) {
+                  if (mystuff->factors[i].d0 || mystuff->factors[i].d1 || mystuff->factors[i].d2) {
+                      char factor[MAX_DEZ_96_STRING_LENGTH];
+                      print_dez96(mystuff->factors[i], factor);
+                      logprintf(mystuff, "%s ", factor);
+                  }
+              }
+              logprintf(mystuff, "\n");
+          }
+          if (mystuff->verbosity >= 1) {
+              logprintf(mystuff, "  previous work took %llu ms\n\n", mystuff->stats.bit_level_time);
+          }
+          else {
+              logprintf(mystuff, "\n");
+          }
+
       cur_class++; // the checkpoint contains the last completely processed class!
 
 /* calculate the number of classes which are already processed. This value is needed to estimate ETA */
@@ -793,7 +813,7 @@ other return value
                  ((mystuff->checkpoints == 1) && (now - time_last_checkpoint > (time_t) mystuff->checkpointdelay)) ||
                    mystuff->quit )
             {
-              checkpoint_write(mystuff->exponent, mystuff->bit_min, mystuff->bit_max_stage, cur_class, factorsfound, mystuff->factors_string, mystuff->stats.bit_level_time);
+              checkpoint_write(mystuff->exponent, mystuff->bit_min, mystuff->bit_max_stage, cur_class, factorsfound, mystuff->factors, mystuff->stats.bit_level_time);
               do_checkpoint = mystuff->checkpoints;
               time_last_checkpoint = now;
             }
