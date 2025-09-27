@@ -665,6 +665,7 @@ other return value
               logprintf(mystuff, "  last finished class was: %d\n", cur_class);
           }
           if (factorsfound > 0) {
+              // don't overwrite existing factors
               factorindex = factorsfound;
               if (mystuff->verbosity >= 1) {
                   logprintf(mystuff, "  found %d factor%s so far: ", factorsfound, factorsfound == 1 ? "" : "s");
@@ -1173,7 +1174,7 @@ int main(int argc, char **argv)
 
       if(tmp < 0)
       {
-        logprintf(&mystuff, "WARNING: minimum verbosity level is 0\n");
+        logprintf(&mystuff, "Warning: minimum verbosity level is 0\n");
         tmp = 0;
       }
 
@@ -1470,7 +1471,7 @@ int main(int argc, char **argv)
           if(mystuff.sieve_primes > mystuff.sieve_primes_upper_limit)
           {
             mystuff.sieve_primes = mystuff.sieve_primes_upper_limit;
-            logprintf(&mystuff, "WARNING: SievePrimes is too big for the current assignment, lowering to %u\n", mystuff.sieve_primes_upper_limit);
+            logprintf(&mystuff, "Warning: SievePrimes is too big for the current assignment, lowering to %u\n", mystuff.sieve_primes_upper_limit);
             logprintf(&mystuff, "         It is not allowed to sieve primes which are equal or bigger than the \n");
             logprintf(&mystuff, "         exponent itself!\n");
           }
@@ -1479,7 +1480,7 @@ int main(int argc, char **argv)
         {
           if (mystuff.exponent < mystuff.gpu_sieve_min_exp)
           {
-            logprintf(&mystuff, "WARNING: SievePrimes is too big for the current assignment, adjusting\n");
+            logprintf(&mystuff, "Warning: SievePrimes is too big for the current assignment, adjusting\n");
             logprintf(&mystuff, "         It is not allowed to sieve primes which are equal or bigger than the \n");
             logprintf(&mystuff, "         exponent itself.\n");
             gpusieve_free(&mystuff);
