@@ -36,7 +36,7 @@ vcpkg_installed/
 
 # device-specific files
 *.ckp
-*.ckp.bu
+*.ckp.*
 *.log
 results.txt
 results.json.txt
