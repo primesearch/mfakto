@@ -310,6 +310,7 @@ typedef struct _mystuff_t
   char V5UserID[51];           /* PrimeNet user ID and computer ID */
   char ComputerID[51];
   char assignment_key[MAX_LINE_LENGTH + 1]; /* the assignment ID */
+  int96 factors[MAX_FACTORS_PER_JOB];       /* store factors in global state */
   char factors_string[500];    /* store factors in global state */
   char CompileOptions[151];    /* additional compile options */
   char binfile[51];            /* compiled kernels file to use, empty if not desired */

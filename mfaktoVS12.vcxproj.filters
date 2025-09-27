@@ -37,6 +37,9 @@
     <ClCompile Include="src\mfaktc.c">
       <Filter>source files</Filter>
     </ClCompile>
+    <ClCompile Include="src\crc.c">
+      <Filter>source files</Filter>
+    </ClCompile>
     <ClCompile Include="src\menu.cpp">
       <Filter>source files</Filter>
     </ClCompile>
@@ -100,6 +103,9 @@
       <Filter>kernel files</Filter>
     </ClInclude>
     <ClInclude Include="src\menu.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\crc.h">
       <Filter>header files</Filter>
     </ClInclude>
   </ItemGroup>
