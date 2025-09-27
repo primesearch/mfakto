@@ -166,10 +166,10 @@
       </Command>
     </PostBuildEvent>
     <CustomBuildStep>
-      <Command>copy src\$(RootNamespace)_Kernels.cl "$(OUTDIR)"\$(RootNamespace)_Kernels.cl &amp; copy src\barrett.cl "$(OUTDIR)"\barrett.cl &amp; copy src\barrett15.cl "$(OUTDIR)"\barrett15.cl &amp; copy src\mul24.cl "$(OUTDIR)"\mul24.cl &amp; copy src\gpusieve.cl "$(OUTDIR)"\gpusieve.cl &amp; copy src\tf_debug.h "$(OUTDIR)"\tf_debug.h &amp; copy src\datatypes.h "$(OUTDIR)"\datatypes.h &amp; copy src\montgomery.cl "$(OUTDIR)"\montgomery.cl &amp; copy src\common.cl "$(OUTDIR)"\common.cl</Command>
+      <Command>for %%x in ($(RootNamespace)_Kernels.cl, barrett.cl, barrett15.cl, mul24.cl, gpusieve.cl, tf_debug.h, datatypes.h, montgomery.cl, common.cl, mfakto.ini) do (copy src\%%x "$(OUTDIR)"\%%x)</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Copy kernels</Message>
+      <Message>Copy kernels and mfakto.ini</Message>
       <Outputs>$(OUTDIR)\*.cl</Outputs>
       <Inputs>%(SRCDIR)\*.cl</Inputs>
     </CustomBuildStep>
@@ -199,10 +199,10 @@
       </Command>
     </PostBuildEvent>
     <CustomBuildStep>
-      <Command>copy src\$(RootNamespace)_Kernels.cl "$(OUTDIR)"\$(RootNamespace)_Kernels.cl &amp; copy src\barrett.cl "$(OUTDIR)"\barrett.cl &amp; copy src\barrett15.cl "$(OUTDIR)"\barrett15.cl &amp; copy src\mul24.cl "$(OUTDIR)"\mul24.cl &amp; copy src\gpusieve.cl "$(OUTDIR)"\gpusieve.cl &amp; copy src\tf_debug.h "$(OUTDIR)"\tf_debug.h &amp; copy src\datatypes.h "$(OUTDIR)"\datatypes.h &amp; copy src\montgomery.cl "$(OUTDIR)"\montgomery.cl &amp; copy src\common.cl "$(OUTDIR)"\common.cl</Command>
+      <Command>for %%x in ($(RootNamespace)_Kernels.cl, barrett.cl, barrett15.cl, mul24.cl, gpusieve.cl, tf_debug.h, datatypes.h, montgomery.cl, common.cl, mfakto.ini) do (copy src\%%x "$(OUTDIR)"\%%x)</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Copy kernels</Message>
+      <Message>Copy kernels and mfakto.ini</Message>
       <Outputs>$(OUTDIR)\*.cl</Outputs>
       <Inputs>%(SRCDIR)\*.cl</Inputs>
     </CustomBuildStep>
@@ -243,10 +243,10 @@
       </Command>
     </PostBuildEvent>
     <CustomBuildStep>
-      <Command>copy src\$(RootNamespace)_Kernels.cl "$(OUTDIR)"\$(RootNamespace)_Kernels.cl &amp; copy src\barrett.cl "$(OUTDIR)"\barrett.cl &amp; copy src\barrett15.cl "$(OUTDIR)"\barrett15.cl &amp; copy src\mul24.cl "$(OUTDIR)"\mul24.cl &amp; copy src\gpusieve.cl "$(OUTDIR)"\gpusieve.cl &amp; copy src\tf_debug.h "$(OUTDIR)"\tf_debug.h &amp; copy src\datatypes.h "$(OUTDIR)"\datatypes.h &amp; copy src\montgomery.cl "$(OUTDIR)"\montgomery.cl &amp; copy src\common.cl "$(OUTDIR)"\common.cl</Command>
+      <Command>for %%x in ($(RootNamespace)_Kernels.cl, barrett.cl, barrett15.cl, mul24.cl, gpusieve.cl, tf_debug.h, datatypes.h, montgomery.cl, common.cl, mfakto.ini) do (copy src\%%x "$(OUTDIR)"\%%x)</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Copy kernels</Message>
+      <Message>Copy kernels and mfakto.ini</Message>
       <Outputs>$(OUTDIR)\*.cl</Outputs>
       <Inputs>%(SRCDIR)\*.cl</Inputs>
     </CustomBuildStep>
@@ -286,10 +286,10 @@
       </Command>
     </PostBuildEvent>
     <CustomBuildStep>
-      <Command>copy src\$(RootNamespace)_Kernels.cl "$(OUTDIR)"\$(RootNamespace)_Kernels.cl &amp; copy src\barrett.cl "$(OUTDIR)"\barrett.cl &amp; copy src\barrett15.cl "$(OUTDIR)"\barrett15.cl &amp; copy src\mul24.cl "$(OUTDIR)"\mul24.cl &amp; copy src\gpusieve.cl "$(OUTDIR)"\gpusieve.cl &amp; copy src\tf_debug.h "$(OUTDIR)"\tf_debug.h &amp; copy src\datatypes.h "$(OUTDIR)"\datatypes.h &amp; copy src\montgomery.cl "$(OUTDIR)"\montgomery.cl &amp; copy src\common.cl "$(OUTDIR)"\common.cl</Command>
+      <Command>for %%x in ($(RootNamespace)_Kernels.cl, barrett.cl, barrett15.cl, mul24.cl, gpusieve.cl, tf_debug.h, datatypes.h, montgomery.cl, common.cl, mfakto.ini) do (copy src\%%x "$(OUTDIR)"\%%x)</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Copy kernels</Message>
+      <Message>Copy kernels and mfakto.ini</Message>
       <Outputs>$(OUTDIR)\*.cl</Outputs>
       <Inputs>%(SRCDIR)\*.cl</Inputs>
     </CustomBuildStep>
