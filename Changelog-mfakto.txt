@@ -48,6 +48,7 @@ other changes:
 - merged in James Heinrich's changes to mfaktc.ini and re-organized mfakto.ini
   to be more user-friendly
 - removed inaccurate throughput information from program output
+- macOS is now detected as "macOS" rather than the kernel name "Darwin"
 
 version 0.15
 ==============================
