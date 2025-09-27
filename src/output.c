@@ -466,28 +466,9 @@ const char* getOS()
 #endif
 }
 
-const char* getArchitectureJSON() {
-#if defined(__x86_64__) || defined(_M_X64)
-    return ", \"architecture\": \"x86_64\"";
-#elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
-    return ", \"architecture\": \"x86_32\"";
-#elif defined(__aarch64__) || defined(_M_ARM64)
-    return ", \"architecture\": \"ARM64\"";
-#else
-    return "";
-#endif
-}
-
-void getOSJSON(char* string) {
-#if defined(_WIN32) || defined(_WIN64)
-    sprintf(string, ", \"os\":{\"os\": \"Windows\"%s}", getArchitectureJSON());
-#elif defined(__APPLE__)
-    sprintf(string, ", \"os\":{\"os\": \"macOS\"%s}", getArchitectureJSON());
-#elif defined(__linux__)
-    sprintf(string, ", \"os\":{\"os\": \"Linux\"%s}", getArchitectureJSON());
-#elif defined(__unix__)
-    sprintf(string, ", \"os\":{\"os\": \"Unix\"%s}", getArchitectureJSON());
-#endif
+void getOSJSON(char* string)
+{
+    sprintf(string, ", \"os\":{\"os\": \"%s\", \"architecture\": \"%s\"}", getOS(), getArchitecture());
 }
 
 static int cmp_int96(const void* p1, const void* p2)
