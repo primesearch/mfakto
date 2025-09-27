@@ -475,13 +475,15 @@ static int cmp_int96(const void* p1, const void* p2)
 {
     int96* a = (int96*)p1, * b = (int96*)p2;
 
-    if (a->d2 > b->d2 || a->d1 > b->d1 || a->d0 > b->d0) {
-        return 1;
-    }
-    if (a->d2 < b->d2 || a->d1 < b->d1 || a->d0 < b->d0) {
-        return -1;
-    }
+    // clang-format off
+    if (a->d2 > b->d2)      return 1;
+    if (a->d2 < b->d2)      return -1;
+    if (a->d1 > b->d1)      return 1;
+    if (a->d1 < b->d1)      return -1;
+    if (a->d0 > b->d0)      return 1;
+    if (a->d0 < b->d0)      return -1;
     return 0;
+    // clang-format on
 }
 
 void print_result_line(mystuff_t *mystuff, int factorsfound)
