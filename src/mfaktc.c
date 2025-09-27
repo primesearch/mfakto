@@ -1429,6 +1429,13 @@ int main(int argc, char **argv)
         mystuff.bit_max_assignment = bit_max;
       }
 
+      // clear factors from previous assignment
+      for (i = 0; i < MAX_FACTORS_PER_JOB; i++) {
+          mystuff.factors[i].d0 = 0;
+          mystuff.factors[i].d1 = 0;
+          mystuff.factors[i].d2 = 0;
+      }
+
       if (parse_ret == OK)
       {
         if(mystuff.verbosity >= 1)logprintf(&mystuff, "got assignment: exp=%u bit_min=%d bit_max=%d (%.2f GHz-days)\n", mystuff.exponent, mystuff.bit_min, mystuff.bit_max_assignment, primenet_ghzdays(mystuff.exponent, mystuff.bit_min, mystuff.bit_max_assignment));
