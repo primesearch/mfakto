@@ -350,13 +350,15 @@ Submitting results:
   option for Windows users is to increase the GPU processing time:
   https://support.microsoft.com/en-us/help/2665946
 
-- GPU is not found, fallback to CPU
-  This happens on Linux when there is no X server. It can also happen on
-  Windows when the GPU is not the primary display adapter. Try running mfakto
-  on the main display rather than remotely. If that fails, then your graphics
-  driver may be too old. It's also possible that the first device is not an
-  AMD GPU. In this case, use the -d switch to specify a different device
-  number. You can run 'clinfo' to get a list of devices.
+- Could not find a supported GPU, falling back to CPU
+  
+  Possible reasons:
+  - on Linux systems: there is no X server running
+  - on Windows systems: the GPU is not the primary display adapter. One
+    solution is to run mfakto on the main display rather than remotely
+  - your graphics driver may be too old
+  - the first device found is not an AMD GPU. Use the -d switch to specify a
+    different device number. You can run 'clinfo' to get a list of devices.
 
 - on devices that do not support atomic operations, mfakto may give incorrect
   results when multiple factors are found in the same class. See the above
