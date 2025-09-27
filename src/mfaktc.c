@@ -587,7 +587,7 @@ other return value
   unsigned int f_hi, f_med, f_low;
   struct timeval timer;
   time_t time_last_checkpoint, time_add_file_check=0;
-  int factorsfound = 0, numfactors = 0, restart = 0, do_checkpoint = mystuff->checkpoints;
+  int factorsfound = 0, numfactors = 0, restart = 0, factorindex = 0, do_checkpoint = mystuff->checkpoints;
 
   int retval = 0, add_file_exists = 0;
 
@@ -658,13 +658,35 @@ other return value
 
   if(mystuff->mode == MODE_NORMAL)
   {
-    if((mystuff->checkpoints > 0) && (checkpoint_read(mystuff->exponent, mystuff->bit_min, mystuff->bit_max_stage, &cur_class, &factorsfound, mystuff->factors_string, &(mystuff->stats.bit_level_time), mystuff->verbosity) == 1))
-    {
-      logprintf(mystuff, "\nFound a valid checkpoint file.\n");
-      if(mystuff->verbosity >= 1) logprintf(mystuff, "  last finished class was: %d\n", cur_class);
-      if(mystuff->verbosity >= 1) logprintf(mystuff, "  found %d factor%s already\n", factorsfound, factorsfound == 1 ? "" : "s");
-      if(mystuff->verbosity >= 1) logprintf(mystuff, "  previous work took %llu ms\n\n", mystuff->stats.bit_level_time);
-      else                        logprintf(mystuff, "\n");
+      if (mystuff->checkpoints > 0 && checkpoint_read(mystuff->exponent, mystuff->bit_min, mystuff->bit_max_stage, &cur_class, &factorsfound, mystuff->factors, &(mystuff->stats.bit_level_time), mystuff->verbosity) == 1)
+      {
+          logprintf(mystuff, "\nFound a valid checkpoint file.\n");
+          if (mystuff->verbosity >= 1) {
+              logprintf(mystuff, "  last finished class was: %d\n", cur_class);
+          }
+          if (factorsfound > 0) {
+              factorindex = factorsfound;
+              if (mystuff->verbosity >= 1) {
+                  logprintf(mystuff, "  found %d factor%s so far: ", factorsfound, factorsfound == 1 ? "" : "s");
+              }
+              for (i = 0; i < MAX_FACTORS_PER_JOB; i++) {
+                  if (mystuff->factors[i].d0 || mystuff->factors[i].d1 || mystuff->factors[i].d2) {
+                      char factor[MAX_DEZ_96_STRING_LENGTH];
+                      print_dez96(mystuff->factors[i], factor);
+                      logprintf(mystuff, "%s ", factor);
+                  }
+              }
+              logprintf(mystuff, "\n");
+          } else {
+              logprintf(mystuff, "  no factors found so far.\n");
+          }
+          if (mystuff->verbosity >= 1) {
+              logprintf(mystuff, "  previous work took %llu ms\n\n", mystuff->stats.bit_level_time);
+          }
+          else {
+              logprintf(mystuff, "\n");
+          }
+
       cur_class++; // the checkpoint contains the last completely processed class!
 
 /* calculate the number of classes which are already processed. This value is needed to estimate ETA */
@@ -743,6 +765,35 @@ other return value
 
         if(mystuff->mode == MODE_NORMAL)
         {
+            if (numfactors > 0) {
+                int96 factor;
+                for (int idx = 0; idx < factorsfound && idx < 10; idx++) /* 10 is the max factors per class allowed in every kernel */
+                {
+                    factor.d2 = mystuff->h_RES[idx * 3 + 1];
+                    factor.d1 = mystuff->h_RES[idx * 3 + 2];
+                    factor.d0 = mystuff->h_RES[idx * 3 + 3];
+                    if (use_kernel == _71BIT_MUL24 || use_kernel == _63BIT_MUL24)
+                    {
+                        factor.d0 = (factor.d1 << 24) + factor.d0;
+                        factor.d1 = (factor.d2 << 16) + (factor.d1 >> 8);
+                        factor.d2 = factor.d2 >> 16;
+                    }
+                    else if ((use_kernel >= BARRETT73_MUL15_GS && use_kernel <= BARRETT74_MUL15_GS) || (use_kernel >= BARRETT73_MUL15 && use_kernel <= BARRETT74_MUL15) || use_kernel == MG88)
+                    {
+                        factor.d0 = (factor.d1 << 30) + factor.d0;
+                        factor.d1 = (factor.d2 << 28) + (factor.d1 >> 2);
+                        factor.d2 = factor.d2 >> 4;
+                    }
+
+                    mystuff->factors[factorindex++] = factor;
+                    if (factorindex >= MAX_FACTORS_PER_JOB) {
+                        logprintf(mystuff, "ERROR: reached limit of %u factors for this job, try a different range\n",
+                            MAX_FACTORS_PER_JOB);
+                        return RET_QUIT;
+                    }
+                }
+            }
+
           time_t now = time(NULL);
           if (add_file_exists)
           {
@@ -764,7 +815,7 @@ other return value
                  ((mystuff->checkpoints == 1) && (now - time_last_checkpoint > (time_t) mystuff->checkpointdelay)) ||
                    mystuff->quit )
             {
-              checkpoint_write(mystuff->exponent, mystuff->bit_min, mystuff->bit_max_stage, cur_class, factorsfound, mystuff->factors_string, mystuff->stats.bit_level_time);
+              checkpoint_write(mystuff->exponent, mystuff->bit_min, mystuff->bit_max_stage, cur_class, factorsfound, mystuff->factors, mystuff->stats.bit_level_time);
               do_checkpoint = mystuff->checkpoints;
               time_last_checkpoint = now;
             }
@@ -895,7 +946,11 @@ k_max and k_min are used as 64bit temporary integers here...
       if(time_est > 60000ULL)   logprintf(mystuff, "%2" PRIu64 "m ", (time_est /    60000ULL) % 60ULL);
       logprintf(mystuff, "%2" PRIu64 ".%03" PRIu64 "s", (time_est / 1000ULL) % 60ULL, time_est % 1000ULL);
     }
-    if(mystuff->mode == MODE_NORMAL) logprintf(mystuff, " (%.2f GHz-days / day)", mystuff->stats.ghzdays * 86400000.0 / (double) time_est);
+    /*
+    if (mystuff->mode == MODE_NORMAL) {
+        logprintf(mystuff, " (%.2f GHz-days / day)", mystuff->stats.ghzdays * 86400000.0 / (double)time_est);
+    }
+    */
     logprintf(mystuff, "\n\n");
   }
   return retval;
@@ -1394,6 +1449,13 @@ int main(int argc, char **argv)
         mystuff.exponent           = exponent;
         mystuff.bit_min            = bit_min;
         mystuff.bit_max_assignment = bit_max;
+      }
+
+      // clear factors from previous assignment
+      for (i = 0; i < MAX_FACTORS_PER_JOB; i++) {
+          mystuff.factors[i].d0 = 0;
+          mystuff.factors[i].d1 = 0;
+          mystuff.factors[i].d2 = 0;
       }
 
       if (parse_ret == OK)

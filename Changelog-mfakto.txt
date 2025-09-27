@@ -6,6 +6,10 @@ new features:
 - added results.json.txt to comply with PrimeNet results reporting standards
 - implemented runtime logging
   - set Logging=1 in the INI file to enable
+- merged in checksum generation code from mfaktc (thanks to James Heinrich)
+  - updated mfakto to use the same checkpoint format as mfaktc 0.23.x (thanks
+    to Danny Chia)
+  - removed inaccurate throughput information from program output
 
 enhancements:
 - added RDNA 3 support

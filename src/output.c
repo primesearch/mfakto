@@ -24,6 +24,8 @@ along with mfaktc.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdarg.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
+#include "crc.h"
 #include "string.h"
 #include "params.h"
 #include "my_types.h"
@@ -186,6 +188,36 @@ void print_dez192(int192 a, char *buf)
   }
 }
 */
+
+int96 parse_dez96(char* str)
+{
+    int96 result = { 0, 0, 0 };
+    size_t len = strlen(str);
+    int i;
+    while (*str == '0' && *(str + 1) != '\0') {
+        str++;
+        len--;
+    }
+    if (len == 0 || (len == 1 && *str == '0')) {
+        return result;
+    }
+    for (i = 0; i < len; i++) {
+        if (str[i] < '0' || str[i] > '9') {
+            continue;
+        }
+        int digit = str[i] - '0';
+        unsigned long long int carry;
+        carry = (unsigned long long int)result.d0 * 10 + digit;
+        result.d0 = carry & 0xFFFFFFFF;
+        carry >>= 32;
+        carry += (unsigned long long int)result.d1 * 10;
+        result.d1 = carry & 0xFFFFFFFF;
+        carry >>= 32;
+        carry += (unsigned long long int)result.d2 * 10;
+        result.d2 = carry & 0xFFFFFFFF;
+    }
+    return result;
+}
 
 void print_timestamp(FILE *outfile)
 {
@@ -408,6 +440,32 @@ void get_utc_timestamp(char* timestamp)
     strftime(timestamp, sizeof(char[50]), "%Y-%m-%d %H:%M:%S", utc_time);
 }
 
+const char* getArchitecture()
+{
+#if defined(__x86_64__) || defined(_M_X64)
+    return "x86_64";
+#elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
+    return "x86_32";
+#elif defined(__aarch64__) || defined(_M_ARM64)
+    return "ARM64";
+#else
+    return "";
+#endif
+}
+
+const char* getOS()
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return "Windows";
+#elif defined(__APPLE__)
+    return "Darwin";
+#elif defined(__linux__)
+    return "Linux";
+#elif defined(__unix__)
+    return "Unix";
+#endif
+}
+
 const char* getArchitectureJSON() {
 #if defined(__x86_64__) || defined(_M_X64)
     return ", \"architecture\": \"x86_64\"";
@@ -424,7 +482,7 @@ void getOSJSON(char* string) {
 #if defined(_WIN32) || defined(_WIN64)
     sprintf(string, ", \"os\":{\"os\": \"Windows\"%s}", getArchitectureJSON());
 #elif defined(__APPLE__)
-    sprintf(string, ", \"os\":{\"os\": \"Darwin\"%s}", getArchitectureJSON());
+    sprintf(string, ", \"os\":{\"os\": \"macOS\"%s}", getArchitectureJSON());
 #elif defined(__linux__)
     sprintf(string, ", \"os\":{\"os\": \"Linux\"%s}", getArchitectureJSON());
 #elif defined(__unix__)
@@ -432,25 +490,44 @@ void getOSJSON(char* string) {
 #endif
 }
 
+static int cmp_int96(const void* p1, const void* p2)
+{
+    int96* a = (int96*)p1, * b = (int96*)p2;
+
+    // clang-format off
+    if (a->d2 > b->d2)      return 1;
+    if (a->d2 < b->d2)      return -1;
+    if (a->d1 > b->d1)      return 1;
+    if (a->d1 < b->d1)      return -1;
+    if (a->d0 > b->d0)      return 1;
+    if (a->d0 < b->d0)      return -1;
+    return 0;
+    // clang-format on
+}
 
 void print_result_line(mystuff_t *mystuff, int factorsfound)
 // printf the final result line to STDOUT and to resultfile if LegacyResultsTxt set to 1.
 // Prints JSON string to the jsonresultfile for Mersenne numbers as well.
 {
   char UID[110]; /* 50 (V5UserID) + 50 (ComputerID) + 8 + spare */
-  char aidjson[111];
-  char userjson[61]; /* 50 (V5UserID) + 11 spare */
-  char computerjson[65];  /* 50 (ComputerID) + 15 spare */
-  char factorjson[513];
+  int factors_list_length = 0, factors_quote_list_length = 0, json_checksum;
+  char aidjson[MAX_LINE_LENGTH + 11];
+  char userjson[62]; /* 50 (V5UserID) + 11 spare + null character */
+  char computerjson[66];  /* 50 (ComputerID) + 15 spare + null character */
+  char factorjson[514];
+  char factors_list[500];
+  char factors_quote_list[500];
   char osjson[200];
+  char details[50];
   char txtstring[200];
+  char json_checksum_string[750];
   char timestamp[50];
 
   unsigned int max_class_number;
 
   FILE *txtresultfile=NULL;
 
-  char jsonstring[1100];
+  char jsonstring[1350];
   FILE *jsonresultfile=NULL;
 
   if (mystuff->more_classes)  max_class_number = 960;
@@ -476,10 +553,34 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
   else
     computerjson[0] = 0;
 
-  if (mystuff->factors_string[0])
-    sprintf(factorjson, ", \"factors\":[%s]", mystuff->factors_string);
-  else
-    factorjson[0] = 0;
+  if (factorsfound) {
+      int i = 0;
+      qsort(mystuff->factors, MAX_FACTORS_PER_JOB, sizeof(mystuff->factors[0]), cmp_int96);
+      while (i < MAX_FACTORS_PER_JOB && mystuff->factors[i].d0 == 0 && mystuff->factors[i].d1 == 0 && mystuff->factors[i].d2 == 0) {
+          i++;
+      }
+      char factor[MAX_DEZ_96_STRING_LENGTH];
+      print_dez96(mystuff->factors[i++], factor);
+      factors_list_length       = sprintf(factors_list, "%s", factor);
+      factors_quote_list_length = sprintf(factors_quote_list, "\"%s\"", factor);
+      for (; i < MAX_FACTORS_PER_JOB; i++) {
+          if (mystuff->factors[i].d0 == 0 && mystuff->factors[i].d1 == 0 && mystuff->factors[i].d2 == 0) {
+              continue;
+          }
+          print_dez96(mystuff->factors[i], factor);
+          factors_list_length += sprintf(factors_list + factors_list_length, ",%s", factor);
+          factors_quote_list_length += sprintf(factors_quote_list + factors_quote_list_length, ",\"%s\"", factor);
+      }
+  } else {
+      factors_list[0]       = 0;
+      factors_quote_list[0] = 0;
+  }
+
+  if (factors_quote_list[0])
+      snprintf(factorjson, sizeof(factorjson), ", \"factors\":[%s]", factors_quote_list);
+  else {
+      factorjson[0] = 0;
+  }
 
   getOSJSON(osjson);
   get_utc_timestamp(timestamp);
@@ -506,8 +607,12 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
       mystuff->exponent, mystuff->bit_min, mystuff->bit_max_stage,
       MFAKTO_VERSION, mystuff->stats.kernelname);
   }
-  sprintf(jsonstring, "{\"exponent\":%u, \"worktype\":\"TF\", \"status\":\"%s\", \"bitlo\":%d, \"bithi\":%d, \"rangecomplete\":%s%s, \"program\":{\"name\":\"mfakto\", \"version\":\"%s\", \"kernel\":\"%s\"}, \"timestamp\":\"%s\"%s%s%s%s}",
-      mystuff->exponent, factorsfound > 0 ? "F" : "NF", mystuff->bit_min, mystuff->bit_max_stage, partialresult ? "false" : "true", factorjson, SHORT_MFAKTO_VERSION, mystuff->stats.kernelname, timestamp, userjson, computerjson, aidjson, osjson);
+  snprintf(json_checksum_string, sizeof(json_checksum_string), "%u;TF;%s;;%d;%d;%u;;;mfaktc;%s;%s;%s;%s;%s;%s", mystuff->exponent,
+             factors_list, mystuff->bit_min, mystuff->bit_max_stage, !partialresult, SHORT_MFAKTO_VERSION, mystuff->stats.kernelname, details,
+             getOS(), getArchitecture(), timestamp);
+  json_checksum = crc32_checksum(json_checksum_string, strlen(json_checksum_string));
+  sprintf(jsonstring, "{\"exponent\":%u, \"worktype\":\"TF\", \"status\":\"%s\", \"bitlo\":%d, \"bithi\":%d, \"rangecomplete\":%s%s, \"program\":{\"name\":\"mfakto\", \"version\":\"%s\", \"kernel\":\"%s\"}, \"timestamp\":\"%s\"%s%s%s%s, \"checksum\":{\"version\":%u, \"checksum\":\"%08X\"}}",
+      mystuff->exponent, factorsfound > 0 ? "F" : "NF", mystuff->bit_min, mystuff->bit_max_stage, partialresult ? "false" : "true", factorjson, SHORT_MFAKTO_VERSION, mystuff->stats.kernelname, timestamp, userjson, computerjson, aidjson, osjson, MFAKTO_CHECKSUM_VERSION, json_checksum);
 
   if(mystuff->mode != MODE_SELFTEST_SHORT)
   {
@@ -551,7 +656,7 @@ void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bi
     if(mystuff->mode != MODE_SELFTEST_SHORT)
     {
       if(mystuff->printmode == 1 && factor_number == 0)logprintf(mystuff, "\n");
-      logprintf(mystuff, "M%u has a factor: %s (%f bits, %f GHz-d)\n", mystuff->exponent, factor, bits, mystuff->stats.ghzdays);
+      logprintf(mystuff, "M%u has a factor: %s (%f bits)\n", mystuff->exponent, factor, bits);
     }
     if(mystuff->mode == MODE_NORMAL && mystuff->legacy_results_txt == 1)
     {

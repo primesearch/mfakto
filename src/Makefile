@@ -94,7 +94,7 @@ endif
 ##############################################################################
 
 CSRC = sieve.c timer.c parse.c read_config.c mfaktc.c checkpoint.c \
-	signal_handler.c filelocking.c output.c
+	crc.c signal_handler.c filelocking.c output.c
 
 # CLSRC = barrett15.cl  barrett.cl  common.cl  gpusieve.cl  mfakto_Kernels.cl  montgomery.cl  mul24.cl
 
