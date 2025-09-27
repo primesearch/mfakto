@@ -27,10 +27,10 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 
 extern mystuff_t    mystuff;
 
-void checkpoint_write(unsigned int exp, int bit_min, int bit_max, unsigned int cur_class, int num_factors, int96 factors[MAX_FACTORS_PER_JOB], unsigned long long int bit_level_time)
 /*
 checkpoint_write() writes the checkpoint file.
 */
+void checkpoint_write(unsigned int exp, int bit_min, int bit_max, unsigned int cur_class, int num_factors, int96 factors[MAX_FACTORS_PER_JOB], unsigned long long int bit_level_time)
 {
   FILE *f;
   char buffer[600], filename[32], filename_save[32], filename_write[32], factors_buffer[MAX_FACTOR_BUFFER_LENGTH];
@@ -59,7 +59,7 @@ checkpoint_write() writes the checkpoint file.
   f=fopen(filename_write, "w");
   if(f==NULL)
   {
-    printf("WARNING: Could not create checkpoint file \"%s\"\n", filename_write);
+    printf("Warning: Could not create checkpoint file \"%s\"\n", filename_write);
     return;
   }
   else
@@ -82,12 +82,12 @@ checkpoint_write() writes the checkpoint file.
       (void) rename(filename, filename_save); // ditto
       if (rename(filename_write, filename))
       {
-        printf("WARNING: rename %s to %s failed.\n", filename_write, filename);
+        printf("Warning: renaming %s to %s failed.\n", filename_write, filename);
       }
     }
     else
     {
-      printf("WARNING: Could not write checkpoint file \"%s\", %u chars written.\n", filename_write, i);
+      printf("Warning: Could not write checkpoint file \"%s\", %u chars written.\n", filename_write, i);
     }
 /*               c5 = timer_diff(&cptimer);
     printf("\nCP in %lld us, %lld us, %lld us, %lld us, %lld us\n", c1, c2, c3, c4, c5); */
@@ -95,7 +95,6 @@ checkpoint_write() writes the checkpoint file.
 }
 
 
-int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cur_class, int* num_factors, int96 factors[MAX_FACTORS_PER_JOB], unsigned long long int* bit_level_time, int verbosity)
 /*
 checkpoint_read() reads the checkpoint file and compares values for exp,
 bit_min, bit_max, NUM_CLASSES read from file with current values.
@@ -105,6 +104,7 @@ factors, and bit_level_time to the values from the checkpoint file.
 returns 1 on success (valid checkpoint file)
 returns 0 otherwise
 */
+int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cur_class, int* num_factors, int96 factors[MAX_FACTORS_PER_JOB], unsigned long long int* bit_level_time, int verbosity)
 {
   FILE *f;
   int ret=0,i,chksum;
@@ -157,13 +157,9 @@ returns 0 otherwise
       else
       {
         if (verbosity>0) printf("Cannot use checkpoint file \"%s\": Bad content \"%s\".\n", filename, buffer);
-//        printf("Cannot use checkpoint file \"%s\": Bad content \"%s\".\n%s\n", filename, buffer, buffer2);
       }
-      /*
-      if (factors_string[0] == '0') {
-          factors_string[0] = 0;
-      }
-      */
+
+      // checkpoint file has no factors
       if (factors_buffer[0] == '0') {
           for (i = 0; i < MAX_FACTORS_PER_JOB; i++) {
               factors[i].d0 = 0;
@@ -172,6 +168,7 @@ returns 0 otherwise
           }
       }
       else {
+          // checkpoint file may have factors
           char* tok = strtok(factors_buffer, ",");
           for (i = 0; i < MAX_FACTORS_PER_JOB; i++) {
               if (tok == NULL) {

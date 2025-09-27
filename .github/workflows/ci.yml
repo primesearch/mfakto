@@ -83,7 +83,7 @@ jobs:
 
     - name: Create artifacts and release assets
       run: |
-        Copy-Item -Path Changelog-mfakto.txt, COPYING, README-SpecialVersions.txt, README.txt, todo.txt, src/mfakto.ini -Destination x64/Release/
+        Copy-Item -Path Changelog-mfakto.txt, COPYING, README-SpecialVersions.txt, README.txt, todo.txt -Destination x64/Release/
         Compress-Archive -DestinationPath mfakto-windows-msvc.zip -CompressionLevel Optimal -Path x64/Release/*
 
     - name: Upload build artifacts

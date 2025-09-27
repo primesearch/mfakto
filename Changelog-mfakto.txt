@@ -9,13 +9,13 @@ new features:
 - merged in checksum generation code from mfaktc (thanks to James Heinrich)
   - updated mfakto to use the same checkpoint format as mfaktc 0.23.x (thanks
     to Danny Chia)
-  - removed inaccurate throughput information from program output
 
 enhancements:
 - added RDNA 3 support
 - added code to handle situations where the device's clock speed could not be
   determined
 - improved some warning messages
+- getOSJSON() has been made more robust
 
 bug fixes:
 - fixed double precision issues in barrett15 kernels
@@ -30,6 +30,9 @@ build:
 - removed the dependency on ROCm as it is not needed
 - Visual Studio: dependencies are now automatically downloaded and installed
   via vcpkg
+- Visual Studio: mfakto.ini is now copied to the output folder on build
+  completion
+  - simplified the post-build script
 
 other changes:
 - updated the code to use OpenCL 2.0 instead of deprecated OpenCL 1.0 APIs when
@@ -45,6 +48,8 @@ other changes:
     logging to results.txt
 - merged in James Heinrich's changes to mfaktc.ini and re-organized mfakto.ini
   to be more user-friendly
+- removed inaccurate throughput information from program output
+- macOS is now detected as "macOS" rather than the kernel name "Darwin"
 
 version 0.15
 ==============================
