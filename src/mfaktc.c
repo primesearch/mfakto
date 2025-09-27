@@ -667,7 +667,7 @@ other return value
           if (factorsfound > 0) {
               factorindex = factorsfound;
               if (mystuff->verbosity >= 1) {
-                  logprintf(mystuff, "  found %d factor%s already: ", factorsfound, factorsfound == 1 ? "" : "s");
+                  logprintf(mystuff, "  found %d factor%s so far: ", factorsfound, factorsfound == 1 ? "" : "s");
               }
               for (i = 0; i < MAX_FACTORS_PER_JOB; i++) {
                   if (mystuff->factors[i].d0 || mystuff->factors[i].d1 || mystuff->factors[i].d2) {
@@ -677,6 +677,8 @@ other return value
                   }
               }
               logprintf(mystuff, "\n");
+          } else {
+              logprintf(mystuff, "  no factors found so far.\n");
           }
           if (mystuff->verbosity >= 1) {
               logprintf(mystuff, "  previous work took %llu ms\n\n", mystuff->stats.bit_level_time);
