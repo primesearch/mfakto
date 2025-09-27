@@ -358,7 +358,8 @@ Submitting results:
     solution is to run mfakto on the main display rather than remotely
   - your graphics driver may be too old
   - the first device found is not an AMD GPU. Use the -d switch to specify a
-    different device number. You can run 'clinfo' to get a list of devices.
+    different device number. You can run 'clinfo' to get a list of devices
+  - your system does not have a GPU installed
 
 - on devices that do not support atomic operations, mfakto may give incorrect
   results when multiple factors are found in the same class. See the above
