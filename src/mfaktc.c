@@ -924,7 +924,11 @@ k_max and k_min are used as 64bit temporary integers here...
       if(time_est > 60000ULL)   logprintf(mystuff, "%2" PRIu64 "m ", (time_est /    60000ULL) % 60ULL);
       logprintf(mystuff, "%2" PRIu64 ".%03" PRIu64 "s", (time_est / 1000ULL) % 60ULL, time_est % 1000ULL);
     }
-    if(mystuff->mode == MODE_NORMAL) logprintf(mystuff, " (%.2f GHz-days / day)", mystuff->stats.ghzdays * 86400000.0 / (double) time_est);
+    /*
+    if (mystuff->mode == MODE_NORMAL) {
+        logprintf(mystuff, " (%.2f GHz-days / day)", mystuff->stats.ghzdays * 86400000.0 / (double)time_est);
+    }
+    */
     logprintf(mystuff, "\n\n");
   }
   return retval;

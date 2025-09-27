@@ -626,7 +626,7 @@ void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bi
     if(mystuff->mode != MODE_SELFTEST_SHORT)
     {
       if(mystuff->printmode == 1 && factor_number == 0)logprintf(mystuff, "\n");
-      logprintf(mystuff, "M%u has a factor: %s (%f bits, %f GHz-d)\n", mystuff->exponent, factor, bits, mystuff->stats.ghzdays);
+      logprintf(mystuff, "M%u has a factor: %s (%f bits)\n", mystuff->exponent, factor, bits);
     }
     if(mystuff->mode == MODE_NORMAL && mystuff->legacy_results_txt == 1)
     {
