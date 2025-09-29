@@ -7,10 +7,9 @@ new features:
 - implemented runtime logging
   - set Logging=1 in the INI file to enable
 - merged in checksum generation code from mfaktc (thanks to James Heinrich)
-  - to accommodate this change, mfakto has been updated to use the same
-    checkpoint format as mfaktc 0.23.x
-    - the checksums for the checkpoints and JSON output are now generated with
-      the same seed
+  - removed a redundant checksum generation function from checkpoint.c
+  - to accommodate this change, the checkpoint format has been updated
+    - stored factors are no longer enclosed in quotes
   - additional code contributions and bug fixes by Danny Chia
 
 enhancements:
