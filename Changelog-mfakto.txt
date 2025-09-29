@@ -51,6 +51,7 @@ other changes:
     logging to results.txt
 - merged in James Heinrich's changes to mfaktc.ini and re-organized mfakto.ini
   to be more user-friendly
+- removed references to unnecessary AllowSleep option
 - removed inaccurate throughput information from program output
 - macOS is now detected as "macOS" rather than the kernel name "Darwin"
 
