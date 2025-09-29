@@ -99,14 +99,14 @@ returns 1 if the assignment is within the supported bounds of mfaktc,
 
 enum PARSE_WARNINGS
 {
-  NO_WARNING=0,
-  END_OF_FILE,
-  LONG_LINE,
-  NO_FACTOR_EQUAL,
-  INVALID_FORMAT,
-  INVALID_DATA,
-  BLANK_LINE,
-  NONBLANK_LINE
+    NO_WARNING = 0,
+    END_OF_FILE,
+    LONG_LINE,
+    NO_FACTOR_EQUAL,
+    INVALID_FORMAT,
+    INVALID_DATA,
+    BLANK_LINE,
+    NONBLANK_LINE
 };
 
 // note:  parse_worktodo_line() is a function that
@@ -121,120 +121,144 @@ output
   endptr: the end of data
 */
 {
-  char line[MAX_LINE_LENGTH+1], *ptr, *ptr_start, *ptr_end;
-  int c;	// extended char pulled from stream;
+    char line[MAX_LINE_LENGTH+1], *ptr, *ptr_start, *ptr_end;
+    int c;	// extended char pulled from stream
 
-  unsigned int scanpos;
-  unsigned int number_of_commas;
+    unsigned int scanpos;
+    unsigned int number_of_commas;
 
-  enum PARSE_WARNINGS reason = NO_WARNING;
+    enum PARSE_WARNINGS reason = NO_WARNING;
 
-  unsigned long proposed_exponent, proposed_bit_min, proposed_bit_max;
+    unsigned long proposed_exponent, proposed_bit_min, proposed_bit_max;
 
-  if(NULL==fgets(line, MAX_LINE_LENGTH+1, f_in))
-  {
-    return END_OF_FILE;
-  }
-  if (linecopy != NULL)	// maybe it wasn't needed....
-    strcpy(*linecopy,line);	// this is what was read...
-  if((strlen(line) == MAX_LINE_LENGTH) && (!feof(f_in)) && (line[strlen(line)-1] !='\n') ) // long lines disallowed,
-  {
-    reason = LONG_LINE;
-    do
+    if (NULL == fgets(line, MAX_LINE_LENGTH + 1, f_in))
     {
-      c = fgetc(f_in);
-      if ((EOF == c) ||(iscntrl(c)))	// found end of line
-        break;
+        return END_OF_FILE;
     }
-    while(TRUE);
-  }
+    if (linecopy != NULL) {	        // maybe it wasn't needed....
+        strcpy(*linecopy, line);	// this is what was read...
+    }
+    if (strlen(line) == MAX_LINE_LENGTH && !feof(f_in) && line[strlen(line) - 1] != '\n') // long lines disallowed
+    {
+        reason = LONG_LINE;
+        do
+        {
+            c = fgetc(f_in);
+            if (EOF == c || iscntrl(c))	// found end of line
+                break;
+        } while (TRUE);
+    }
 
-  if (linecopy != NULL)
-    *endptr = *linecopy;	// by default, non-significant content is whole line
+    if (linecopy != NULL) {
+        *endptr = *linecopy;	// by default, non-significant content is whole line
+    }
 
-  ptr=line;
-  while (('\0'!=ptr[0]) && isspace(ptr[0]))	// skip leading spaces
-    ptr++;
-  if ('\0' == ptr[0])	// blank line...
-    return BLANK_LINE;
-  if( ('\\'==ptr[0]) && ('\\'==ptr[1]) )
-    return NONBLANK_LINE;		// it's a comment, so ignore....don't care about long lines either..
-  if( ('/'==ptr[0]) && ('/'==ptr[1]) )
-    return NONBLANK_LINE;		// it's a comment, so ignore....don't care about long lines either..
-  if (strncasecmp("Factor=", ptr, 7) != 0) // does the line start with "Factor="? (case-insensitive)
-    return NO_FACTOR_EQUAL;
-  ptr = 1+ strstr(ptr,"=");	// don't rescan..
-  while (('\0'!=ptr[0]) && isspace(ptr[0]))	// ignore blanks...
-    ptr++;
-  number_of_commas = 0;
-  for(scanpos = 0; scanpos < strlen(ptr); scanpos++)
-  {
-    if(ptr[scanpos] == ',')
-      number_of_commas++; // count the number of ',' in the line
-    if ((ptr[scanpos] == '\\') && (ptr[scanpos+1] == '\\'))
-      break;	// comment delimiter
-    if ((ptr[scanpos] == '/') && (ptr[scanpos+1] == '/'))
-      break;	// //comment delimiter
-  }
-  if ((2!=number_of_commas) && (3!=number_of_commas))	// must have 2 or 3 commas...
-    return INVALID_FORMAT;
+    ptr = line;
+    while ('\0' != ptr[0] && isspace(ptr[0])) {	// skip leading spaces
+        ptr++;
+    }
+    if ('\0' == ptr[0]) {       // blank line...
+        return BLANK_LINE;
+    }
+    if (('\\' == ptr[0] && '\\' == ptr[1]) || ('/' == ptr[0] && '/' == ptr[1])) {
+        return NONBLANK_LINE;		// it's a comment, so ignore....don't care about long lines either..
+    }
+    if (strncasecmp("Factor=", ptr, 7) != 0) { // does the line start with "Factor="? (case-insensitive)
+        return NO_FACTOR_EQUAL;
+    }
+    ptr = 1 + strstr(ptr, "=");	// don't rescan..
+    while ('\0' != ptr[0] && isspace(ptr[0])) {	// ignore blanks...
+        ptr++;
+    }
+    number_of_commas = 0;
+    for (scanpos = 0; scanpos < strlen(ptr); scanpos++)
+    {
+        if (ptr[scanpos] == ',') {
+            number_of_commas++; // count the number of ',' in the line
+        }
+        if ((ptr[scanpos] == '\\' && ptr[scanpos + 1] == '\\') || (ptr[scanpos] == '/' && ptr[scanpos + 1] == '/')) {
+            break;	// comment delimiter
+        }
+    }
+    if (2 != number_of_commas && 3 != number_of_commas) { // must have 2 or 3 commas...
+        return INVALID_FORMAT;
+    }
 
-  if(2==number_of_commas)
-    assignment->assignment_key[0] = '\0';
-  else
-  {
-    strncpy(assignment->assignment_key,ptr,1+(strstr(ptr,",")-ptr) );	// copy the comma..
-    *strstr(assignment->assignment_key,",") = '\0';	// null-terminate key
-    ptr=1 + strstr(ptr,",");
-  }
-  // ptr now points at exponent...in the future, the expression....
-  ptr_start = ptr;
-  while( (isspace(*ptr_start)) && ('\0' != *ptr_start ))
-    ptr_start++;
-  if ('M' == *ptr_start)	// M means Mersenne exponent...
-    ptr_start++;
-  errno = 0;
-  proposed_exponent = strtoul(ptr_start, &ptr_end, 10);
-  if (ptr_start == ptr_end)
-    return INVALID_FORMAT;	// no conversion
-  if ((0!=errno) || (proposed_exponent > UINT_MAX))
-    return INVALID_DATA;	// for example, too many digits.
-  ptr=ptr_end;
+    if (2 == number_of_commas) {
+        assignment->assignment_key[0] = '\0';
+    }
+    else
+    {
+        strncpy(assignment->assignment_key, ptr, 1 + (strstr(ptr, ",") - ptr));	// copy the comma..
+        *strstr(assignment->assignment_key, ",") = '\0';	// null-terminate key
+        ptr = 1 + strstr(ptr, ",");
+    }
+    // ptr now points at exponent...in the future, the expression....
+    ptr_start = ptr;
+    while (isspace(*ptr_start) && '\0' != *ptr_start) {
+        ptr_start++;
+    }
+    if ('M' == *ptr_start) {	// M means Mersenne exponent...
+        ptr_start++;
+    }
+    errno = 0;
+    proposed_exponent = strtoul(ptr_start, &ptr_end, 10);
+    if (ptr_start == ptr_end) {
+        return INVALID_FORMAT;	// no conversion
+    }
+    if (0 != errno || proposed_exponent > UINT_MAX || !ptr_start) {
+        return INVALID_DATA;	// for example, too many digits.
+    }
+    ptr = ptr_end;
 
-  // ptr now points at bit_min
-  ptr_start = 1 + strstr(ptr,",");
-  errno = 0;
-  proposed_bit_min = strtoul(ptr_start, &ptr_end, 10);
-  if (ptr_start == ptr_end)
-    return INVALID_FORMAT;
-  if ((0!=errno) || (proposed_bit_min > UCHAR_MAX))
-    return INVALID_DATA;
-  ptr = ptr_end;
+    // ptr now points at bit_min
+    ptr_start = 1 + strstr(ptr, ",");
+    errno = 0;
+    if (!ptr_start) {
+        return INVALID_DATA;
+    }
+    proposed_bit_min = strtoul(ptr_start, &ptr_end, 10);
+    if (ptr_start == ptr_end) {
+        return INVALID_FORMAT;
+    }
+    if (0 != errno || proposed_bit_min > UCHAR_MAX) {
+        return INVALID_DATA;
+    }
+    ptr = ptr_end;
 
-  // ptr now points at bit_max
-  ptr_start = 1 + strstr(ptr,",");
-  errno =0;
-  proposed_bit_max = strtoul(ptr_start, &ptr_end, 10);
-  if (ptr_start == ptr_end)
-    return INVALID_FORMAT;
-  if ((0!=errno)||(proposed_bit_max > UCHAR_MAX) || (proposed_bit_max <= proposed_bit_min))
-    return INVALID_DATA;
-  ptr = ptr_end;
-  while (('\0'!=ptr[0]) && isspace(ptr[0]))	// ignore blanks...
-    ptr++;
-  if (NULL != strstr(ptr,"\n"))		// kill off any trailing newlines...
-    *strstr(ptr,"\n") = '\0';
-  if (*ptr != '\0')
-    strcpy(assignment->comment,ptr);
+    // ptr now points at bit_max
+    ptr_start = 1 + strstr(ptr, ",");
+    errno = 0;
+    if (!ptr_start) {
+        return INVALID_DATA;
+    }
+    proposed_bit_max = strtoul(ptr_start, &ptr_end, 10);
+    if (ptr_start == ptr_end) {
+        return INVALID_FORMAT;
+    }
+    if (0 != errno || proposed_bit_max > UCHAR_MAX || proposed_bit_max <= proposed_bit_min) {
+        return INVALID_DATA;
+    }
+    ptr = ptr_end;
+    while ('\0' != ptr[0] && isspace(ptr[0])) {	    // ignore blanks...
+        ptr++;
+    }
+    if (NULL != strstr(ptr, "\n")) {		// kill off any trailing newlines...
+        *strstr(ptr, "\n") = '\0';
+    }
+    if (*ptr != '\0') {
+        strcpy(assignment->comment, ptr);
+    }
 
-  if (linecopy != NULL)
-    *endptr = *linecopy + (ptr_end - line);
+    if (linecopy != NULL) {
+        *endptr = *linecopy + (ptr_end - line);
+    }
 
-  assignment->exponent = proposed_exponent;
-  assignment->bit_min = proposed_bit_min;
-  assignment->bit_max = proposed_bit_max;
+    assignment->exponent = proposed_exponent;
+    assignment->bit_min = proposed_bit_min;
+    assignment->bit_max = proposed_bit_max;
 
-  return reason;
+    return reason;
 }
 
 
