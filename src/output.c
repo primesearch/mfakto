@@ -26,7 +26,6 @@ along with mfaktc.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <stdlib.h>
 #include "crc.h"
-#include "string.h"
 #include "params.h"
 #include "my_types.h"
 #include "output.h"
