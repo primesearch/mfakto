@@ -1,5 +1,5 @@
 // simulate _kbhit() on Linux
-// taken from http://linux-sxs.org/programming/kbhit.html
+// taken from https://web.archive.org/web/20200224015457/http://linux-sxs.org/programming/kbhit.html
 
 #ifndef _WIN32
 

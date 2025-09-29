@@ -496,15 +496,16 @@ static int cmp_int96(const void* p1, const void* p2)
 {
     int96* a = (int96*)p1, * b = (int96*)p2;
 
-    // clang-format off
+    // do not combine the if-statements, they are intended to be executed in
+    // the given order
     if (a->d2 > b->d2)      return 1;
     if (a->d2 < b->d2)      return -1;
     if (a->d1 > b->d1)      return 1;
     if (a->d1 < b->d1)      return -1;
     if (a->d0 > b->d0)      return 1;
     if (a->d0 < b->d0)      return -1;
+
     return 0;
-    // clang-format on
 }
 
 void print_result_line(mystuff_t *mystuff, int factorsfound)
