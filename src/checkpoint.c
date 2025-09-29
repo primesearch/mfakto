@@ -33,7 +33,7 @@ checkpoint_write() writes the checkpoint file.
 void checkpoint_write(unsigned int exp, int bit_min, int bit_max, unsigned int cur_class, int num_factors, int96 factors[MAX_FACTORS_PER_JOB], unsigned long long int bit_level_time)
 {
   FILE *f;
-  char buffer[600], filename[32], filename_save[32], filename_write[32], factors_buffer[MAX_FACTOR_BUFFER_LENGTH];
+  char buffer[MAX_BUFFER_LENGTH], filename[32], filename_save[32], filename_write[32], factors_buffer[MAX_FACTOR_BUFFER_LENGTH];
   unsigned int i, res, factors_buffer_length;
 
   sprintf(filename, "M%u.ckp", exp);
@@ -108,9 +108,7 @@ int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cu
 {
   FILE *f;
   int ret=0,i,chksum;
-  char buffer[600], buffer2[600], *ptr, *ptr2, filename[20], filename_save[32], version[81], factors_buffer[MAX_FACTOR_BUFFER_LENGTH];
-  
-  for(i=0;i<600;i++)buffer[i]=0;
+  char ckp_buffer[MAX_BUFFER_LENGTH] = { 0 }, cur_buffer[MAX_BUFFER_LENGTH], * ptr, * ptr2, filename[20], filename_save[32], version[81], factors_buffer[MAX_FACTOR_BUFFER_LENGTH];
 
   *cur_class=-1;
   *num_factors=0;
@@ -123,16 +121,16 @@ int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cu
     if (verbosity>1) printf("No checkpoint file \"%s\" found.\n", filename);
     return 0;
   }
-  i=(int)fread(buffer,sizeof(char),599,f);
-  buffer[i] = 0;
-  sprintf(buffer2,"%u %d %d %d ", exp, bit_min, bit_max, mystuff.num_classes);
-  ptr=strstr(buffer, buffer2);
-  if(ptr==buffer)
+  i=(int)fread(ckp_buffer,sizeof(char), MAX_BUFFER_LENGTH - 1,f);
+  ckp_buffer[i] = 0;
+  sprintf(cur_buffer,"%u %d %d %d ", exp, bit_min, bit_max, mystuff.num_classes);
+  ptr=strstr(ckp_buffer, cur_buffer);
+  if(ptr==ckp_buffer)
   {
-    i=(int)strlen(buffer2);
+    i=(int)strlen(cur_buffer);
     if(i<70)
     {
-      ptr2=&(buffer[i]);
+      ptr2=&(ckp_buffer[i]);
       ptr=strstr(ptr2, ": ");
       if (ptr > ptr2)
       {
@@ -141,14 +139,14 @@ int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cu
       }
       else sprintf(version, "%s", MFAKTO_VERSION);
       (void) sscanf(ptr,": %d %d %s %llu", cur_class, num_factors, factors_buffer, bit_level_time);
-      sprintf(buffer2,"%u %d %d %d %s: %d %d %s %llu", exp, bit_min, bit_max, mystuff.num_classes, version, *cur_class, *num_factors, factors_buffer, *bit_level_time);
-      chksum= crc32_checksum(buffer2,(int)strlen(buffer2));
+      sprintf(cur_buffer,"%u %d %d %d %s: %d %d %s %llu", exp, bit_min, bit_max, mystuff.num_classes, version, *cur_class, *num_factors, factors_buffer, *bit_level_time);
+      chksum= crc32_checksum(cur_buffer,(int)strlen(cur_buffer));
       // no trainling '\n' for the compare buffer to allow interchanging \n\r and \n files 
-      i=sprintf(buffer2,"%u %d %d %d %s: %d %d %s %llu %08X", exp, bit_min, bit_max, mystuff.num_classes, version, *cur_class, *num_factors, factors_buffer, *bit_level_time, chksum);
+      i=sprintf(cur_buffer,"%u %d %d %d %s: %d %d %s %llu %08X", exp, bit_min, bit_max, mystuff.num_classes, version, *cur_class, *num_factors, factors_buffer, *bit_level_time, chksum);
       if(*cur_class >= 0 && \
          *cur_class < mystuff.num_classes && \
          *num_factors >= 0 && \
-         strncmp(buffer, buffer2, i) == 0 && \
+         strncmp(ckp_buffer, cur_buffer, i) == 0 && \
          ((*num_factors == 0 && strlen(factors_buffer) == 1) || \
           (*num_factors >= 1 && strlen(factors_buffer) > 1)))
       {
@@ -156,7 +154,7 @@ int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cu
       }
       else
       {
-        if (verbosity>0) printf("Cannot use checkpoint file \"%s\": Bad content \"%s\".\n", filename, buffer);
+        if (verbosity>0) printf("Cannot use checkpoint file \"%s\": Bad content \"%s\".\n", filename, ckp_buffer);
       }
 
       // checkpoint file has no factors
@@ -186,12 +184,12 @@ int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cu
   }
   else
   {
-    if (verbosity>0) printf("Cannot use checkpoint file \"%s\": Content \"%s\" does not match expected \"%s\".\n", filename, buffer, buffer2);
+    if (verbosity>0) printf("Cannot use checkpoint file \"%s\": Content \"%s\" does not match expected \"%s\".\n", filename, ckp_buffer, cur_buffer);
   }
   fclose(f);
   if (ret==0)
   {
-    sprintf(filename_save, "M%u.ckp.bad-%08X", exp, crc32_checksum(buffer,(int)strlen(buffer))); // append some "random" number (same number means same content)
+    sprintf(filename_save, "M%u.ckp.bad-%08X", exp, crc32_checksum(ckp_buffer,(int)strlen(ckp_buffer))); // append some "random" number (same number means same content)
     if (rename(filename, filename_save) == 0)
     {
       if (verbosity>0) printf("Renamed bad checkpoint file \"%s\" to \"%s\"\n", filename, filename_save);

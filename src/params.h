@@ -236,6 +236,7 @@ The following lines define the min, default and max value.
 #define MAX_DEZ_96_STRING_LENGTH       30 // max value of int96 (unsigned) has 29 digits + 1 byte for NUL
 
 #define MAX_FACTOR_BUFFER_LENGTH       MAX_FACTORS_PER_JOB * MAX_DEZ_96_STRING_LENGTH
+#define MAX_BUFFER_LENGTH              MAX_FACTOR_BUFFER_LENGTH + 100
 
 #define GHZDAYS_MAGIC_TF_TOP           0.016968 // magic constant for TF to 65 bits and above
 #define GHZDAYS_MAGIC_TF_MID           0.017832 // magic constant for 63 and 64 bits
