@@ -40,10 +40,8 @@ struct ASSIGNMENT
 	unsigned int exponent;
 	int bit_min;
 	int bit_max;
-	char assignment_key[MAX_LINE_LENGTH+1];	// optional assignment key....
-	char comment[MAX_LINE_LENGTH+1];	// optional comment.
-						// if it has a newline at the end, it was on a line by itself preceding the assignment.
-						// otherwise, it followed the assignment on the same line.
+	char assignment_key[MAX_LINE_LENGTH + 1];	// optional assignment key
+	char comment[MAX_LINE_LENGTH + 1];	// optional comment
 };
 
 

@@ -109,19 +109,20 @@ enum PARSE_WARNINGS
     NONBLANK_LINE
 };
 
-// note:  parse_worktodo_line() is a function that
-//	returns the text of the line, the assignment data structure, and a success code.
-enum PARSE_WARNINGS parse_worktodo_line(FILE *f_in, struct ASSIGNMENT *assignment, LINE_BUFFER *linecopy, char * *endptr)
 /*
+parse_worktodo_line() is a function that returns the text of the line, the
+assignment data structure and a success code.
+
 input
-  f_in: an open file from where data is read
-output
-  assignment: structure of line, with any assignment if found
-  linecopy: a copy of the last read line
-  endptr: the end of data
+    f_in: an open file from which data is read
+outputs
+    assignment: the assignment data structure, with any assignment if found
+    linecopy: a copy of the last read line
+    endptr: the end of data
 */
+enum PARSE_WARNINGS parse_worktodo_line(FILE *f_in, struct ASSIGNMENT *assignment, LINE_BUFFER *linecopy, char **endptr)
 {
-    char line[MAX_LINE_LENGTH+1], *ptr, *ptr_start, *ptr_end;
+    char line[MAX_LINE_LENGTH + 1], *ptr, *ptr_start, *ptr_end;
     int c;	// extended char pulled from stream
 
     unsigned int scanpos;
@@ -131,121 +132,160 @@ output
 
     unsigned long proposed_exponent, proposed_bit_min, proposed_bit_max;
 
-    if (NULL == fgets(line, MAX_LINE_LENGTH + 1, f_in))
+    if (fgets(line, MAX_LINE_LENGTH + 1, f_in) == NULL)
     {
         return END_OF_FILE;
     }
-    if (linecopy != NULL) {	        // maybe it wasn't needed....
-        strcpy(*linecopy, line);	// this is what was read...
+
+    // make a copy of the last line read
+    if (linecopy != NULL) {
+        strcpy(*linecopy, line);
     }
-    if (strlen(line) == MAX_LINE_LENGTH && !feof(f_in) && line[strlen(line) - 1] != '\n') // long lines disallowed
+
+    // handle long lines
+    if (strlen(line) == MAX_LINE_LENGTH && !feof(f_in) && line[strlen(line) - 1] != '\n')
     {
         reason = LONG_LINE;
+
+        // go to end of line
         do
         {
             c = fgetc(f_in);
-            if (EOF == c || iscntrl(c))	// found end of line
+            if (c == EOF || iscntrl(c)) {
                 break;
+            }
         } while (TRUE);
     }
 
+    // the whole line is assumed to be non-significant content by default
     if (linecopy != NULL) {
-        *endptr = *linecopy;	// by default, non-significant content is whole line
+        *endptr = *linecopy;
     }
 
     ptr = line;
-    while ('\0' != ptr[0] && isspace(ptr[0])) {	// skip leading spaces
+
+    // ignore whitespace at beginning
+    while ('\0' != ptr[0] && isspace(ptr[0])) {
         ptr++;
     }
-    if ('\0' == ptr[0]) {       // blank line...
+
+    // handle blank lines
+    if ('\0' == ptr[0]) {
         return BLANK_LINE;
     }
+
+    // handle comments that take up the whole line; the length doesn't matter
     if (('\\' == ptr[0] && '\\' == ptr[1]) || ('/' == ptr[0] && '/' == ptr[1])) {
-        return NONBLANK_LINE;		// it's a comment, so ignore....don't care about long lines either..
+        return NONBLANK_LINE;
     }
-    if (strncasecmp("Factor=", ptr, 7) != 0) { // does the line start with "Factor="? (case-insensitive)
+
+    // check whether the line starts with "Factor=" (case-insensitive)
+    if (strncasecmp("Factor=", ptr, 7) != 0) {
         return NO_FACTOR_EQUAL;
     }
-    ptr = 1 + strstr(ptr, "=");	// don't rescan..
-    while ('\0' != ptr[0] && isspace(ptr[0])) {	// ignore blanks...
+    ptr = 1 + strstr(ptr, "="); // don't rescan the whole line
+
+    // ignore whitespace
+    while ('\0' != ptr[0] && isspace(ptr[0])) {
         ptr++;
     }
     number_of_commas = 0;
     for (scanpos = 0; scanpos < strlen(ptr); scanpos++)
     {
+        // count the number of commas in the line
         if (ptr[scanpos] == ',') {
-            number_of_commas++; // count the number of ',' in the line
+            number_of_commas++;
         }
+
+        // handle comments that follow the assignment
         if ((ptr[scanpos] == '\\' && ptr[scanpos + 1] == '\\') || (ptr[scanpos] == '/' && ptr[scanpos + 1] == '/')) {
-            break;	// comment delimiter
+            break;
         }
     }
-    if (2 != number_of_commas && 3 != number_of_commas) { // must have 2 or 3 commas...
+
+    // must have 2 or 3 commas
+    if (number_of_commas != 2 && number_of_commas != 3) {
         return INVALID_FORMAT;
     }
 
-    if (2 == number_of_commas) {
+    if (number_of_commas == 2) {
         assignment->assignment_key[0] = '\0';
     }
     else
     {
-        strncpy(assignment->assignment_key, ptr, 1 + (strstr(ptr, ",") - ptr));	// copy the comma..
-        *strstr(assignment->assignment_key, ",") = '\0';	// null-terminate key
+        strncpy(assignment->assignment_key, ptr, 1 + (strstr(ptr, ",") - ptr)); // copy the comma
+        *strstr(assignment->assignment_key, ",") = '\0';    // null-terminate the assignment key
         ptr = 1 + strstr(ptr, ",");
     }
-    // ptr now points at exponent...in the future, the expression....
+    // ptr is now at the exponent
     ptr_start = ptr;
     while (isspace(*ptr_start) && '\0' != *ptr_start) {
         ptr_start++;
     }
-    if ('M' == *ptr_start) {	// M means Mersenne exponent...
+
+    // M means Mersenne exponent
+    if (*ptr_start == 'M') {
         ptr_start++;
     }
     errno = 0;
     proposed_exponent = strtoul(ptr_start, &ptr_end, 10);
+
+    // assignment could not be converted to structured data
     if (ptr_start == ptr_end) {
-        return INVALID_FORMAT;	// no conversion
+        return INVALID_FORMAT;
     }
-    if (0 != errno || proposed_exponent > UINT_MAX || !ptr_start) {
-        return INVALID_DATA;	// for example, too many digits.
+
+    // exponent is too large
+    if (errno != 0 || proposed_exponent > UINT_MAX || !ptr_start) {
+        return INVALID_DATA;
     }
     ptr = ptr_end;
 
-    // ptr now points at bit_min
+    // ptr is now at bit_min
     ptr_start = 1 + strstr(ptr, ",");
     errno = 0;
     if (!ptr_start) {
         return INVALID_DATA;
     }
+
     proposed_bit_min = strtoul(ptr_start, &ptr_end, 10);
     if (ptr_start == ptr_end) {
         return INVALID_FORMAT;
     }
-    if (0 != errno || proposed_bit_min > UCHAR_MAX) {
+
+    if (errno != 0 || proposed_bit_min > UCHAR_MAX) {
         return INVALID_DATA;
     }
     ptr = ptr_end;
 
-    // ptr now points at bit_max
+    // ptr is now at bit_max
     ptr_start = 1 + strstr(ptr, ",");
     errno = 0;
     if (!ptr_start) {
         return INVALID_DATA;
     }
+
     proposed_bit_max = strtoul(ptr_start, &ptr_end, 10);
     if (ptr_start == ptr_end) {
         return INVALID_FORMAT;
     }
-    if (0 != errno || proposed_bit_max > UCHAR_MAX || proposed_bit_max <= proposed_bit_min) {
+
+    // maximum bit level must be larger than minimum bit level
+    if (errno != 0 || proposed_bit_max > UCHAR_MAX || proposed_bit_max <= proposed_bit_min) {
         return INVALID_DATA;
     }
+
+    // ignore whitespace
     ptr = ptr_end;
-    while ('\0' != ptr[0] && isspace(ptr[0])) {	    // ignore blanks...
+    while ('\0' != ptr[0] && isspace(ptr[0])) {
         ptr++;
     }
-    if (NULL != strstr(ptr, "\n")) {		// kill off any trailing newlines...
+
+    // kill off any trailing newlines
+    if (NULL != strstr(ptr, "\n")) {
         *strstr(ptr, "\n") = '\0';
     }
+
     if (*ptr != '\0') {
         strcpy(assignment->comment, ptr);
     }
@@ -265,17 +305,17 @@ output
 
 /************************************************************************************************************
  * Function name : get_next_assignment                                                                      *
- *   													    *
- *     INPUT  :	char *filename										    *
- *		unsigned int *exponent									    *
- *		int *bit_min										    *
- *		int *bit_max										    *
- *		char *assignment_key[100];
- *     OUTPUT :                                        							    *
+ *   													                                                    *
+ *     INPUT  :	char *filename										                                        *
+ *		unsigned int *exponent									                                            *
+ *		int *bit_min										                                                *
+ *		int *bit_max										                                                *
+ *		char *assignment_key[100];                                                                          *
+ *     OUTPUT :                                        							                            *
  *                                                                                                          *
- *     0 - OK												    *
- *     1 - get_next_assignment : cannot open file							    *
- *     2 - get_next_assignment : no valid assignment found						    *
+ *     0 - OK												                                                *
+ *     1 - get_next_assignment : cannot open file							                                *
+ *     2 - get_next_assignment : no valid assignment found						                            *
  ************************************************************************************************************/
 enum ASSIGNMENT_ERRORS get_next_assignment(char *filename, unsigned int *exponent, unsigned int *bit_min, unsigned int *bit_max, LINE_BUFFER *key, int verbosity)
 {
@@ -343,19 +383,19 @@ enum ASSIGNMENT_ERRORS get_next_assignment(char *filename, unsigned int *exponen
 
 /************************************************************************************************************
  * Function name : clear_assignment                                                                         *
- *   													    *
- *     INPUT  :	char *filename										    *
- *		unsigned int exponent									    *
- *		int bit_min		- from old assignment file			    *
- *		int bit_max										    *
- *		int bit_min_new	- new bit_min,what was factored to--if 0,reached bit_max	    *
- *     OUTPUT :                                        							    *
+ *   													                                                    *
+ *     INPUT  :	char *filename										                                        *
+ *		unsigned int exponent									                                            *
+ *		int bit_min		- from old assignment file			                                                *
+ *		int bit_max										                                                    *
+ *		int bit_min_new	- new bit_min,what was factored to--if 0,reached bit_max	                        *
+ *     OUTPUT :                                        							                            *
  *                                                                                                          *
- *     0 - OK												    *
- *     3 - clear_assignment    : cannot open file <filename>						    *
- *     4 - clear_assignment    : cannot open file "__worktodo__.tmp"					    *
- *     5 - clear_assignment    : assignment not found							    *
- *     6 - clear_assignment    : cannot rename temporary workfile to regular workfile			    *
+ *     0 - OK												                                                *
+ *     3 - clear_assignment    : cannot open file <filename>						                        *
+ *     4 - clear_assignment    : cannot open file "__worktodo__.tmp"					                    *
+ *     5 - clear_assignment    : assignment not found							                            *
+ *     6 - clear_assignment    : cannot rename temporary workfile to regular workfile			            *
  *                                                                                                          *
  * If bit_min_new is zero then the specified assignment will be cleared. If bit_min_new is greater than     *
  * zero the specified assignment will be modified                                                           *
