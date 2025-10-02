@@ -13,8 +13,7 @@ mfakto-var :  Enables configuration of SieveSize via mfakto.ini
 
               Useful for determining the optimal SieveSize value when sieving
               on the CPU, but is about 1-3% slower compared to versions with
-              the sieve size fixed at compile time, for the same SieveSize
-              value.
+              the same sieve size fixed at compile time.
 
               Comment out the SIEVE_SIZE_LIMIT define in params.h to create
               this build.
