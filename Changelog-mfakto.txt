@@ -7,8 +7,11 @@ new features:
 - implemented runtime logging
   - set Logging=1 in the INI file to enable
 - merged in checksum generation code from mfaktc (thanks to James Heinrich)
-  - updated mfakto to use the same checkpoint format as mfaktc 0.23.x (thanks
-    to Danny Chia)
+  - removed a redundant checksum generation function from checkpoint.c
+  - to accommodate this change, the checkpoint format has been updated to no
+    longer put quotes around stored factors. mfakto should still be able to
+    read checkpoints from a previous version
+  - additional code contributions and bug fixes by Danny Chia
 
 enhancements:
 - added RDNA 3 support
@@ -48,6 +51,7 @@ other changes:
     logging to results.txt
 - merged in James Heinrich's changes to mfaktc.ini and re-organized mfakto.ini
   to be more user-friendly
+- removed references to unnecessary AllowSleep option
 - removed inaccurate throughput information from program output
 - macOS is now detected as "macOS" rather than the kernel name "Darwin"
 

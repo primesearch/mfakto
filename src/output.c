@@ -26,7 +26,6 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <stdlib.h>
 #include "crc.h"
-#include "string.h"
 #include "params.h"
 #include "my_types.h"
 #include "output.h"
@@ -219,19 +218,25 @@ int96 parse_dez96(char* str)
     return result;
 }
 
-void print_timestamp(FILE *outfile)
+void print_timestamp(FILE* outfile)
 {
-  char* ptr;
-  const time_t now = time(NULL);
-  static time_t previous_time=0;
+    char* ptr;
+    const time_t now = time(NULL);
+    static time_t previous_time = 0;
 
-  if (previous_time + 5 < now) // have at least 5 seconds between successive time stamps in the results file
-  {
-    ptr = asctime(gmtime(&now));
-    ptr[24] = '\0'; // cut off the newline
-    fprintf(outfile, "[%s]\n", ptr);
-    previous_time = now;
-  }
+    if (previous_time + 5 < now) // have at least 5 seconds between successive time stamps in the results file
+    {
+        ptr = asctime(gmtime(&now));
+        if (ptr) {
+            ptr[24] = '\0'; // cut off the newline
+        }
+        else {
+            printf("Warning: could not determine current time, asctime() returned null pointer\n");
+            ptr = "Wed Jan  1 00:00:00 2025";
+        }
+        fprintf(outfile, "[%s]\n", ptr);
+        previous_time = now;
+    }
 }
 
 
@@ -396,12 +401,22 @@ void print_status_line(mystuff_t *mystuff)
       }
       else if(mystuff->stats.progressformat[i+1] == '%')
       {
-        buffer[index++] = '%';
+          if (index < 0) {
+              printf("Warning: invalid buffer index %d\n", index);
+          }
+          else {
+              buffer[index++] = '%';
+          }
       }
       else /* '%' + unknown format character -> just print "%<character>" */
       {
-        buffer[index++] = '%';
-        --i; // advance i only by 1, with the +=2 below. This way, we don't run over the end of the string if the last char is '%'
+          if (index < 0) {
+              printf("Warning: invalid buffer index %d\n", index);
+          }
+          else {
+              buffer[index++] = '%';
+              --i; // advance i only by 1, with the +=2 below. This way, we don't run over the end of the string if the last char is '%'
+          }
       }
 
       i += 2;
@@ -426,8 +441,13 @@ void print_status_line(mystuff_t *mystuff)
     index += sprintf(buffer + index, "\n");
   }
 
-  buffer[index] = 0;
-  logprintf(mystuff, "%s", buffer);
+  if (index < 0) {
+      printf("Warning: invalid buffer index %d\n", index);
+  }
+  else {
+      buffer[index] = 0;
+      logprintf(mystuff, "%s", buffer);
+  }
 }
 
 void get_utc_timestamp(char* timestamp)
@@ -475,15 +495,16 @@ static int cmp_int96(const void* p1, const void* p2)
 {
     int96* a = (int96*)p1, * b = (int96*)p2;
 
-    // clang-format off
+    // do not combine the if-statements, they are intended to be executed in
+    // the given order
     if (a->d2 > b->d2)      return 1;
     if (a->d2 < b->d2)      return -1;
     if (a->d1 > b->d1)      return 1;
     if (a->d1 < b->d1)      return -1;
     if (a->d0 > b->d0)      return 1;
     if (a->d0 < b->d0)      return -1;
+
     return 0;
-    // clang-format on
 }
 
 void print_result_line(mystuff_t *mystuff, int factorsfound)
