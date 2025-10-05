@@ -1,4 +1,4 @@
-version 0.16
+version 0.16.0
 ==============================
 - includes features merged in from mfaktc 0.23.x and 0.24.0
 
@@ -54,6 +54,7 @@ other changes:
 - removed references to unnecessary AllowSleep option
 - removed inaccurate throughput information from program output
 - macOS is now detected as "macOS" rather than the kernel name "Darwin"
+- switched to the semantic versioning scheme
 
 version 0.15
 ==============================
