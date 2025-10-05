@@ -105,7 +105,7 @@ than an equal SIEVE_SIZE_LIMIT #define.
 Please discuss with the community before making changes to version numbers!
 */
 
-#define SHORT_MFAKTO_VERSION "0.16-beta.3"
+#define SHORT_MFAKTO_VERSION "0.16.0-beta.4"
 
 #ifdef _MSC_VER
   #define MFAKTO_VERSION "mfakto " SHORT_MFAKTO_VERSION "-Win"
