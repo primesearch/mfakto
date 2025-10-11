@@ -21,6 +21,7 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #define mfakto_H_
 
 #include "my_types.h"
+#include "myfnmatch.h"
 
 #define NUM_KERNELS (sizeof(kernel_info)/sizeof(kernel_info[0]))
 #define KERNEL_FILE "mfakto_Kernels.cl"

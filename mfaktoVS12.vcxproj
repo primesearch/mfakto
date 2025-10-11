@@ -34,6 +34,7 @@
     <ClCompile Include="src\output.c" />
     <ClCompile Include="src\perftest.cpp" />
     <ClCompile Include="src\crc.c" />
+    <ClCompile Include="src\myfnmatch.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\checkpoint.h" />
@@ -56,6 +57,7 @@
     <ClInclude Include="src\tf_debug.h" />
     <ClInclude Include="src\filelocking.h" />
     <ClInclude Include="src\crc.h" />
+    <ClInclude Include="src\myfnmatch.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Changelog-mfakto.txt" />
