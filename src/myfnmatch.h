@@ -6,8 +6,7 @@
 #define HAS_FNMATCH
 #else
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 /* Define our own. It would be easier to just use ntdll RtlIsNameInExpression() on Windows, but ntdll.lib is Windows 10+ SDK only.
  * There are many license-compatible fnmatch implementations available anyways, so. */
@@ -21,7 +20,11 @@ inline static int patmatch(const char *pattern, const char *string, int flags)
 {
     return fnmatch(pattern, string, flags) == 0;
 }
+
+#ifndef HAS_FNMATCH
 #ifdef __cplusplus
 }
 #endif
+#endif
+
 #endif
