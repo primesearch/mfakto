@@ -1,7 +1,6 @@
 #ifndef MY_FNMATCH_H
 #define MY_FNMATCH_H
 #if defined(__APPLE__) || defined(__linux__) || defined(__unix__)
-#pragma warn "using system fnmatch"
 #include <fnmatch.h>
 #define HAS_FNMATCH
 #else
