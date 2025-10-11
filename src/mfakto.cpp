@@ -638,111 +638,156 @@ int init_CL(int num_streams, cl_int *devnumber)
 /*
  * set_gpu_type
  * try to extract the GPU type from the device info
+ * type informs our kernel selection due to perf and compilability issues and #defines
+ * such as USE_DP
+ * 
+ * broadly speaking, each group of architectures with a certain amount of int32 mul
+ * relative to other parts should get its own type.
+ *
+ * the "APU" type is only for VLIW. newer GPUs seem to just match the arch. they mainly
+ * lose out on memory due to no L3, but we don't use much memory bus anyways.
  */
 void set_gpu_type()
 {
+#define PAT(b) patmatch(deviceinfo.d_name,b,0)
+#define STM(b) strstr(deviceinfo.d_name,b)
   if (mystuff.gpu_type == GPU_AUTO)
   {
     // try to auto-detect the type of GPU
-    if (strstr(deviceinfo.d_name, "Capeverde")  ||    // 7730, 7750, 7770, 8760, 8740, R7 250X
-        strstr(deviceinfo.d_name, "Pitcairn")   ||    // 7850, 7870, 8870
-        strstr(deviceinfo.d_name, "Bonaire")    ||    // 7790, R7 260, R7 260X
-        strstr(deviceinfo.d_name, "Oland")      ||    // 8670, 8570, R9 240, R9 250
-        strstr(deviceinfo.d_name, "Sun")        ||    // 85x0M
-        strstr(deviceinfo.d_name, "Mars")       ||    // 86x0M, 87x0M
-        strstr(deviceinfo.d_name, "Venus")      ||    // 88x0M
-        strstr(deviceinfo.d_name, "Saturn")     ||    // 8930M, 8950M
-        strstr(deviceinfo.d_name, "Neptune")    ||    // 8970M, 8990M
-        strstr(deviceinfo.d_name, "Curacao")    ||    // R9 265, R9 270, R9 270X
-        strstr(deviceinfo.d_name, "Tonga")      ||    // R9 285
-        strstr(deviceinfo.d_name, "Hainan")     ||    // R9 285
-        strstr(deviceinfo.d_name, "Antigua")    ||    // R9 380(X)
-        strstr(deviceinfo.d_name, "Kalindi")    ||    // GCN APU, Kabini, R7 ???
-        strstr(deviceinfo.d_name, "D300")       ||    // FirePro D-series
-        strstr(deviceinfo.d_name, "D500")       ||
-        strstr(deviceinfo.d_name, "D700")
+    // There are basically two styles of names:
+    // 1) Model: "Radeon HD 7770", "Radeon R7 260X", "Radeon R9 290X", "Radeon RX 6800 XT"
+    // 2) Codename: "Capeverde", "Pitcairn", "Tahiti", "Hawaii", "Ellesmere", "gfx900", "gfx1010"
+    // The first type is typical of mac and Windows. The second type is typical of Linux.
+
+    if (STM("Capeverde")  ||    // 7730, 7750, 7770, 8760, 8740, R7 250X
+        STM("Pitcairn")   ||    // 7850, 7870, 8870
+        STM("Bonaire")    ||    // 7790, R7 260, R7 260X
+        STM("Oland")      ||    // 8670, 8570, R9 240, R9 250
+        STM("Sun")        ||    // 85x0M
+        STM("Mars")       ||    // 86x0M, 87x0M
+        STM("Venus")      ||    // 88x0M
+        STM("Saturn")     ||    // 8930M, 8950M
+        STM("Neptune")    ||    // 8970M, 8990M
+        STM("Curacao")    ||    // R9 265, R9 270, R9 270X
+        STM("Tonga")      ||    // R9 285
+        STM("Hainan")     ||    // R9 285
+        STM("Antigua")    ||    // R9 380(X)
+        STM("Kalindi")    ||    // GCN APU, Kabini, R7 ???
+        PAT("D[357]00")   ||    // FirePro D-series
+        PAT("HD [78][0-7][0-9][0-9]") 
         )
     {
       mystuff.gpu_type = GPU_GCN;
     }
-    else if (strstr(deviceinfo.d_name, "Malta")      ||    // 7990
-             strstr(deviceinfo.d_name, "Tahiti")           // 7870XT, 7950, 7970, 8970, 8950, R9 280X
+    else if (STM("Malta")             ||    // 7990
+             STM("Tahiti")            ||    // 7870XT, 7950, 7970, 8970, 8950, R9 280X
+             PAT("HD [78][89][0-9]0") ||
+             STM("R9 280X")           ||
+             PAT("gfx60[0-9]")              // GCN-GFX6 Southern Islands
              )
     {
       mystuff.gpu_type = GPU_GCN2;   // these cards have faster DP performance, allowing to use it for the division algorithms
     }
-    else if (strstr(deviceinfo.d_name, "Hawaii")     ||    // R9 290, R9 290X
+    else if (STM("Hawaii")        || // R9 290, R9 290X
                 // Hawaii is both desktop graphics (1:8) and workstation graphics (1:2) in W8100, W9100, S9150
                 // 1:8 is just below the sweet spot for using DP. FirePro cards would run faster using DP
-             strstr(deviceinfo.d_name, "Vesuvius")   ||    // 295X2
-             strstr(deviceinfo.d_name, "gfx803")           // Fury X
+             STM("Vesuvius")      || // 295X2
+             STM("gfx803")        || // Fury X
+             STM("gfx802")        || // Iceland, Tonga (guess)
+             STM("Polaris")       || // (guess)
+             PAT("R9 29")         ||
+             PAT("W[89]1[01][05]0")
             )
     {
       mystuff.gpu_type = GPU_GCN3;   // these cards have improved int32 performance over the previous GCNs, making for a changed kernel selection
     }
-    else if (strstr(deviceinfo.d_name, "Ellesmere")      ||    // RX 470/480/570/580/590
-             strstr(deviceinfo.d_name, "gfx804")         ||    // RX 550
-             strstr(deviceinfo.d_name, "Radeon Pro 560") ||    // Baffin, used on Macs
-             strstr(deviceinfo.d_name, "Lexa")           ||    // small GCN 4.0 - not tested, only assumption
-             strstr(deviceinfo.d_name, "Baffin")               // small GCN 4.0 - not tested, only assumption
+    else if (STM("Ellesmere")      ||    // RX 470/480/570/580/590
+             STM("gfx804")         ||    // RX 550
+             STM("gfx810")         ||    // "TBA" APU
+             STM("gfx801")         ||    // Carrizo APU
+             STM("Radeon Pro 560") ||    // Baffin, used on Macs
+             STM("Lexa")           ||    // small GCN 4.0 - not tested, only assumption
+             STM("Baffin")               // small GCN 4.0 - not tested, only assumption
+
+             // The following are GCN3/4 APUs. Need to verify that they do not interfere with FX CPU names
+        //   PAT("A[468]-")        ||    // APU (guess)
+        //   STM("E2-")            ||    // APU (guess)
+        //   PAT("A1[02]-")        ||    // APU (guess)
             )
     {
       mystuff.gpu_type = GPU_GCN4;
     }
-     else if (strstr(deviceinfo.d_name, "gfx901")   ||     // Vega 64(?)
-              strstr(deviceinfo.d_name, "gfx900")   ||     // Vega 56
-              strstr(deviceinfo.d_name, "gfx902")   ||     //  Vega Ryzen 2xxx-3xxx iGPU
-              strstr(deviceinfo.d_name, "gfx903")          //  Vega Ryzen 2xxx-3xxx iGPU
+     else if (STM("gfx901")   ||     // Vega 64(?)
+              STM("gfx900")   ||     // Vega 56
+              STM("gfx902")   ||     //  Vega Ryzen 2xxx-3xxx iGPU
+              STM("gfx903")          //  Vega Ryzen 2xxx-3xxx iGPU
              )
     {
       mystuff.gpu_type = GPU_GCN5;
     }
-     else if (strstr(deviceinfo.d_name, "gfx906")          // Radeon VII
+     else if (STM("gfx906")         || // Radeon VII and Pro and MI50/60 (1:4, 1:1)
+              STM("Radeon Pro VII") || // Radeon VII
+              STM("Radeon VII")     || // Radeon VII
+
+              PAT("gfx90[89]")      || // CDNA1: MI100
+              PAT("gfx90[ac]")      || // CDNA2: MI210, MI250(X)
+              STM("gfx942")         || // CDNA3: MI300(A/X)
+              STM("gfx950")         || // CDNA4: MI350/355
+              
+              PAT("MI[5-6]0")       || // MI50, MI60
+              PAT("MI[0-9][0-9][0-9]") // Any MI with three digits
              )
     {
       mystuff.gpu_type = GPU_GCNF;
     }
-     else if (strstr(deviceinfo.d_name, "gfx1010") ||      // RX 5600-5700 XT
-              strstr(deviceinfo.d_name, "gfx1012") ||      // RX 5300-5500 XT
-              strstr(deviceinfo.d_name, "gfx1011") ||      //
-              strstr(deviceinfo.d_name, "gfx1030") ||      // RX 6800-6900 XT (untested but kernel list should be similar)
-              strstr(deviceinfo.d_name, "gfx1031") ||      // RX 6700 (XT)
-              strstr(deviceinfo.d_name, "gfx1032"))        // lower end RDNA2
+     else if (STM("gfx101")  || // RDNA1
+              STM("gfx103")  || // RDNA2
+
+              PAT("RX [56][0-9][0-9][0-9]") // Model
+              // Also known as 6[0-9]0M, but might be too vague to match
+             )
     {
       mystuff.gpu_type = GPU_RDNA;
     }
-     else if (strstr(deviceinfo.d_name, "gfx1101"))        // 7800XT
+     else if (STM("gfx110")  ||      // Catch-all RDNA3
+              STM("gfx115")  ||      // Catch-all RDNA3.5
+              STM("gfx120")  ||      // Catch-all RDNA4
+
+              PAT("RX [79][0-9][0-9][0-9]") || // Model
+              PAT("80[456]0S")                 // Strix Halo, huge APU
+              // Also [78][0-9]0M, but might be too vague to match
+        )
     {
         mystuff.gpu_type = GPU_RDNA3;
     }
-    else if (strstr(deviceinfo.d_name, "Cayman")      ||  // 6950, 6970
-             strstr(deviceinfo.d_name, "Devastator")  ||  // 7xx0D (iGPUs of A4/6/8/10)
-             strstr(deviceinfo.d_name, "Scrapper")    ||  // 7xx0G (iGPUs of A4/6/8/10)
-             strstr(deviceinfo.d_name, "Antilles"))       // 6990
+    else if (STM("Cayman")      ||  // 6950, 6970
+             STM("Devastator")  ||  // 7xx0D (iGPUs of A4/6/8/10)
+             STM("Scrapper")    ||  // 7xx0G (iGPUs of A4/6/8/10)
+             STM("Antilles"))       // 6990
     {
       mystuff.gpu_type = GPU_VLIW4;
     }
-    else if (strstr(deviceinfo.d_name, "WinterPark")  ||  // 6370D (E2-3200), 6410D (A4-3300, A4-3400)
-             strstr(deviceinfo.d_name, "BeaverCreek") ||  // 6530D (A6-3500, A6-3600, A6-3650, A6-3670K), 6550D (A8-3800, A8-3850, A8-3870K)
-             strstr(deviceinfo.d_name, "Zacate")      ||  // 6320 (E-450)
-             strstr(deviceinfo.d_name, "Ontario")     ||  // 6290 (C-60)
-             strstr(deviceinfo.d_name, "Wrestler"))       // 6250 (C-30, C-50), 6310 (E-240, E-300, E-350)
+    else if (STM("WinterPark")  ||  // 6370D (E2-3200), 6410D (A4-3300, A4-3400)
+             STM("BeaverCreek") ||  // 6530D (A6-3500, A6-3600, A6-3650, A6-3670K), 6550D (A8-3800, A8-3850, A8-3870K)
+             STM("Zacate")      ||  // 6320 (E-450)
+             STM("Ontario")     ||  // 6290 (C-60)
+             STM("Wrestler"))       // 6250 (C-30, C-50), 6310 (E-240, E-300, E-350)
     {
       mystuff.gpu_type = GPU_APU;
     }
-    else if (strstr(deviceinfo.d_name, "Caicos")   ||  // (6450, 8450, R5 230) 7450, 7470,
-             strstr(deviceinfo.d_name, "Cedar")    ||  // 7350, 5450
-             strstr(deviceinfo.d_name, "Redwood")  ||  // 5550, 5570, 5670
-             strstr(deviceinfo.d_name, "Turks")    ||  // 6570, 6670, 7570, 7670
-             strstr(deviceinfo.d_name, "Juniper")  ||  // 6750, 6770, 5750, 5770
-             strstr(deviceinfo.d_name, "Cypress")  ||  // 5830, 5850, 5870
-             strstr(deviceinfo.d_name, "Hemlock")  ||  // 5970
-             strstr(deviceinfo.d_name, "Barts"))       // 6790, 6850, 6870
+    else if (STM("Caicos")   ||  // (6450, 8450, R5 230) 7450, 7470,
+             STM("Cedar")    ||  // 7350, 5450
+             STM("Redwood")  ||  // 5550, 5570, 5670
+             STM("Turks")    ||  // 6570, 6670, 7570, 7670
+             STM("Juniper")  ||  // 6750, 6770, 5750, 5770
+             STM("Cypress")  ||  // 5830, 5850, 5870
+             STM("Hemlock")  ||  // 5970
+             STM("Barts"))       // 6790, 6850, 6870
     {
       mystuff.gpu_type = GPU_VLIW5;
     }
-    else if (strstr(deviceinfo.d_name, "RV7")      ||  // 4xxx (ATI RV 7xx)
-             strstr(deviceinfo.d_name, "Loveland"))    // e.g. 6310 as part of E350: it reports 2 compute units, but only has a total of 80 compute elements
+    else if (STM("RV7")      ||  // 4xxx (ATI RV 7xx)
+             STM("Loveland"))    // e.g. 6310 as part of E350: it reports 2 compute units, but only has a total of 80 compute elements
     {
       mystuff.gpu_type = GPU_VLIW5;
       gpu_types[mystuff.gpu_type].CE_per_multiprocessor = 40; // though VLIW5, only 40 instead of 80 compute elements
@@ -754,8 +799,8 @@ void set_gpu_type()
       }
     }
     else if (
-        strstr(deviceinfo.d_name, "CPU")            ||
-        strstr(deviceinfo.d_name, "cpu")            ||
+        STM("CPU")            ||
+        STM("cpu")            ||
         strstr(deviceinfo.v_name, "GenuineIntel")   ||
         strstr(deviceinfo.v_name, "AuthenticAMD"))
     {
@@ -764,11 +809,13 @@ void set_gpu_type()
     else if (strstr(deviceinfo.v_name, "NVIDIA"))
     {
       mystuff.gpu_type = GPU_NVIDIA;  // working only with VectorSize=1 and GPU sieving
+                                      // NVIDIA uses a non-SIMD architecture. other special trait is fast int32 mul
     }
-    else if (strstr(deviceinfo.d_name, "Intel(R)") &&
-             strstr(deviceinfo.d_name, "Graphics"))
+    else if (STM("Intel(R)") &&
+             STM("Graphics"))
     {
       mystuff.gpu_type = GPU_INTEL;  // IntelHD
+                                     // Could be a good idea to split on the fancier Arc/Xe GPUs
     }
     else
     {
@@ -782,6 +829,8 @@ void set_gpu_type()
       mystuff.gpu_type = GPU_GCN;
     }
   }
+#undef PAT
+#undef STM
 
   if (((mystuff.gpu_type >= GPU_GCN) && (mystuff.gpu_type <= GPU_GCN3)) && (mystuff.vectorsize > 3))
   {
