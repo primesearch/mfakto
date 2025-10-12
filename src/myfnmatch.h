@@ -7,8 +7,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-/* Define our own. It would be easier to just use ntdll RtlIsNameInExpression() on Windows, but ntdll.lib is Windows 10+ SDK only.
- * There are many license-compatible fnmatch implementations available anyways, so. */
+
+/*
+Define our own. It would be easier to just use NTDLL's RtlIsNameInExpression()
+on Windows, but ntdll.lib is only available in the Native API for Windows 10
+and above.
+
+However, there are many GPL-compatible fnmatch implementations available.
+*/
 #define FNM_CASEFOLD   1
 #define FNM_IGNORECASE FNM_CASEFOLD
 #define FNM_NOMATCH    -1

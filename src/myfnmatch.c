@@ -3,13 +3,13 @@
 /*
  * Lifted from musl commit efa9d396f9d3af6c6f85ec86302b48206c574a38,
  * root/src/regex/fnmatch.c, under a GPLv3-compatible license.
- * 
+ *
  * Mingye Wang 2025: delete a bunch of flags
- * 
+ *
  * musl (www.musl-libc.org)
  * Copyright (C) 2012-2013 Rich Felker
  * SPDX-License-Identifier: MIT
- * 
+ *
  * An implementation of what I call the "Sea of Stars" algorithm for
  * POSIX fnmatch(). The basic idea is that we factor the pattern into
  * a head component (which we match first and can reject without ever
@@ -304,6 +304,5 @@ int fnmatch(const char *pat, const char *str, int flags)
 {
 	return fnmatch_internal(pat, -1, str, -1, flags);
 }
-
 
 #endif
