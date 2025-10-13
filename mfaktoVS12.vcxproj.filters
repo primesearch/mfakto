@@ -46,6 +46,9 @@
     <ClCompile Include="src\kbhit.cpp">
       <Filter>source files</Filter>
     </ClCompile>
+    <ClCompile Include="src\myfnmatch.c">
+      <Filter>source files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\checkpoint.h">
@@ -106,6 +109,9 @@
       <Filter>header files</Filter>
     </ClInclude>
     <ClInclude Include="src\crc.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\myfnmatch.h">
       <Filter>header files</Filter>
     </ClInclude>
   </ItemGroup>

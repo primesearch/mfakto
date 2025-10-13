@@ -14,7 +14,12 @@ new features:
   - additional code contributions and bug fixes by Danny Chia
 
 enhancements:
-- added RDNA 3 support
+- added support for RDNA 3 devices
+  - also covers RDNA 3.5 and 4
+- improved detection of GPU type
+  - added provisional support for CDNA
+  - implemented pattern-matching code by Rich Felker
+  - additional code contributions by Mingye Wang
 - added code to handle situations where the device's clock speed could not be
   determined
 - improved some warning messages
