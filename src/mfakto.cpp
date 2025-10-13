@@ -636,28 +636,36 @@ int init_CL(int num_streams, cl_int *devnumber)
 }
 
 /*
- * set_gpu_type
- * try to extract the GPU type from the device info
- * type informs our kernel selection due to perf and compilability issues and #defines
- * such as USE_DP
- * 
- * broadly speaking, each group of architectures with a certain amount of int32 mul
- * relative to other parts should get its own type.
+ * set_gpu_type: tries to determine the GPU type from the device info
  *
- * the "APU" type is only for VLIW. newer GPUs seem to just match the arch. they mainly
- * lose out on memory due to no L3, but we don't use much memory bus anyways.
+ * - the GPU type is used in kernel selection to minimize compatibility and
+ *   performance issues, and enables certain compilation options such as USE_DP
+ *
+ * - devices are grouped by architecture and 32-bit integer multiplication
+ *   performance relative to the device as a whole; each group should get its
+ *   own type, broadly speaking
+ *
+ * - the "APU" type is only for VLIW-based processors as newer GPUs seem to
+ *   just match the architecture. APUs depend more on system memory due to the
+ *   lack of an L3 cache, but mfakto does not use the memory bus much anyway
  */
 void set_gpu_type()
 {
 #define PAT(b) patmatch(deviceinfo.d_name,b,0)
 #define STM(b) strstr(deviceinfo.d_name,b)
+
+  // attempt to automatically detect the type of GPU
   if (mystuff.gpu_type == GPU_AUTO)
   {
-    // try to auto-detect the type of GPU
-    // There are basically two styles of names:
-    // 1) Model: "Radeon HD 7770", "Radeon R7 260X", "Radeon R9 290X", "Radeon RX 6800 XT"
-    // 2) Codename: "Capeverde", "Pitcairn", "Tahiti", "Hawaii", "Ellesmere", "gfx900", "gfx1010"
-    // The first type is typical of mac and Windows. The second type is typical of Linux.
+    // clGetDeviceInfo() basically returns two styles of device names:
+    //
+    // 1) models, such as:    "Radeon HD 7770", "Radeon R7 260X",
+    //                        "Radeon R9 290X" and "Radeon RX 6800 XT"
+    // 2) codenames, such as: "Capeverde", "Pitcairn", "Tahiti", "Hawaii",
+    //                        "Ellesmere", "gfx900" and "gfx1010"
+    //
+    // macOS and Windows drivers typically report the model name, and Linux
+    // drivers tend to report the internal codename.
 
     if (STM("Capeverde")  ||    // 7730, 7750, 7770, 8760, 8740, R7 250X
         STM("Pitcairn")   ||    // 7850, 7870, 8870
@@ -674,7 +682,7 @@ void set_gpu_type()
         STM("Antigua")    ||    // R9 380(X)
         STM("Kalindi")    ||    // GCN APU, Kabini, R7 ???
         PAT("D[357]00")   ||    // FirePro D-series
-        PAT("HD [78][0-7][0-9][0-9]") 
+        PAT("HD [78][0-7][0-9][0-9]")
         )
     {
       mystuff.gpu_type = GPU_GCN;
@@ -733,7 +741,7 @@ void set_gpu_type()
               PAT("gfx90[ac]")      || // CDNA2: MI210, MI250(X)
               STM("gfx942")         || // CDNA3: MI300(A/X)
               STM("gfx950")         || // CDNA4: MI350/355
-              
+
               PAT("MI[5-6]0")       || // MI50, MI60
               PAT("MI[0-9][0-9][0-9]") // Any MI with three digits
              )
