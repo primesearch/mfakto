@@ -1,28 +1,36 @@
-#include "myfnmatch.h"
-#ifndef HAS_FNMATCH
 /*
- * Lifted from musl commit efa9d396f9d3af6c6f85ec86302b48206c574a38,
- * root/src/regex/fnmatch.c, under a GPLv3-compatible license.
+ * Lifted from musl under a GPLv3-compatible license.
  *
- * Mingye Wang 2025: delete a bunch of flags
+ * Source repo:	https://git.musl-libc.org/cgit/musl
+ * Commit ID:	efa9d396f9d3af6c6f85ec86302b48206c574a38
+ * Path:		src/regex/fnmatch.c
  *
- * musl (www.musl-libc.org)
- * Copyright (C) 2012-2013 Rich Felker
+ * musl
+ * Home page: https://musl.libc.org
+ * Copyright (c) 2012-2013 Rich Felker
  * SPDX-License-Identifier: MIT
  *
- * An implementation of what I call the "Sea of Stars" algorithm for
- * POSIX fnmatch(). The basic idea is that we factor the pattern into
- * a head component (which we match first and can reject without ever
- * measuring the length of the string), an optional tail component
- * (which only exists if the pattern contains at least one star), and
- * an optional "sea of stars", a set of star-separated components
- * between the head and tail. After the head and tail matches have
- * been removed from the input string, the components in the "sea of
- * stars" are matched sequentially by searching for their first
- * occurrence past the end of the previous match.
- *
- * - Rich Felker, April 2012
+ * mfakto-specific changes: deleted unnecessary flags
+ * Copyright (c) 2025 Mingye Wang
  */
+
+#include "myfnmatch.h"
+#ifndef HAS_FNMATCH
+
+ /*
+  * An implementation of what I call the "Sea of Stars" algorithm for
+  * POSIX fnmatch(). The basic idea is that we factor the pattern into
+  * a head component (which we match first and can reject without ever
+  * measuring the length of the string), an optional tail component
+  * (which only exists if the pattern contains at least one star), and
+  * an optional "sea of stars", a set of star-separated components
+  * between the head and tail. After the head and tail matches have
+  * been removed from the input string, the components in the "sea of
+  * stars" are matched sequentially by searching for their first
+  * occurrence past the end of the previous match.
+  *
+  * - Rich Felker, April 2012
+  */
 
 #include <string.h>
 #include <stdlib.h>
