@@ -1,4 +1,4 @@
-** Preface for mfakto 0.16.0-beta.4 **
+** Preface for mfakto 0.16.0-beta.5 **
 
 This is a developmental version of mfakto. It has been verified to produce
 correct results. However, there may be bugs and incomplete features, and
