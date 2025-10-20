@@ -520,7 +520,6 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
   char factors_list[500];
   char factors_quote_list[500];
   char osjson[200];
-  char details[50];
   char txtstring[200];
   char json_checksum_string[750];
   char timestamp[50];
@@ -609,8 +608,8 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
       mystuff->exponent, mystuff->bit_min, mystuff->bit_max_stage,
       MFAKTO_VERSION, mystuff->stats.kernelname);
   }
-  snprintf(json_checksum_string, sizeof(json_checksum_string), "%u;TF;%s;;%d;%d;%u;;;mfakto;%s;%s;%s;%s;%s;%s", mystuff->exponent,
-             factors_list, mystuff->bit_min, mystuff->bit_max_stage, !partialresult, SHORT_MFAKTO_VERSION, mystuff->stats.kernelname, details,
+  snprintf(json_checksum_string, sizeof(json_checksum_string), "%u;TF;%s;;%d;%d;%u;;;mfakto;%s;%s;;%s;%s;%s", mystuff->exponent,
+             factors_list, mystuff->bit_min, mystuff->bit_max_stage, !partialresult, SHORT_MFAKTO_VERSION, mystuff->stats.kernelname,
              getOS(), getArchitecture(), timestamp);
   json_checksum = crc32_checksum(json_checksum_string, strlen(json_checksum_string));
   sprintf(jsonstring, "{\"exponent\":%u, \"worktype\":\"TF\", \"status\":\"%s\", \"bitlo\":%d, \"bithi\":%d, \"rangecomplete\":%s%s, \"program\":{\"name\":\"mfakto\", \"version\":\"%s\", \"kernel\":\"%s\"}, \"timestamp\":\"%s\"%s%s%s%s, \"checksum\":{\"version\":%u, \"checksum\":\"%08X\"}}",

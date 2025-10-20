@@ -830,7 +830,7 @@ void set_gpu_type()
       printf("Warning: Unknown GPU name, assuming a GCN (Graphics Core Next) device. Please\n"
           "      post the name to the GIMPS forum or GitHub to have it added to mfakto.\n\n"
           "      Device name:   %s (%s)\n"
-          "      mfakto thread: http://mersenneforum.org/showthread.php?t=15646\n"
+          "      mfakto thread: https://www.mersenneforum.org/node/11037\n"
           "      GitHub:        https://github.com/primesearch/mfakto/issues\n\n"
           "      You can also set GPUType in %s to avoid this message.\n",
           deviceinfo.d_name, deviceinfo.v_name, mystuff.inifile);
