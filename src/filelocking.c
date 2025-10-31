@@ -38,7 +38,7 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
   #define getdrive _getdrive
   #define chdrive _chdrive
   #define MODE _S_IREAD | _S_IWRITE
-  #define O_RDONLY _O_RDONLY 
+  #define O_RDONLY _O_RDONLY
 #else
   #include <unistd.h>
   #include <sched.h>
@@ -192,7 +192,7 @@ int unlock_and_fclose(FILE *f)
   }
   if (f)
   {
-    fprintf(stderr, "File was not locked!\n");
+    //fprintf(stderr, "File was not locked!\n");
     ret = fclose(f);
   }
   return ret;
