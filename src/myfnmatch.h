@@ -8,20 +8,28 @@
 extern "C" {
 #endif
 
-/* Define our own glob-matcher.
- * NTDLL has a RtlIsNameInExpression(), but it incurs some requirements on
- * SDK version (not on OS version) due to import lib availability.
- * We choose to use an GPL-compatible fnmatch implementation, which also
- * provides more features such as character ranges from POSIX glob format. */
+/*
+* Define our own glob matcher.
+* 
+* NTDLL's RtlIsNameInExpression() function does this, but it requires specific
+* Windows SDK (as opposed to Windows) versions due to the availability of
+* certain libraries.
+* 
+* We choose an GPL-compatible fnmatch implementation that also provides more
+* features, such as character ranges from POSIX globs.
+*/
 #define FNM_CASEFOLD   1
 #define FNM_IGNORECASE FNM_CASEFOLD
 #define FNM_NOMATCH    -1
 int fnmatch(const char *pattern, const char *string, int flags);
 #endif
 
-/* fnmatch wrapper for use as boolean. 
- * Remember: fnmatch() matches the whole string, so add "*" before and after
- * as needed! */
+/*
+* fnmatch wrapper for use as a Boolean.
+* 
+* Remember: add "*" before and after the input string as needed because
+* fnmatch() matches the whole string against the provided pattern.
+*/
 inline static int patmatch(const char *pattern, const char *string, int flags)
 {
     return fnmatch(pattern, string, flags) == 0;
