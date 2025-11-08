@@ -15,7 +15,7 @@ extern "C" {
 * Windows SDK (as opposed to Windows) versions due to the availability of
 * certain libraries.
 * 
-* We choose an GPL-compatible fnmatch implementation that also provides more
+* We choose a GPL-compatible fnmatch implementation that also provides more
 * features, such as character ranges from POSIX globs.
 */
 #define FNM_CASEFOLD   1
@@ -42,3 +42,4 @@ inline static int patmatch(const char *pattern, const char *string, int flags)
 #endif
 
 #endif
+
