@@ -651,7 +651,7 @@ int init_CL(int num_streams, cl_int *devnumber)
  */
 void set_gpu_type()
 {
-#define PAT(b) patmatch(deviceinfo.d_name,b,0)
+#define PAT(b) patmatch(deviceinfo.d_name,"*" b "*",0)
 #define STM(b) strstr(deviceinfo.d_name,b)
 
   // attempt to automatically detect the type of GPU
