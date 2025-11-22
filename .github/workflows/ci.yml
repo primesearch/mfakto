@@ -154,17 +154,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-15-intel, macos-14]
+        os: [macos-14, macos-15-intel]
       fail-fast: false
     env:
       CC: clang
       CPP: clang++
       # needed for Homebrew 4.6.4 and above
       HOMEBREW_DEVELOPER: '1'
-      # Used by CI file. For mapping from "runs-on" / "os" to architecture, see:
+      # Used by CI workflow file. For mapping from "runs-on" / "os" to architecture, see:
       # https://docs.github.com/en/actions/how-tos/write-workflows/choose-where-workflows-run/choose-the-runner-for-a-job#standard-github-hosted-runners-for-public-repositories
       SELFARCH: ${{ matrix.os == 'macos-15-intel' && 'X64' || 'ARM64' }}
-      # Just because we use a new builder, doesn't mean we don't want the output to run on older OS
+      # Just because we use a new builder doesn't mean we don't want the build to run on an older OS
       MACOSX_DEPLOYMENT_TARGET: 11.0.0
     steps:
     - uses: actions/checkout@v4
