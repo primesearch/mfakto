@@ -196,7 +196,7 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: mfakto-${{ matrix.os }}
+        name: mfakto-macos-${{ env.RUNNER_ARCH }}
         path: |
           *.cl
           Changelog-mfakto.txt
@@ -212,11 +212,11 @@ jobs:
     - name: Create artifacts and release assets
       if: startsWith(github.ref, 'refs/tags/')
       run: |
-        tar cvjf mfakto-${{ matrix.os }}.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
+        tar cvjf mfakto-macos-${{ env.RUNNER_ARCH }}.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
 
     - name: Release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          mfakto-${{ matrix.os }}.tar.bz2
+          mfakto-macos-${{ env.RUNNER_ARCH }}.tar.bz2
