@@ -211,7 +211,7 @@ Larger values may lead to less wasted cycles by reducing the number of times all
 are not TFing a candidate.  However, more shared memory is used which may reduce occupancy.
 Smaller values should lead to a more responsive system (each kernel takes less time to execute).
 
-The actual configuration is done in mfaktc.ini.
+The actual configuration is done in mfakto.ini.
 The following lines define the min, default and max value.
 */
 
@@ -227,7 +227,7 @@ The following lines define the min, default and max value.
 #define GPU_SIEVE_PROCESS_SIZE_DEFAULT      16 /* Default is processing 16K bits */
 #define GPU_SIEVE_PROCESS_SIZE_MAX          32 /* Upper limit is 64K, since we store k values as "short". Shared memory requirements limit usable values */
 
-/* For worktodo.txt files */
+/* settings related to worktodo.txt file */
 #define WORKTODO_FILE                   "worktodo.txt"
 #define MAX_LINE_LENGTH                 100
 
