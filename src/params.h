@@ -130,14 +130,12 @@ from 2^66 to 2^67. The OpenCL version, mfakto, requires MORE_CLASSES be defined.
 #define MORE_CLASSES
 
 
-
 /*
 THREADS_PER_BLOCK is not needed for OpenCL - it dynamically uses the device's maximum
 All GPU-sieve kernels also have 256 threads per block.
 */
 
 //#define THREADS_PER_BLOCK 256
-
 
 
 /*
@@ -230,14 +228,21 @@ The following lines define the min, default and max value.
 #define GPU_SIEVE_PROCESS_SIZE_MAX          32 /* Upper limit is 64K, since we store k values as "short". Shared memory requirements limit usable values */
 
 /* For worktodo.txt files */
-#define MAX_LINE_LENGTH 100
+#define WORKTODO_FILE                   "worktodo.txt"
+#define MAX_LINE_LENGTH                 100
 
-#define MAX_FACTORS_PER_JOB            20
-#define MAX_DEZ_96_STRING_LENGTH       30 // max value of int96 (unsigned) has 29 digits + 1 byte for NUL
+#define MAX_FACTORS_PER_JOB             20
+#define MAX_DEZ_96_STRING_LENGTH        30 // max value of int96 (unsigned) has 29 digits + 1 byte for NUL
 
-#define MAX_FACTOR_BUFFER_LENGTH       MAX_FACTORS_PER_JOB * MAX_DEZ_96_STRING_LENGTH
-#define MAX_BUFFER_LENGTH              MAX_FACTOR_BUFFER_LENGTH + 100
+#define MAX_FACTOR_BUFFER_LENGTH        MAX_FACTORS_PER_JOB * MAX_DEZ_96_STRING_LENGTH
+#define MAX_BUFFER_LENGTH               MAX_FACTOR_BUFFER_LENGTH + 100
 
-#define GHZDAYS_MAGIC_TF_TOP           0.016968 // magic constant for TF to 65 bits and above
-#define GHZDAYS_MAGIC_TF_MID           0.017832 // magic constant for 63 and 64 bits
-#define GHZDAYS_MAGIC_TF_BOT           0.011160 // magic constant for 62 bits and below
+/* other files */
+#define CFG_FILE                        "mfakto.ini"
+#define RESULTS_FILE                    "results.txt"
+#define RESULTS_JSON_FILE               "results.json.txt"
+
+/* for GHz-day calculations */
+#define GHZDAYS_MAGIC_TF_TOP            0.016968 // magic constant for TF to 65 bits and above
+#define GHZDAYS_MAGIC_TF_MID            0.017832 // magic constant for 63 and 64 bits
+#define GHZDAYS_MAGIC_TF_BOT            0.011160 // magic constant for 62 bits and below
