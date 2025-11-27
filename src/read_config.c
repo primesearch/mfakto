@@ -515,7 +515,7 @@ int read_config(mystuff_t *mystuff)
 
   if (my_read_string(mystuff->inifile, "JSONResultsFile", mystuff->jsonresultfile, 50))
   {
-    sprintf(mystuff->jsonresultfile, sizeof(mystuff->jsonresultfile), RESULTS_JSON_FILE);
+    snprintf(mystuff->jsonresultfile, sizeof(mystuff->jsonresultfile), RESULTS_JSON_FILE);
     logprintf(mystuff, "Warning: Cannot read JSONResultsFile from INI file, using default (%s)\n", mystuff->jsonresultfile);
   }
   if (mystuff->verbosity >= 1)logprintf(mystuff, "  JSONResultsFile           %s\n", mystuff->jsonresultfile);
