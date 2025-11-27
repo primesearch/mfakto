@@ -52,7 +52,7 @@ other changes:
 - requested by James Heinrich: results are no longer saved to deprecated
   results.txt by default (thanks to NStorm)
   - please use results.json.txt for submissions
-  - set LegacyResultsTxt=1 in mfaktc.ini to restore old behavior and re-enable
+  - set LegacyResultsTxt=1 in mfakto.ini to restore old behavior and re-enable
     logging to results.txt
 - merged in James Heinrich's changes to mfaktc.ini and re-organized mfakto.ini
   to be more user-friendly

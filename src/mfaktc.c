@@ -35,6 +35,7 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #include "compatibility.h"
 #include "sieve.h"
 #include "read_config.h"
+#include "params.h"
 #include "parse.h"
 #include "timer.h"
 #include "checkpoint.h"
@@ -1132,7 +1133,7 @@ int main(int argc, char **argv)
   mystuff.gpu_sieve_size = GPU_SIEVE_SIZE_DEFAULT * 1024 * 1024;
   /* Default to 16 Kib processed by each block in a Barrett kernel. */
   mystuff.gpu_sieve_processing_size = GPU_SIEVE_PROCESS_SIZE_DEFAULT * 1024;
-  strcpy(mystuff.inifile, "mfakto.ini");
+  snprintf(mystuff.inifile, sizeof(mystuff.inifile), CFG_FILE);
   mystuff.force_rebuild = 0;
 
 

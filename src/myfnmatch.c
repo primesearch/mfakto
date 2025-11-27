@@ -143,10 +143,11 @@ static int match_bracket(const char *p, int k, int kfold)
 			wchar_t wc2;
 			int l = mbtowc(&wc2, p+1, 4);
 			if (l < 0) return 0;
-			if (wc <= wc2)
-				if ((unsigned)k-wc <= wc2-wc ||
-				    (unsigned)kfold-wc <= wc2-wc)
+			if (wc <= wc2) {
+				unsigned int wc_temp = wc2 - wc;
+				if ((unsigned)k - wc <= wc_temp || (unsigned)kfold - wc <= wc_temp)
 					return !inv;
+			}
 			p += l-1;
 			continue;
 		}

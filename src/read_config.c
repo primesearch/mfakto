@@ -497,7 +497,7 @@ int read_config(mystuff_t *mystuff)
 
   if(my_read_string(mystuff->inifile, "WorkFile", mystuff->workfile, 50))
   {
-    sprintf(mystuff->workfile, "worktodo.txt");
+    snprintf(mystuff->workfile, sizeof(mystuff->workfile), WORKTODO_FILE);
     logprintf(mystuff, "Warning: Cannot read WorkFile from INI file, using default (%s)\n", mystuff->workfile);
   }
   if(mystuff->verbosity >= 1)logprintf(mystuff, "  WorkFile                  %s\n", mystuff->workfile);
@@ -506,7 +506,7 @@ int read_config(mystuff_t *mystuff)
 
   if(my_read_string(mystuff->inifile, "ResultsFile", mystuff->resultfile, 50))
   {
-    sprintf(mystuff->resultfile, "results.txt");
+    snprintf(mystuff->resultfile, sizeof(mystuff->resultfile), RESULTS_FILE);
     logprintf(mystuff, "Warning: Cannot read ResultsFile from INI file, using default (%s)\n", mystuff->resultfile);
   }
   if(mystuff->verbosity >= 1)logprintf(mystuff, "  ResultsFile               %s\n", mystuff->resultfile);
@@ -515,7 +515,7 @@ int read_config(mystuff_t *mystuff)
 
   if (my_read_string(mystuff->inifile, "JSONResultsFile", mystuff->jsonresultfile, 50))
   {
-    sprintf(mystuff->jsonresultfile, "results.json.txt");
+    snprintf(mystuff->jsonresultfile, sizeof(mystuff->jsonresultfile), RESULTS_JSON_FILE);
     logprintf(mystuff, "Warning: Cannot read JSONResultsFile from INI file, using default (%s)\n", mystuff->jsonresultfile);
   }
   if (mystuff->verbosity >= 1)logprintf(mystuff, "  JSONResultsFile           %s\n", mystuff->jsonresultfile);

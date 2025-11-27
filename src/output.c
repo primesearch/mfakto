@@ -52,8 +52,8 @@ void print_help(char *string)
   printf("  -v <n>                 verbosity level: terse = 0, default = 1, more = 2,\n");
   printf("                                          maximum = 3\n");
   printf("  -tf <exp> <min> <max>  trial factor M<exp> from <min> to <max> bits, ignores\n");
-  printf("                         worktodo file\n");
-  printf("  -i | --inifile <file>  load a specific INI file (default: mfakto.ini)\n");
+  printf("                         %s file\n", WORKTODO_FILE);
+  printf("  -i | --inifile <file>  load a specific INI file (default: %s)\n", CFG_FILE);
   printf("  -st                    self-test using the optimal kernel for each test case\n");
   printf("  -st2                   self-test using all possible kernels\n");
   printf("\n");
