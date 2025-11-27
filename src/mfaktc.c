@@ -1133,7 +1133,7 @@ int main(int argc, char **argv)
   mystuff.gpu_sieve_size = GPU_SIEVE_SIZE_DEFAULT * 1024 * 1024;
   /* Default to 16 Kib processed by each block in a Barrett kernel. */
   mystuff.gpu_sieve_processing_size = GPU_SIEVE_PROCESS_SIZE_DEFAULT * 1024;
-  strcpy(mystuff.inifile, CFG_FILE);
+  snprintf(mystuff.inifile, sizeof(mystuff.inifile), CFG_FILE);
   mystuff.force_rebuild = 0;
 
 
