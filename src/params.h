@@ -228,21 +228,21 @@ The following lines define the min, default and max value.
 #define GPU_SIEVE_PROCESS_SIZE_MAX          32 /* Upper limit is 64K, since we store k values as "short". Shared memory requirements limit usable values */
 
 /* settings related to worktodo.txt file */
-#define WORKTODO_FILE                   "worktodo.txt"
-#define MAX_LINE_LENGTH                 100
+#define WORKTODO_FILE               "worktodo.txt"  // should not exceed 50 characters
+#define MAX_LINE_LENGTH             100
 
-#define MAX_FACTORS_PER_JOB             20
-#define MAX_DEZ_96_STRING_LENGTH        30 // max value of int96 (unsigned) has 29 digits + 1 byte for NUL
+#define MAX_FACTORS_PER_JOB         20
+#define MAX_DEZ_96_STRING_LENGTH    30  // unsigned int96 can have up to 29 digits + 1 byte for NUL
 
-#define MAX_FACTOR_BUFFER_LENGTH        MAX_FACTORS_PER_JOB * MAX_DEZ_96_STRING_LENGTH
-#define MAX_BUFFER_LENGTH               MAX_FACTOR_BUFFER_LENGTH + 100
+#define MAX_FACTOR_BUFFER_LENGTH    MAX_FACTORS_PER_JOB * MAX_DEZ_96_STRING_LENGTH
+#define MAX_BUFFER_LENGTH           MAX_FACTOR_BUFFER_LENGTH + 100
 
 /* other files */
-#define CFG_FILE                        "mfakto.ini"
-#define RESULTS_FILE                    "results.txt"
-#define RESULTS_JSON_FILE               "results.json.txt"
+#define CFG_FILE                    "mfakto.ini"
+#define RESULTS_FILE                "results.txt"
+#define RESULTS_JSON_FILE            "results.json.txt"
 
 /* for GHz-day calculations */
-#define GHZDAYS_MAGIC_TF_TOP            0.016968 // magic constant for TF to 65 bits and above
-#define GHZDAYS_MAGIC_TF_MID            0.017832 // magic constant for 63 and 64 bits
-#define GHZDAYS_MAGIC_TF_BOT            0.011160 // magic constant for 62 bits and below
+#define GHZDAYS_MAGIC_TF_TOP        0.016968    // magic constant for TF to 65 bits and above
+#define GHZDAYS_MAGIC_TF_MID        0.017832    // magic constant for 63 and 64 bits
+#define GHZDAYS_MAGIC_TF_BOT        0.011160    // magic constant for 62 bits and below
