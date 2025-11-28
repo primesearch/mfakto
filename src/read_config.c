@@ -524,7 +524,7 @@ int read_config(mystuff_t *mystuff)
 
   if (my_read_string(mystuff->inifile, "LogFile", mystuff->logfile, 50))
   {
-    sprintf(mystuff->logfile, "mfakto.log");
+    snprintf(mystuff->logfile, sizeof(mystuff->logfile), LOG_FILE);
     logprintf(mystuff, "Warning: Cannot read LogFile from INI file, using default (%s)\n", mystuff->logfile);
   }
   if (mystuff->verbosity >= 1)logprintf(mystuff, "  LogFile                   %s\n", mystuff->logfile);

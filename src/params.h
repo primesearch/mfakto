@@ -237,10 +237,11 @@ The following lines define the min, default and max value.
 #define MAX_FACTOR_BUFFER_LENGTH    MAX_FACTORS_PER_JOB * MAX_DEZ_96_STRING_LENGTH
 #define MAX_BUFFER_LENGTH           MAX_FACTOR_BUFFER_LENGTH + 100
 
-/* other files */
+/* other files - names should not exceed 50 characters */
 #define CFG_FILE                    "mfakto.ini"
 #define RESULTS_FILE                "results.txt"
-#define RESULTS_JSON_FILE            "results.json.txt"
+#define RESULTS_JSON_FILE           "results.json.txt"
+#define LOG_FILE                    "mfakto.log"
 
 /* for GHz-day calculations */
 #define GHZDAYS_MAGIC_TF_TOP        0.016968    // magic constant for TF to 65 bits and above
