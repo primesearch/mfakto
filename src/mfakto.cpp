@@ -749,7 +749,6 @@ void set_gpu_type()
       mystuff.gpu_type = GPU_GCNF;
     }
      else if (STM("gfx101")  || // RDNA1
-              STM("gfx103")  || // RDNA2
 
               PAT("RX [56][0-9][0-9][0-9]") // Model
               // Also known as 6[0-9]0M, but might be too vague to match
@@ -757,9 +756,12 @@ void set_gpu_type()
     {
       mystuff.gpu_type = GPU_RDNA;
     }
+     else if (STM("gfx103")) // RDNA2
+    {
+      mystuff.gpu_type = GPU_RDNA2;
+    }
      else if (STM("gfx110")  ||      // Catch-all RDNA3
               STM("gfx115")  ||      // Catch-all RDNA3.5
-              STM("gfx120")  ||      // Catch-all RDNA4
 
               PAT("RX [79][0-9][0-9][0-9]") || // Model
               PAT("80[456]0S")                 // Strix Halo, huge APU
@@ -768,6 +770,11 @@ void set_gpu_type()
     {
         mystuff.gpu_type = GPU_RDNA3;
     }
+     else if (STM("gfx120"))        // Catch-all RDNA4
+    {
+        mystuff.gpu_type = GPU_RDNA4;
+    }
+
     else if (STM("Cayman")      ||  // 6950, 6970
              STM("Devastator")  ||  // 7xx0D (iGPUs of A4/6/8/10)
              STM("Scrapper")    ||  // 7xx0G (iGPUs of A4/6/8/10)

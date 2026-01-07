@@ -61,7 +61,9 @@ GPU_type gpu_types[]={
   {GPU_GCN5,    64,  "GCN5"},
   {GPU_GCNF,    64,  "GCNF"},
   {GPU_RDNA,    64,  "RDNA"},
+  {GPU_RDNA2,   64,  "RDNA2"},
   {GPU_RDNA3,   64,  "RDNA3"},
+  {GPU_RDNA4,   64,  "RDNA4"},
   {GPU_APU,     80,  "APU"},
   {GPU_CPU,      1,  "CPU"},
   {GPU_NVIDIA,   8,  "NVIDIA"},
@@ -354,29 +356,51 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       MG88,
       UNKNOWN_KERNEL,
       UNKNOWN_KERNEL },
-	{
-/*  GPU_RDNA  (1st/2nd gen RDNA) (only barett tested) */
-      BARRETT69_MUL15,
-      BARRETT70_MUL15,
-      BARRETT71_MUL15,
-      BARRETT73_MUL15,
-      BARRETT74_MUL15,
+        {
+/*  GPU_RDNA  (1st gen RDNA) (does not like all kinds of barett15) */
       BARRETT76_MUL32,
       BARRETT77_MUL32,
-      BARRETT82_MUL15,
-      BARRETT83_MUL15,
       BARRETT87_MUL32,
       BARRETT88_MUL32,
+      BARRETT73_MUL15,
+      BARRETT74_MUL15,
       BARRETT79_MUL32,
-      BARRETT88_MUL15,
       BARRETT92_MUL32,
       MG62,
       _63BIT_MUL24,
       _71BIT_MUL24,
       MG88,
       UNKNOWN_KERNEL,
+      UNKNOWN_KERNEL,
+      UNKNOWN_KERNEL,
+      UNKNOWN_KERNEL,
+      UNKNOWN_KERNEL,
+      UNKNOWN_KERNEL,
+      UNKNOWN_KERNEL,      
       UNKNOWN_KERNEL },
-    {
+        {
+        /*  GPU_RDNA2  (2nd gen RDNA) */
+      BARRETT69_MUL15,
+      BARRETT70_MUL15,
+      BARRETT71_MUL15,
+      BARRETT76_MUL32,
+      BARRETT77_MUL32,
+      BARRETT87_MUL32,
+      BARRETT88_MUL32,
+      BARRETT73_MUL15,
+      BARRETT74_MUL15,
+      BARRETT79_MUL32,
+      BARRETT92_MUL32,
+      MG62,
+      _63BIT_MUL24,
+      _71BIT_MUL24,
+      MG88,
+      UNKNOWN_KERNEL,
+      UNKNOWN_KERNEL,
+      UNKNOWN_KERNEL,
+      UNKNOWN_KERNEL,
+      UNKNOWN_KERNEL }, // TODO fix failures in kernels: {'cl_barrett15_83_gs': 33323, 'cl_barrett15_88_gs': 33764, 'cl_barrett15_82_gs': 33225}
+        {
         /*  GPU_RDNA3  (3rd gen RDNA) (only barett tested) */
       BARRETT69_MUL15,
       BARRETT70_MUL15,
@@ -398,7 +422,29 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       UNKNOWN_KERNEL,
       UNKNOWN_KERNEL,
       UNKNOWN_KERNEL }, // TODO fix failures in kernels: {'cl_barrett15_83_gs': 33323, 'cl_barrett15_88_gs': 33764, 'cl_barrett15_82_gs': 33225}
-    {
+        {
+        /*  GPU_RDNA4  (4th gen RDNA) (only barett tested) */
+      BARRETT69_MUL15,
+      BARRETT70_MUL15,
+      BARRETT71_MUL15,
+      BARRETT76_MUL32,
+      BARRETT77_MUL32,
+      BARRETT87_MUL32,
+      BARRETT88_MUL32,
+      BARRETT73_MUL15,
+      BARRETT74_MUL15,
+      BARRETT79_MUL32,
+      BARRETT92_MUL32,
+      MG62,
+      _63BIT_MUL24,
+      _71BIT_MUL24,
+      MG88,
+      UNKNOWN_KERNEL,
+      UNKNOWN_KERNEL,
+      UNKNOWN_KERNEL,
+      UNKNOWN_KERNEL,
+      UNKNOWN_KERNEL }, // TODO fix failures in kernels: {'cl_barrett15_83_gs': 33323, 'cl_barrett15_88_gs': 33764, 'cl_barrett15_82_gs': 33225}
+        {
 /*  GPU_APU,  (BeaverCreek=???, v=4)  */
       BARRETT70_MUL15,  // "cl_barrett15_70" (79.66 M/s)
       BARRETT69_MUL15,  // "cl_barrett15_69" (78.40 M/s)
@@ -421,7 +467,7 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       UNKNOWN_KERNEL,
       UNKNOWN_KERNEL,
       UNKNOWN_KERNEL },
-    {
+        {
 /*  GPU_CPU, i7 620M @ 3.06GHz */
       MG62,             // "cl_mg_62"        (9.60 M/s)
       BARRETT77_MUL32,  // "cl_barrett32_77" (5.54 M/s)
@@ -433,7 +479,7 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       BARRETT70_MUL15,  // "cl_barrett15_70" (3.60 M/s)
       BARRETT92_MUL32,  // "cl_barrett32_92" (3.56 M/s)
       BARRETT71_MUL15,  // "cl_barrett15_71" (3.43 M/s)
-//      BARRETT70_MUL24,  // "cl_barrett24_70" (3.40 M/s)
+//    BARRETT70_MUL24,  // "cl_barrett24_70" (3.40 M/s)
       BARRETT73_MUL15,  // "cl_barrett15_73" (3.07 M/s)
       BARRETT74_MUL15,  // "cl_barrett15_74"
       BARRETT82_MUL15,  // "cl_barrett15_82" (2.72 M/s)
