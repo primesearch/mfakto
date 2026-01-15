@@ -291,7 +291,7 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       UNKNOWN_KERNEL,
       UNKNOWN_KERNEL },
       {
-/*  GPU_GCN4  (Ellesmere/Lexa/Baffin) (only barrett tested) */
+/*  GPU_GCN4  (Ellesmere/Lexa/Baffin) (only Barrett kernels tested) */
       BARRETT69_MUL15,
       BARRETT70_MUL15,
       BARRETT71_MUL15,
@@ -313,7 +313,7 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       UNKNOWN_KERNEL,
       UNKNOWN_KERNEL },
     {
-/*  GPU_GCN5  (Vega 56/Vega 64/"Vega" Ryzen 2xxx-3xxx iGPU) (only barrett tested) */
+/*  GPU_GCN5  (Vega 56/Vega 64/"Vega" Ryzen 2xxx-3xxx iGPU) (only Barrett kernels tested) */
       BARRETT69_MUL15,
       BARRETT70_MUL15,
       BARRETT71_MUL15,
@@ -335,7 +335,7 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       UNKNOWN_KERNEL,
       UNKNOWN_KERNEL },
     {
-/*  GPU_GCNF  (Last GCN - Radeon VII) (only barrett tested) */
+/*  GPU_GCNF  (Last GCN - Radeon VII) (only Barrett kernels tested) */
       BARRETT76_MUL32,
       BARRETT77_MUL32,
       BARRETT87_MUL32,
@@ -357,7 +357,7 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       UNKNOWN_KERNEL,
       UNKNOWN_KERNEL },
         {
-/*  GPU_RDNA  (1st gen RDNA) (does not like all kinds of barett15) */
+/*  GPU_RDNA  (1st gen RDNA) (does not like all 15-bit Barrett kernels) */
       BARRETT76_MUL32,
       BARRETT77_MUL32,
       BARRETT87_MUL32,
@@ -401,7 +401,7 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       UNKNOWN_KERNEL,
       UNKNOWN_KERNEL }, // TODO fix failures in kernels: {'cl_barrett15_83_gs': 33323, 'cl_barrett15_88_gs': 33764, 'cl_barrett15_82_gs': 33225}
         {
-        /*  GPU_RDNA3  (3rd gen RDNA) (only barett tested) */
+        /*  GPU_RDNA3  (3rd gen RDNA) (only Barettt tested) */
       BARRETT69_MUL15,
       BARRETT70_MUL15,
       BARRETT71_MUL15,
@@ -423,7 +423,7 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       UNKNOWN_KERNEL,
       UNKNOWN_KERNEL }, // TODO fix failures in kernels: {'cl_barrett15_83_gs': 33323, 'cl_barrett15_88_gs': 33764, 'cl_barrett15_82_gs': 33225}
         {
-        /*  GPU_RDNA4  (4th gen RDNA) (only barett tested) */
+        /*  GPU_RDNA4  (4th gen RDNA) (only Barrett kernels tested) */
       BARRETT69_MUL15,
       BARRETT70_MUL15,
       BARRETT71_MUL15,

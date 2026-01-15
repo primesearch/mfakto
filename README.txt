@@ -367,6 +367,9 @@ Submitting results:
 
 - the '-d c' option fails for some CPUs; this is under investigation
 
+- certain 15-bit Barrett kernels are incompatible with RDNA 2 and RDNA 3 GPUs,
+  and need to be ported to 32 bits
+
 - some have reported mfakto does not work on certain Nvidia hardware; this is
   also being investigated
 
