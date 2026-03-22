@@ -1,6 +1,6 @@
 /*
 This file is part of mfaktc.
-Copyright (C) 2009, 2010, 2011, 2012  Oliver Weihe (o.weihe@t-online.de)
+Copyright (c) 2009-2012  Oliver Weihe (o.weihe@t-online.de)
 
 mfaktc is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,20 +22,20 @@ along with mfaktc.  If not, see <http://www.gnu.org/licenses/>.
 extern "C" {
 #endif
 void print_help(char *string);
-void logprintf(mystuff_t* mustuff, const char* fmt, ...);
+void logprintf(mystuff_t *mustuff, const char *fmt, ...);
 
 void print_dez72(int96 a, char *buf);
 void print_dez96(int96 a, char *buf);
 void print_dez90(int96 a, char *buf);
 
-int96 parse_dez96(char* str);
+int96 parse_dez96(char *str);
 
 void print_status_line(mystuff_t *mystuff);
 void print_result_line(mystuff_t *mystuff, int factorsfound);
 void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bits);
 double primenet_ghzdays(unsigned int exp, int bit_min, int bit_max);
-void printArray(const char * Name, const cl_uint * Data, const cl_uint len, cl_uint hex);
-const char* ClErrorString( const cl_int errcode );
+void printArray(const char *Name, const cl_uint *Data, const cl_uint len, cl_uint hex);
+const char *ClErrorString(const cl_int errcode);
 
 #ifdef __cplusplus
 }

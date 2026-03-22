@@ -116,7 +116,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Changelog-mfakto.txt" />
+    <None Include="README.txt" />
     <None Include="todo.txt" />
+    <None Include="src\.clang-format" />
     <None Include="src\barrett.cl">
       <Filter>kernel files</Filter>
     </None>
@@ -133,16 +136,15 @@
     <None Include="src\gpusieve.cl">
       <Filter>kernel files</Filter>
     </None>
-    <None Include="Changelog-mfakto.txt" />
     <None Include="src\montgomery.cl">
       <Filter>kernel files</Filter>
     </None>
     <None Include="src\common.cl">
       <Filter>kernel files</Filter>
     </None>
-    <None Include="README.txt" />
     <None Include="vcpkg.json" />
     <None Include="vcpkg-configuration.json" />
+    <None Include=".vscode\settings.json" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="kernel files">

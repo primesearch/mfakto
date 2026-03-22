@@ -1,7 +1,7 @@
 /*
 This file is part of mfaktc (mfakto).
-Copyright (C) 2009 - 2014  Oliver Weihe (o.weihe@t-online.de)
-                           Bertram Franz (bertramf@gmx.net)
+Copyright (c) 2009-2014  Oliver Weihe (o.weihe@t-online.de)
+                         Bertram Franz (bertramf@gmx.net)
 
 mfaktc (mfakto) is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 
 #include "my_types.h"
 
-void checkpoint_write(unsigned int exp, int bit_min, int bit_max, unsigned int cur_class, int num_factors, int96 factors[MAX_FACTORS_PER_JOB], unsigned long long int bit_level_time);
-int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int* cur_class, int *num_factors, int96 factors[MAX_FACTORS_PER_JOB], unsigned long long int* bit_level_time, int verbosity);
+void checkpoint_write(unsigned int exp, int bit_min, int bit_max, unsigned int cur_class, int num_factors,
+                      int96 factors[MAX_FACTORS_PER_JOB], unsigned long long int bit_level_time);
+int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cur_class, int *num_factors,
+                    int96 factors[MAX_FACTORS_PER_JOB], unsigned long long int *bit_level_time, int verbosity);
 void checkpoint_delete(unsigned int exp);

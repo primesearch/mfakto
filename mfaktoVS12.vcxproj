@@ -62,6 +62,7 @@
   <ItemGroup>
     <None Include="Changelog-mfakto.txt" />
     <None Include="README.txt" />
+    <None Include="todo.txt" />
     <None Include="src\mfakto_Kernels.cl" />
     <None Include="src\barrett.cl" />
     <None Include="src\barrett15.cl" />
@@ -70,7 +71,8 @@
     <None Include="src\mfakto.ini" />
     <None Include="src\montgomery.cl" />
     <None Include="src\mul24.cl" />
-    <None Include="todo.txt" />
+    <None Include="src\.clang-format" />
+    <None Include=".vscode\settings.json" />
     <None Include="vcpkg.json" />
     <None Include="vcpkg-configuration.json" />
   </ItemGroup>

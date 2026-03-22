@@ -1,7 +1,7 @@
 /*
 This file is part of mfaktc (mfakto).
-Copyright (C) 2009 - 2013  Oliver Weihe (o.weihe@t-online.de)
-                           Bertram Franz (bertramf@gmx.net)
+Copyright (c) 2009-2013  Oliver Weihe (o.weihe@t-online.de)
+                         Bertram Franz (bertramf@gmx.net)
 
 mfaktc (mfakto) is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,13 +23,14 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #include "my_types.h"
 #include "myfnmatch.h"
 
-#define NUM_KERNELS (sizeof(kernel_info)/sizeof(kernel_info[0]))
+#define NUM_KERNELS (sizeof(kernel_info) / sizeof(kernel_info[0]))
 #define KERNEL_FILE "mfakto_Kernels.cl"
-#define MAX_PRIMES_PER_THREAD	4224			// Primes up to 16M can be handled by this many "rows" of 256 primes (GPU sieving)
+
+// primes up to 16M can be handled by this many "rows" of 256 primes, for GPU sieving
+#define MAX_PRIMES_PER_THREAD 4224
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 int init_CL(int num_streams, cl_int *devicenumber);
@@ -52,5 +53,4 @@ int kernel_possible(int kernel, mystuff_t *mystuff);
 int run_kernel(cl_kernel l_kernel, cl_uint exp, int stream, cl_mem res);
 int run_mod_kernel(cl_ulong hi, cl_ulong lo, cl_ulong q, cl_float qr, cl_ulong *res_hi, cl_ulong *res_lo);
 
-
-#endif  /* #ifndef mfakto_H_ */
+#endif /* #ifndef mfakto_H_ */
