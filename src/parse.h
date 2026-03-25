@@ -1,6 +1,6 @@
 /*
 This file is part of mfaktc (mfakto).
-Copyright (C) 2009 - 2013  Oliver Weihe (o.weihe@t-online.de)
+Copyright (c) 2009-2013  Oliver Weihe (o.weihe@t-online.de)
 This file has been written by Luigi Morelli (L.Morelli@mclink.it)
 
 mfaktc (mfakto) is free software: you can redistribute it and/or modify
@@ -17,36 +17,35 @@ You should have received a copy of the GNU General Public License
 along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(TRUE)	// keep self-contained
-	#define FALSE (0)
-	#define TRUE (1)
+#if !defined(TRUE) // keep self-contained
+#define FALSE (0)
+#define TRUE  (1)
 #endif
 
-enum ASSIGNMENT_ERRORS
-{	NEVER_ASSIGNED=-1,
-	OK=0,
-	CANT_OPEN_FILE=1,
-	VALID_ASSIGNMENT_NOT_FOUND=2,
-	CANT_OPEN_WORKFILE=3,
-	CANT_OPEN_TEMPFILE=4,
-	ASSIGNMENT_NOT_FOUND=5,
-	CANT_RENAME =6
+enum ASSIGNMENT_ERRORS {
+    NEVER_ASSIGNED             = -1,
+    OK                         = 0,
+    CANT_OPEN_FILE             = 1,
+    VALID_ASSIGNMENT_NOT_FOUND = 2,
+    CANT_OPEN_WORKFILE         = 3,
+    CANT_OPEN_TEMPFILE         = 4,
+    ASSIGNMENT_NOT_FOUND       = 5,
+    CANT_RENAME                = 6
 };
 #define MAX_LINE_LENGTH 100
-typedef char LINE_BUFFER[MAX_LINE_LENGTH+1];
+typedef char LINE_BUFFER[MAX_LINE_LENGTH + 1];
 
-struct ASSIGNMENT
-{
-	unsigned int exponent;
-	int bit_min;
-	int bit_max;
-	char assignment_key[MAX_LINE_LENGTH + 1];	// optional assignment key
-	char comment[MAX_LINE_LENGTH + 1];	// optional comment
+struct ASSIGNMENT {
+    unsigned int exponent;
+    int bit_min;
+    int bit_max;
+    char assignment_key[MAX_LINE_LENGTH + 1]; // optional assignment key
+    char comment[MAX_LINE_LENGTH + 1]; // optional comment
 };
 
-
-int valid_assignment(unsigned int exp, int bit_min, int bit_max, int verbosity);	// nonzero if assignment is valid
-enum ASSIGNMENT_ERRORS get_next_assignment(char *filename, unsigned int *exponent, unsigned int *bit_min, unsigned int *bit_max, LINE_BUFFER *assignment_key, int verbosity);
+int valid_assignment(unsigned int exp, int bit_min, int bit_max, int verbosity); // nonzero if assignment is valid
+enum ASSIGNMENT_ERRORS get_next_assignment(char *filename, unsigned int *exponent, unsigned int *bit_min, unsigned int *bit_max,
+                                           LINE_BUFFER *assignment_key, int verbosity);
 enum ASSIGNMENT_ERRORS clear_assignment(char *filename, unsigned int exponent, int bit_min, int bit_max, int bit_min_new);
 
 int add_file_available(char *filename);

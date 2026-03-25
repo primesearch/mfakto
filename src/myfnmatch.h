@@ -42,4 +42,3 @@ inline static int patmatch(const char *pattern, const char *string, int flags)
 #endif
 
 #endif
-

@@ -1,6 +1,6 @@
 /*
 This file is part of mfaktc (mfakto).
-Copyright (C) 2014  Oliver Weihe (o.weihe@t-online.de)
+Copyright (c) 2014  Oliver Weihe (o.weihe@t-online.de)
                     Bertram Franz (bertramf@gmx.net)
 
 mfaktc (mfakto) is free software: you can redistribute it and/or modify

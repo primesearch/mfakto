@@ -36,8 +36,7 @@ unsigned int crc32_checksum(char *string, size_t chars)
         for (cur_bit = 7; cur_bit >= 0; cur_bit--) {
             if (chksum & 1) {
                 chksum = (chksum >> 1) ^ 0xEDB88320;
-            }
-            else {
+            } else {
                 chksum >>= 1;
             }
         }

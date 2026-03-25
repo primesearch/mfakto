@@ -1,7 +1,7 @@
 /*
 This file is part of mfaktc (mfakto).
-Copyright (C) 2009 - 2013  Oliver Weihe (o.weihe@t-online.de)
-                           Bertram Franz (bertramf@gmx.net)
+Copyright (c) 2009-2013  Oliver Weihe (o.weihe@t-online.de)
+                         Bertram Franz (bertramf@gmx.net)
 
 mfaktc (mfakto) is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,12 +25,12 @@ extern "C" {
 
 #include "my_types.h"
 
-int gpusieve_init (mystuff_t *mystuff, cl_context context);
-void gpusieve_init_exponent (mystuff_t *mystuff);
-void gpusieve_init_class (mystuff_t *mystuff, unsigned long long k_min);
-void gpusieve (mystuff_t *mystuff, unsigned long long num_k_remaining);
-int gpusieve_free (mystuff_t *mystuff);
-void tiny_soe (cl_uint limit, cl_uint *primes);
+int gpusieve_init(mystuff_t *mystuff, cl_context context);
+void gpusieve_init_exponent(mystuff_t *mystuff);
+void gpusieve_init_class(mystuff_t *mystuff, unsigned long long k_min);
+void gpusieve(mystuff_t *mystuff, unsigned long long num_k_remaining);
+int gpusieve_free(mystuff_t *mystuff);
+void tiny_soe(cl_uint limit, cl_uint *primes);
 
 #ifdef __cplusplus
 }

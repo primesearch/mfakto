@@ -1,6 +1,6 @@
 /*
 This file is part of mfaktc (mfakto).
-Copyright (C) 2009, 2013  Oliver Weihe (o.weihe@t-online.de)
+Copyright (c) 2009, 2013  Oliver Weihe (o.weihe@t-online.de)
 
 mfaktc (mfakto) is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 /*
 This is based on a code sniplet from Kevin (kjaget on www.mersenneforum.org)
 
@@ -25,26 +24,23 @@ OK since mfakto only uses this to measure the time difference between two calls
 of gettimeofday().
 */
 
-
 #include <winsock2.h>
 
 __inline int gettimeofday(struct timeval *tv, struct timezone *tz)
 {
-  static LARGE_INTEGER frequency;
-  static int frequency_flag = 0;
+    static LARGE_INTEGER frequency;
+    static int frequency_flag = 0;
 
-  if(!frequency_flag)
-  {
-    QueryPerformanceFrequency(&frequency);
-    frequency_flag = 1;
-  }
+    if (!frequency_flag) {
+        QueryPerformanceFrequency(&frequency);
+        frequency_flag = 1;
+    }
 
-  if(tv)
-  {
-    LARGE_INTEGER counter;
-    QueryPerformanceCounter(&counter);
-    tv->tv_sec =  (long) (counter.QuadPart / frequency.QuadPart);
-    tv->tv_usec = (long)((counter.QuadPart % frequency.QuadPart) / ((double)frequency.QuadPart / 1000000.0));
-  }
-  return 0;
+    if (tv) {
+        LARGE_INTEGER counter;
+        QueryPerformanceCounter(&counter);
+        tv->tv_sec  = (long)(counter.QuadPart / frequency.QuadPart);
+        tv->tv_usec = (long)((counter.QuadPart % frequency.QuadPart) / ((double)frequency.QuadPart / 1000000.0));
+    }
+    return 0;
 }
