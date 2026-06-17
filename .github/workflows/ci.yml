@@ -16,6 +16,7 @@ on:
       - 'reopened'
       - 'synchronize'
       - 'ready_for_review'
+  workflow_dispatch:
 
 jobs:
   Linux:
@@ -25,7 +26,7 @@ jobs:
       CC: gcc
       CPP: g++
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Install dependencies
       run: |
@@ -40,7 +41,7 @@ jobs:
         ./mfakto -d 11
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: mfakto-linux64
         path: |
@@ -60,7 +61,7 @@ jobs:
       run: |
         tar cvjf mfakto-linux64.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
     - name: Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
@@ -70,7 +71,7 @@ jobs:
     name: Windows MSVC
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: ilammy/msvc-dev-cmd@v1
 
     - name: Install dependencies
@@ -87,13 +88,13 @@ jobs:
         Compress-Archive -DestinationPath mfakto-windows-msvc.zip -CompressionLevel Optimal -Path x64/Release/*
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: mfakto-windows-msvc
         path: x64/Release/
 
     - name: Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
@@ -106,7 +107,7 @@ jobs:
       CC: gcc
       CPP: g++
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Configure paths
       run: |
@@ -122,7 +123,7 @@ jobs:
         make -C src -O -j $env:NUMBER_OF_PROCESSORS CC=$env:CC CPP=$env:CPP AMD_APP_INCLUDE="-IC:\msys64\mingw64\include" AMD_APP_LIB="-LC:\msys64\mingw64\lib"
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: mfakto-windows-msys2
         path: |
@@ -143,7 +144,7 @@ jobs:
         Compress-Archive -DestinationPath mfakto-windows-msys2.zip -CompressionLevel Optimal -Path *.cl, Changelog-mfakto.txt, COPYING, datatypes.h, mfakto.exe, mfakto.ini, README-SpecialVersions.txt, README.txt, tf_debug.h, todo.txt
 
     - name: Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
@@ -167,7 +168,7 @@ jobs:
       # Just because we use a new builder doesn't mean we don't want the build to run on an older OS
       MACOSX_DEPLOYMENT_TARGET: 11.0.0
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     # - name: Install dependencies
     #   run: |
@@ -199,7 +200,7 @@ jobs:
         make -C src -j "$(sysctl -n hw.ncpu)" CC=${CC} CPP=${CPP}
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: mfakto-macos-${{ env.SELFARCH }}
         path: |
@@ -220,7 +221,7 @@ jobs:
         tar cvjf mfakto-macos-${{ env.SELFARCH }}.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
 
     - name: Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
