@@ -26,7 +26,7 @@ jobs:
       CC: gcc
       CPP: g++
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Install dependencies
       run: |
@@ -71,7 +71,7 @@ jobs:
     name: Windows MSVC
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: step-security/msvc-dev-cmd@v1
 
     - name: Install dependencies
@@ -107,7 +107,7 @@ jobs:
       CC: gcc
       CPP: g++
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Configure paths
       run: |
@@ -168,7 +168,7 @@ jobs:
       # Just because we use a new builder doesn't mean we don't want the build to run on an older OS
       MACOSX_DEPLOYMENT_TARGET: 11.0.0
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     # - name: Install dependencies
     #   run: |
