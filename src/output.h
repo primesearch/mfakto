@@ -22,6 +22,9 @@ along with mfaktc.  If not, see <http://www.gnu.org/licenses/>.
 extern "C" {
 #endif
 void print_help(char *string);
+#ifdef __GNUC__
+__attribute__ ((format(printf, 2, 3)))
+#endif
 void logprintf(mystuff_t *mustuff, const char *fmt, ...);
 
 void print_dez72(int96 a, char *buf);

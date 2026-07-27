@@ -1,0 +1,188 @@
+name: mfakto CD
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+
+jobs:
+  Linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Build
+      run: |
+        docker run --rm -i -v "$GITHUB_WORKSPACE:/workspace" -w /workspace centos:7 bash -s <<'EOF'
+        set -e -o pipefail
+        sed -i '/^mirrorlist/d;/^#baseurl=/{s|^#||;s|/mirror|/vault|;}' /etc/yum.repos.d/CentOS*.repo
+        # yum update -y
+        yum install -y centos-release-scl epel-release
+        sed -i 's|/centos/7/|/centos/7.6.1810/|g;/^mirrorlist/d;/^# *baseurl=/{s|^# *||;s|/mirror|/vault|;}' /etc/yum.repos.d/CentOS-SCLo-*.repo
+        yum install -y devtoolset-6-gcc-c++ devtoolset-6-libstdc++-static make ocl-icd-devel
+
+        source /opt/rh/devtoolset-6/enable
+        gcc --version
+        ldd --version
+
+        make -C src -j "$(nproc)"
+        EOF
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        name: mfakto-linux64
+        path: |
+          *.cl
+          Changelog-mfakto.txt
+          COPYING
+          datatypes.h
+          mfakto
+          mfakto.ini
+          README-SpecialVersions.txt
+          README.txt
+          tf_debug.h
+          todo.txt
+
+    - name: Create artifacts and release assets
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        tar -cvjf mfakto-linux64.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
+    - name: Release
+      uses: softprops/action-gh-release@v3
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          mfakto-linux64.tar.bz2
+
+  WindowsMSVC:
+    name: Windows MSVC
+    runs-on: windows-2022
+    steps:
+    - uses: actions/checkout@v7
+    - uses: step-security/msvc-dev-cmd@v1
+
+    - name: Install dependencies
+      run: |
+        vcpkg integrate install --vcpkg-root=c:\vcpkg
+
+    - name: Build
+      run: |
+        msbuild mfaktoVS12.vcxproj /p:Configuration=Release
+
+    - name: Create artifacts and release assets
+      run: |
+        Copy-Item -Path Changelog-mfakto.txt, COPYING, README-SpecialVersions.txt, README.txt, todo.txt -Destination x64/Release/
+        Compress-Archive -DestinationPath mfakto-windows-msvc.zip -CompressionLevel Optimal -Path x64/Release/*
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        name: mfakto-windows-msvc
+        path: x64/Release/
+
+    - name: Release
+      uses: softprops/action-gh-release@v3
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          mfakto-windows-msvc.zip
+
+  WindowsMSYS2:
+    name: Windows MSYS2
+    runs-on: windows-latest
+    env:
+      PACKAGE_PREFIX: mingw-w64-x86_64-
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Configure paths
+      run: |
+        echo "C:\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        echo "C:\msys64\usr\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Install dependencies
+      run: |
+        pacman -S --noconfirm "${env:PACKAGE_PREFIX}opencl-icd" "${env:PACKAGE_PREFIX}opencl-headers"
+
+    - name: Build
+      run: |
+        make -C src -O -j $env:NUMBER_OF_PROCESSORS AMD_APP_INCLUDE="-IC:\msys64\mingw64\include" AMD_APP_LIB="-LC:\msys64\mingw64\lib"
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        name: mfakto-windows-msys2
+        path: |
+          *.cl
+          Changelog-mfakto.txt
+          COPYING
+          datatypes.h
+          mfakto.exe
+          mfakto.ini
+          README-SpecialVersions.txt
+          README.txt
+          tf_debug.h
+          todo.txt
+
+    - name: Create artifacts and release assets
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        Compress-Archive -DestinationPath mfakto-windows-msys2.zip -CompressionLevel Optimal -Path *.cl, Changelog-mfakto.txt, COPYING, datatypes.h, mfakto.exe, mfakto.ini, README-SpecialVersions.txt, README.txt, tf_debug.h, todo.txt
+
+    - name: Release
+      uses: softprops/action-gh-release@v3
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+           mfakto-windows-msys2-${{ matrix.cc }}.zip
+
+  macOS:
+    name: macOS
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, macos-26-intel]
+      fail-fast: false
+    env:
+      # Used by CI workflow file. For mapping from "runs-on" / "os" to architecture, see:
+      # https://docs.github.com/en/actions/how-tos/write-workflows/choose-where-workflows-run/choose-the-runner-for-a-job#standard-github-hosted-runners-for-public-repositories
+      SELFARCH: ${{ endsWith(matrix.os, '-intel') && 'x64' || 'ARM64' }}
+      # Just because we use a new builder doesn't mean we don't want the build to run on an older OS
+      MACOSX_DEPLOYMENT_TARGET: 11.0.0
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Build
+      run: |
+        make -C src -j "$(sysctl -n hw.ncpu)"
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        name: mfakto-macos-${{ env.SELFARCH }}
+        path: |
+          *.cl
+          Changelog-mfakto.txt
+          COPYING
+          datatypes.h
+          mfakto
+          mfakto.ini
+          README-SpecialVersions.txt
+          README.txt
+          tf_debug.h
+          todo.txt
+
+    - name: Create artifacts and release assets
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        tar -cvjf mfakto-macos-${{ env.SELFARCH }}.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
+
+    - name: Release
+      uses: softprops/action-gh-release@v3
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          mfakto-macos-${{ env.SELFARCH }}.tar.bz2

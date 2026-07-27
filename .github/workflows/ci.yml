@@ -16,15 +16,21 @@ on:
       - 'reopened'
       - 'synchronize'
       - 'ready_for_review'
-  workflow_dispatch:
+  schedule:
+    - cron: '0 0 1 * *'
 
 jobs:
   Linux:
     name: Linux
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-26.04, ubuntu-22.04-arm, ubuntu-24.04-arm, ubuntu-26.04-arm]
+        cc: [gcc, clang]
+      fail-fast: false
     env:
-      CC: gcc
-      CPP: g++
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cc == 'gcc' && 'g++' || 'clang++' }}
     steps:
     - uses: actions/checkout@v7
 
@@ -34,16 +40,18 @@ jobs:
 
     - name: Build
       run: |
-        make -C src -O -j "$(nproc)" CC=${CC} CPP=${CPP}
+        make -C src -O -j "$(nproc)" DEBUG=1
 
     - name: Test
+      if: ${{ !startsWith(matrix.os, 'ubuntu-22.04') }}
       run: |
         ./mfakto -d 11
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v7
+      if: always()
       with:
-        name: mfakto-linux64
+        name: mfakto-linux64-${{ matrix.os }}-${{ matrix.cc }}
         path: |
           *.cl
           Changelog-mfakto.txt
@@ -55,17 +63,6 @@ jobs:
           README.txt
           tf_debug.h
           todo.txt
-
-    - name: Create artifacts and release assets
-      if: startsWith(github.ref, 'refs/tags/')
-      run: |
-        tar cvjf mfakto-linux64.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
-    - name: Release
-      uses: softprops/action-gh-release@v3
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: |
-          mfakto-linux64.tar.bz2
 
   WindowsMSVC:
     name: Windows MSVC
@@ -80,32 +77,32 @@ jobs:
 
     - name: Build
       run: |
-        msbuild mfaktoVS12.vcxproj /property:Configuration=Release
+        msbuild mfaktoVS12.vcxproj /p:Configuration=Debug
 
     - name: Create artifacts and release assets
       run: |
-        Copy-Item -Path Changelog-mfakto.txt, COPYING, README-SpecialVersions.txt, README.txt, todo.txt -Destination x64/Release/
-        Compress-Archive -DestinationPath mfakto-windows-msvc.zip -CompressionLevel Optimal -Path x64/Release/*
+        Copy-Item -Path Changelog-mfakto.txt, COPYING, README-SpecialVersions.txt, README.txt, todo.txt -Destination x64/Debug/
+        Compress-Archive -DestinationPath mfakto-windows-msvc.zip -CompressionLevel Optimal -Path x64/Debug/*
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v7
+      if: always()
       with:
         name: mfakto-windows-msvc
-        path: x64/Release/
-
-    - name: Release
-      uses: softprops/action-gh-release@v3
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: |
-          mfakto-windows-msvc.zip
+        path: x64/Debug/
 
   WindowsMSYS2:
     name: Windows MSYS2
-    runs-on: windows-2022
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest] # windows-11-arm
+        cc: [gcc, clang]
+      fail-fast: false
     env:
-      CC: gcc
-      CPP: g++
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cc == 'gcc' && 'g++' || 'clang++' }}
+      PACKAGE_PREFIX: mingw-w64-${{ endsWith(matrix.os, '-arm') && 'clang-aarch64' || 'x86_64' }}-
     steps:
     - uses: actions/checkout@v7
 
@@ -116,16 +113,22 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pacman -S --needed --noconfirm mingw-w64-x86_64-opencl-icd mingw-w64-x86_64-opencl-headers
+        pacman -S --noconfirm "${env:PACKAGE_PREFIX}opencl-icd" "${env:PACKAGE_PREFIX}opencl-headers"
+
+    - name: Install Clang
+      if: matrix.cc == 'clang'
+      run: |
+        pacman -S --noconfirm "${env:PACKAGE_PREFIX}clang"
 
     - name: Build
       run: |
-        make -C src -O -j $env:NUMBER_OF_PROCESSORS CC=$env:CC CPP=$env:CPP AMD_APP_INCLUDE="-IC:\msys64\mingw64\include" AMD_APP_LIB="-LC:\msys64\mingw64\lib"
+        make -C src -O -j $env:NUMBER_OF_PROCESSORS DEBUG=1 AMD_APP_INCLUDE="-IC:\msys64\mingw64\include" AMD_APP_LIB="-LC:\msys64\mingw64\lib"
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v7
+      if: always()
       with:
-        name: mfakto-windows-msys2
+        name: mfakto-windows-msys2-${{ endsWith(matrix.os, '-arm') && 'ARM64' || 'x64' }}-${{ matrix.cc }}
         path: |
           *.cl
           Changelog-mfakto.txt
@@ -138,33 +141,16 @@ jobs:
           tf_debug.h
           todo.txt
 
-    - name: Create artifacts and release assets
-      if: startsWith(github.ref, 'refs/tags/')
-      run: |
-        Compress-Archive -DestinationPath mfakto-windows-msys2.zip -CompressionLevel Optimal -Path *.cl, Changelog-mfakto.txt, COPYING, datatypes.h, mfakto.exe, mfakto.ini, README-SpecialVersions.txt, README.txt, tf_debug.h, todo.txt
-
-    - name: Release
-      uses: softprops/action-gh-release@v3
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: |
-           mfakto-windows-msys2.zip
-
   macOS:
     name: macOS
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-14, macos-15-intel]
+        os: [macos-14, macos-15-intel, macos-15, macos-26-intel, macos-26]
       fail-fast: false
     env:
-      CC: clang
-      CPP: clang++
       # needed for Homebrew 4.6.4 and above
       HOMEBREW_DEVELOPER: '1'
-      # Used by CI workflow file. For mapping from "runs-on" / "os" to architecture, see:
-      # https://docs.github.com/en/actions/how-tos/write-workflows/choose-where-workflows-run/choose-the-runner-for-a-job#standard-github-hosted-runners-for-public-repositories
-      SELFARCH: ${{ matrix.os == 'macos-15-intel' && 'X64' || 'ARM64' }}
       # Just because we use a new builder doesn't mean we don't want the build to run on an older OS
       MACOSX_DEPLOYMENT_TARGET: 11.0.0
     steps:
@@ -185,10 +171,13 @@ jobs:
 
     - name: Build with PoCL
       run: |
-        make -C src -j "$(sysctl -n hw.ncpu)" CC=${CC} CPP=${CPP} AMD_APP_INCLUDE="$(pkg-config --cflags pocl)" AMD_APP_LIB="$(pkg-config --libs pocl)"
+        make -C src -j "$(sysctl -n hw.ncpu)" DEBUG=1 AMD_APP_INCLUDE="$(pkg-config --cflags pocl)" AMD_APP_LIB="$(pkg-config --libs pocl)"
 
     - name: Test
       run: |
+        sdkroot=$(xcrun --sdk macosx --show-sdk-path)
+        export SDKROOT=$sdkroot
+        export LIBRARY_PATH="$sdkroot/usr/lib${LIBRARY_PATH:+:$LIBRARY_PATH}"
         ./mfakto -d 11
 
     - name: Clean up build
@@ -197,12 +186,13 @@ jobs:
 
     - name: Build for native OpenCL
       run: |
-        make -C src -j "$(sysctl -n hw.ncpu)" CC=${CC} CPP=${CPP}
+        make -C src -j "$(sysctl -n hw.ncpu)"
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v7
+      if: always()
       with:
-        name: mfakto-macos-${{ env.SELFARCH }}
+        name: mfakto-${{ matrix.os }}-${{ endsWith(matrix.os, '-intel') && 'x64' || 'ARM64' }}
         path: |
           *.cl
           Changelog-mfakto.txt
@@ -214,15 +204,3 @@ jobs:
           README.txt
           tf_debug.h
           todo.txt
-
-    - name: Create artifacts and release assets
-      if: startsWith(github.ref, 'refs/tags/')
-      run: |
-        tar cvjf mfakto-macos-${{ env.SELFARCH }}.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
-
-    - name: Release
-      uses: softprops/action-gh-release@v3
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: |
-          mfakto-macos-${{ env.SELFARCH }}.tar.bz2

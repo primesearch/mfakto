@@ -69,26 +69,23 @@ AMD_APP_LIB =
 endif
 
 # compiler settings for C and C++ files
-CC = gcc
-CPP = g++
-CFLAGS = $(ARCHFLAGS) $(BITS) -Wall $(OPTIMIZE_FLAG) $(AMD_APP_INCLUDE)
+CC ?= gcc
+CXX ?= g++
+CFLAGS = -std=gnu99 $(ARCHFLAGS) $(BITS) -Wall -Wextra $(OPTIMIZE_FLAG) $(AMD_APP_INCLUDE)
+CXXFLAGS = -std=gnu++11 $(ARCHFLAGS) $(BITS) -Wall -Wextra $(OPTIMIZE_FLAG) $(AMD_APP_INCLUDE)
 CFLAGS_EXTRA_SIEVE =
 CPPFLAGS =
 
 # linker settings
-LD = $(CPP)
+LD = $(CXX)
 LDFLAGS = $(ARCHFLAGS) $(BITS) $(STATIC) $(OPTIMIZE_FLAG) $(AMD_APP_LIB) $(OPENCL_LIB)
 
-CC_VERSION = $(shell $(CC) --version)
-
 # optimize or debug
-ifneq (, $(findstring gcc, $(CC_VERSION)))
-  OPTIMIZE_FLAG = -O3 -funroll-loops -ffast-math -finline-functions -frerun-loop-opt -fgcse-sm -fgcse-las -flto=auto -save-temps
-  CFLAGS_EXTRA_SIEVE = -funroll-all-loops -funsafe-loop-optimizations -fira-region=all -fsched-spec-load -fsched-stalled-insns=10 -fsched-stalled-insns-dep=10 -fno-align-labels
-else ifneq (, $(findstring clang, $(CC_VERSION)))
-  OPTIMIZE_FLAG = -O3 -funroll-loops -ffast-math -finline-functions -flto=auto -save-temps
+ifeq ($(DEBUG), 1)
+  OPTIMIZE_FLAG = -g -Og
 else
-  OPTIMIZE_FLAG = -O3
+  OPTIMIZE_FLAG = -O3 -funroll-loops -ffast-math -flto
+  CFLAGS_EXTRA_SIEVE = -funroll-all-loops
 endif
 
 ##############################################################################
@@ -121,7 +118,7 @@ sieve.o : sieve.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 %.o : %.cpp
-	$(CPP) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
 
 ../%.cl : %.cl
 	$(INSTALL) -m 444 $< ..
