@@ -67,6 +67,9 @@ void print_help(char *string)
 
 
 
+#ifdef __GNUC__
+__attribute__ ((format(printf, 2, 3)))
+#endif
 void logprintf(mystuff_t* mystuff, const char* fmt, ...)
 {
     va_list args;
