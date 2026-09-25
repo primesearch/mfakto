@@ -30,10 +30,52 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #include "params.h"
 #include "my_types.h"
 #include "output.h"
+#include "filelocking.h"
 
 extern kernel_info_t   kernel_info[];
 extern GPU_type        gpu_types[];
 static int inifile_unavailable = 0;
+
+/*
+Release archives and "make" ship the default settings as mfakto.ini.example so
+that unpacking or building a new version doesn't overwrite the user's
+mfakto.ini. Create mfakto.ini from it when it doesn't exist yet.
+*/
+void create_inifile_from_example(char *inifile)
+{
+  char example[64];
+  char buf[4096];
+  size_t n;
+  FILE *in, *out;
+
+  if (file_exists(inifile)) return;
+  snprintf(example, sizeof(example), "%s.example", inifile);
+  in = fopen(example, "rb");
+  if (!in) return;
+  out = fopen(inifile, "wb");
+  if (!out)
+  {
+    fclose(in);
+    printf("Warning: could not create \"%s\" from \"%s\"\n", inifile, example);
+    return;
+  }
+  int failed = 0;
+  while ((n = fread(buf, 1, sizeof(buf), in)) > 0)
+  {
+    if (fwrite(buf, 1, n, out) != n)
+    {
+      failed = 1;
+      break;
+    }
+  }
+  if (ferror(in)) failed = 1;
+  fclose(in);
+  if (fclose(out) != 0) failed = 1;
+  if (failed)
+    printf("Warning: could not create \"%s\" from \"%s\"\n", inifile, example);
+  else
+    printf("Created \"%s\" from \"%s\"\n", inifile, example);
+}
 
 int my_read_int(char *inifile, char *name, int *value)
 {

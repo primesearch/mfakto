@@ -59,7 +59,7 @@ jobs:
           COPYING
           datatypes.h
           mfakto
-          mfakto.ini
+          mfakto.ini.example
           README-SpecialVersions.txt
           README.txt
           tf_debug.h
@@ -146,7 +146,7 @@ jobs:
           COPYING
           datatypes.h
           mfakto.exe
-          mfakto.ini
+          mfakto.ini.example
           README-SpecialVersions.txt
           README.txt
           tf_debug.h
@@ -210,7 +210,7 @@ jobs:
           COPYING
           datatypes.h
           mfakto
-          mfakto.ini
+          mfakto.ini.example
           README-SpecialVersions.txt
           README.txt
           tf_debug.h

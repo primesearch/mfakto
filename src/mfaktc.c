@@ -1191,6 +1191,14 @@ int main(int argc, char **argv)
   snprintf(mystuff.inifile, sizeof(mystuff.inifile), CFG_FILE);
   mystuff.force_rebuild = 0;
 
+  // create mfakto.ini from mfakto.ini.example on the first start, unless another INI file is used
+  int custom_inifile = 0;
+  for (int a = 1; a < argc; a++)
+  {
+    if (!strcmp(argv[a], "-i") || !strcmp(argv[a], "--inifile")) custom_inifile = 1;
+  }
+  if (!custom_inifile) create_inifile_from_example(mystuff.inifile);
+
 
   // need to see if we should log all the output before all of the other preamble
   my_read_int(mystuff.inifile, "Logging", &(mystuff.logging));
