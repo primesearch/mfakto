@@ -838,7 +838,9 @@ other return value
                     if (factorindex >= MAX_FACTORS_PER_JOB) {
                         logprintf(mystuff, "ERROR: reached limit of %u factors for this job, try a different range\n",
                             MAX_FACTORS_PER_JOB);
-                        return RET_QUIT;
+                        cur_class = max_class + 1; // Ends current job
+                        factorindex--;
+                        break;
                     }
                 }
             }
