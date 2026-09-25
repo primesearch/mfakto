@@ -486,6 +486,8 @@ const char* getOS()
     return "Linux";
 #elif defined(__unix__)
     return "Unix";
+#else
+    return "";
 #endif
 }
 
