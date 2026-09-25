@@ -705,6 +705,12 @@ other return value
 
   if(mystuff->mode == MODE_NORMAL)
   {
+      // clear factors from the previous bit level of the same assignment
+      for (i = 0; i < MAX_FACTORS_PER_JOB; i++) {
+          mystuff->factors[i].d0 = 0;
+          mystuff->factors[i].d1 = 0;
+          mystuff->factors[i].d2 = 0;
+      }
       if (mystuff->checkpoints > 0 && checkpoint_read(mystuff->exponent, mystuff->bit_min, mystuff->bit_max_stage, &cur_class, &factorsfound, mystuff->factors, &(mystuff->stats.bit_level_time), mystuff->verbosity) == 1)
       {
           logprintf(mystuff, "\nFound a valid checkpoint file.\n");
