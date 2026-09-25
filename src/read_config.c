@@ -38,7 +38,7 @@ static int inifile_unavailable = 0;
 int my_read_int(char *inifile, char *name, int *value)
 {
   FILE *in;
-  char buf[100];
+  char buf[512];
   int found=0;
 
   in=fopen(inifile,"r");
@@ -53,7 +53,7 @@ int my_read_int(char *inifile, char *name, int *value)
     }
     return 1;
   }
-  while(fgets(buf,100,in) && !found)
+  while(fgets(buf,512,in) && !found)
   {
     if(!strncmp(buf,name,strlen(name)) && buf[strlen(name)]=='=')
     {
@@ -68,7 +68,7 @@ int my_read_int(char *inifile, char *name, int *value)
 static int my_read_ulong(char *inifile, char *name, unsigned long long int *value)
 {
     FILE* in;
-    char buf[101];
+    char buf[512];
     int found = 0;
 
     in = fopen(inifile, "r");
@@ -83,7 +83,7 @@ static int my_read_ulong(char *inifile, char *name, unsigned long long int *valu
         }
         return 1;
     }
-    while (fgets(buf, 100, in) && !found)
+    while (fgets(buf, 512, in) && !found)
     {
         if (!strncmp(buf, name, strlen(name)) && buf[strlen(name)] == '=')
         {
