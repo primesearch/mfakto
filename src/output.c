@@ -521,19 +521,19 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
   char aidjson[MAX_LINE_LENGTH + 11];
   char userjson[62]; /* 50 (V5UserID) + 11 spare + null character */
   char computerjson[66];  /* 50 (ComputerID) + 15 spare + null character */
-  char factorjson[514];
-  char factors_list[500];
-  char factors_quote_list[500];
+  char factorjson[MAX_FACTOR_BUFFER_LENGTH + 2 * MAX_FACTORS_PER_JOB + 20];
+  char factors_list[MAX_FACTOR_BUFFER_LENGTH];
+  char factors_quote_list[MAX_FACTOR_BUFFER_LENGTH + 2 * MAX_FACTORS_PER_JOB];
   char osjson[200];
   char txtstring[200];
-  char json_checksum_string[750];
+  char json_checksum_string[MAX_FACTOR_BUFFER_LENGTH + 250];
   char timestamp[50];
 
   unsigned int max_class_number;
 
   FILE *txtresultfile=NULL;
 
-  char jsonstring[1350];
+  char jsonstring[1350 + MAX_FACTOR_BUFFER_LENGTH];
   FILE *jsonresultfile=NULL;
 
   if (mystuff->more_classes)  max_class_number = 960;
