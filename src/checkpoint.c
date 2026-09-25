@@ -138,47 +138,55 @@ int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cu
         version[ptr-ptr2]='\0';
       }
       else sprintf(version, "%s", MFAKTO_VERSION);
-      (void) sscanf(ptr,": %d %d %s %llu", cur_class, num_factors, factors_buffer, bit_level_time);
-      sprintf(cur_buffer,"%u %d %d %d %s: %d %d %s %llu", exp, bit_min, bit_max, mystuff.num_classes, version, *cur_class, *num_factors, factors_buffer, *bit_level_time);
-      chksum= crc32_checksum(cur_buffer,(int)strlen(cur_buffer));
-      // no trainling '\n' for the compare buffer to allow interchanging \n\r and \n files 
-      i=sprintf(cur_buffer,"%u %d %d %d %s: %d %d %s %llu %08X", exp, bit_min, bit_max, mystuff.num_classes, version, *cur_class, *num_factors, factors_buffer, *bit_level_time, chksum);
-      if(*cur_class >= 0 && \
-         *cur_class < mystuff.num_classes && \
-         *num_factors >= 0 && \
-         strncmp(ckp_buffer, cur_buffer, i) == 0 && \
-         ((*num_factors == 0 && strlen(factors_buffer) == 1) || \
-          (*num_factors >= 1 && strlen(factors_buffer) > 1)))
+      /* parse into local variables, the caller's values are only set if the checkpoint file is valid */
+      int cur_class_ckp = -1, num_factors_ckp = -1;
+      unsigned long long int bit_level_time_ckp = 0;
+      factors_buffer[0] = '\0';
+      /* factors_buffer holds MAX_FACTOR_BUFFER_LENGTH (600) chars including the NUL */
+      if (sscanf(ptr,": %d %d %599s %llu", &cur_class_ckp, &num_factors_ckp, factors_buffer, &bit_level_time_ckp) == 4)
       {
-        ret=1;
+        sprintf(cur_buffer,"%u %d %d %d %s: %d %d %s %llu", exp, bit_min, bit_max, mystuff.num_classes, version, cur_class_ckp, num_factors_ckp, factors_buffer, bit_level_time_ckp);
+        chksum= crc32_checksum(cur_buffer,(int)strlen(cur_buffer));
+        // no trainling '\n' for the compare buffer to allow interchanging \n\r and \n files 
+        i=sprintf(cur_buffer,"%u %d %d %d %s: %d %d %s %llu %08X", exp, bit_min, bit_max, mystuff.num_classes, version, cur_class_ckp, num_factors_ckp, factors_buffer, bit_level_time_ckp, chksum);
+        if(cur_class_ckp >= 0 && \
+           cur_class_ckp < (int)mystuff.num_classes && \
+           num_factors_ckp >= 0 && \
+           strncmp(ckp_buffer, cur_buffer, i) == 0 && \
+           strspn(factors_buffer, "0123456789,") == strlen(factors_buffer) && \
+           ((num_factors_ckp == 0 && strlen(factors_buffer) == 1) || \
+            (num_factors_ckp >= 1 && strlen(factors_buffer) > 1)))
+        {
+          ret=1;
+        }
+      }
+      if (ret == 1)
+      {
+        *cur_class = cur_class_ckp;
+        *bit_level_time = bit_level_time_ckp;
+
+        for (i = 0; i < MAX_FACTORS_PER_JOB; i++) {
+            factors[i].d0 = 0;
+            factors[i].d1 = 0;
+            factors[i].d2 = 0;
+        }
+
+        // checkpoint file may have factors
+        if (factors_buffer[0] != '0') {
+            char* tok = strtok(factors_buffer, ",");
+            for (i = 0; i < MAX_FACTORS_PER_JOB && tok != NULL; i++) {
+                factors[i] = parse_dez96(tok);
+                (*num_factors)++;
+                tok = strtok(NULL, ",");
+            }
+            if (*num_factors != num_factors_ckp)
+                printf("Warning: checkpoint file reports %d factor%s, but %d %s actually stored\n", num_factors_ckp,
+                       num_factors_ckp == 1 ? "" : "s", *num_factors, *num_factors == 1 ? "is" : "are");
+        }
       }
       else
       {
         if (verbosity>0) printf("Cannot use checkpoint file \"%s\": Bad content \"%s\".\n", filename, ckp_buffer);
-      }
-
-      // checkpoint file has no factors
-      if (factors_buffer[0] == '0') {
-          for (i = 0; i < MAX_FACTORS_PER_JOB; i++) {
-              factors[i].d0 = 0;
-              factors[i].d1 = 0;
-              factors[i].d2 = 0;
-          }
-      }
-      else {
-          // checkpoint file may have factors
-          char* tok = strtok(factors_buffer, ",");
-          for (i = 0; i < MAX_FACTORS_PER_JOB; i++) {
-              if (tok == NULL) {
-                  factors[i].d0 = 0;
-                  factors[i].d1 = 0;
-                  factors[i].d2 = 0;
-              }
-              else {
-                  factors[i] = parse_dez96(tok);
-                  tok = strtok(NULL, ",");
-              }
-          }
       }
     }
   }
