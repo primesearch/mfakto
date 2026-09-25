@@ -994,7 +994,7 @@ k_max and k_min are used as 64bit temporary integers here...
     if(time_run > 3600000ULL) logprintf(mystuff, "%2" PRIu64 "h ", (time_run /  3600000ULL) % 24ULL);
     if(time_run > 60000ULL)   logprintf(mystuff, "%2" PRIu64 "m ", (time_run /    60000ULL) % 60ULL);
     logprintf(mystuff, "%2" PRIu64 ".%03" PRIu64 "s", (time_run / 1000ULL) % 60ULL, time_run % 1000ULL);
-    if(restart != 0)
+    if(restart != 0 && mystuff->stats.class_counter > (cl_uint)restart) /* no class left to do after the restart: nothing to extrapolate from */
     {
       time_est = (time_run * mystuff->stats.class_counter ) / (cl_ulong)(mystuff->stats.class_counter-restart);
       logprintf(mystuff, "\n      estimated total time spent: ");
