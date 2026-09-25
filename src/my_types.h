@@ -303,6 +303,7 @@ typedef struct _mystuff_t
   stats_t  stats;              /* stats for the status line */
 
   char workfile[51];           /* allow filenames up to 50 chars... */
+  int  require_workfile_lock;  /* 1: don't start if the workfile can't be locked */
   char inifile[51];	       /* allow filenames up to 50 chars... */
   char resultfile[51];
   char jsonresultfile[51];

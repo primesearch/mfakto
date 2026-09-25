@@ -550,6 +550,24 @@ int read_config(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
+  if(my_read_int(mystuff->inifile, "RequireWorkFileLock", &i))
+  {
+    i=1; /* not in older INI files, enabled silently */
+  }
+  else if(i != 0 && i != 1)
+  {
+    logprintf(mystuff, "Warning: RequireWorkFileLock must be 0 or 1, enabled by default\n");
+    i=1;
+  }
+  if(mystuff->verbosity >= 1)
+  {
+    if(i==0)logprintf(mystuff, "  RequireWorkFileLock       disabled\n");
+    else    logprintf(mystuff, "  RequireWorkFileLock       enabled\n");
+  }
+  mystuff->require_workfile_lock=i;
+
+/*****************************************************************************/
+
   if(my_read_string(mystuff->inifile, "ResultsFile", mystuff->resultfile, 50))
   {
     snprintf(mystuff->resultfile, sizeof(mystuff->resultfile), RESULTS_FILE);
