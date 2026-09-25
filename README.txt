@@ -176,6 +176,13 @@ also want to check mfakto.ini for additional settings. mfakto typically fetches
 work from worktodo.txt as specified in the INI file. See section 3 on how to
 obtain assignments and report results.
 
+Only one mfakto instance can work on a worktodo file at a time, as instances
+sharing one would work on the same assignment. mfakto locks the file
+"<worktodo file>.pid" while it runs; the lock is released automatically when
+mfakto exits, even after a crash, so the file can be left alone. To run
+several instances (e.g. to fully load a GPU with CPU sieving), give each one
+its own directory or its own WorkFile.
+
 A typical worktodo.txt file looks like this:
   -- begin example --
   Factor=[assignment ID],66362159,64,68
