@@ -906,7 +906,7 @@ int load_kernels(cl_int *devnumber)
   size_t size;
   char*  source = NULL;
   int binary_loaded = 0;
-  char program_options[150];
+  char program_options[256]; /* default options (< 100 chars) + CompileOptions (< 151 chars) */
 
   // so far use the same vector size for all kernels ...
   if (mystuff.CompileOptions[0] && mystuff.CompileOptions[0] != '+')  // if mfakto.ini defined compile options, override the default with them
@@ -976,11 +976,11 @@ int load_kernels(cl_int *devnumber)
         f.read(source, size);
         f.close();
         source[size] = '\0';
-        char source_options[150];
+        char source_options[256];
 #ifdef _MSC_VER
-        std::ignore = sscanf(source, "Compile options: %149[^\r\n]\n", source_options);
+        std::ignore = sscanf(source, "Compile options: %255[^\r\n]\n", source_options);
 #else
-        sscanf(source, "Compile options: %149[^\r\n]\n", source_options);
+        sscanf(source, "Compile options: %255[^\r\n]\n", source_options);
 #endif
         if (strcmp(source_options, program_options) != 0)
         {
@@ -1239,7 +1239,7 @@ int load_kernels(cl_int *devnumber)
         std::fstream f(mystuff.binfile, (std::fstream::out | std::fstream::binary | std::fstream::trunc));
         if(f.is_open())
         {
-          char header[180];
+          char header[256 + 20]; /* "Compile options: " + program_options + "\n" */
           snprintf(header, sizeof(header), "Compile options: %s\n", program_options);
           f.write(header, strlen(header));
           f.write(binaries[active_device], binarySizes[active_device]);
