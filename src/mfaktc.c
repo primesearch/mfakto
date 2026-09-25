@@ -815,7 +815,8 @@ other return value
         {
             if (numfactors > 0) {
                 int96 factor;
-                for (int idx = 0; idx < factorsfound && idx < 10; idx++) /* 10 is the max factors per class allowed in every kernel */
+                /* h_RES only holds the factors of the current class, 10 is the max factors per class allowed in every kernel */
+                for (int idx = 0; idx < numfactors && idx < 10; idx++)
                 {
                     factor.d2 = mystuff->h_RES[idx * 3 + 1];
                     factor.d1 = mystuff->h_RES[idx * 3 + 2];

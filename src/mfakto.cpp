@@ -3269,7 +3269,8 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
   }
 
   factorsfound = mystuff->h_RES[0];
-  for(i=0; (i<factorsfound) && (i<10); i++)
+  cl_uint factorsstored = (factorsfound < 10) ? factorsfound : 10; /* the kernels store at most 10 factors */
+  for(i=0; i<factorsstored; i++)
   {
     factor.d2  = mystuff->h_RES[i*3 + 1];
     factor.d1  = mystuff->h_RES[i*3 + 2];
@@ -3297,7 +3298,10 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
       {
         printf("Skipping trivial or duplicate factor #%d: %s (%x:%x:%x)\n", i, string, factor.d2, factor.d1, factor.d0);
       }
-      if (factorsfound > i) memmove(&mystuff->h_RES[i*3 + 1], &mystuff->h_RES[i*3 + 4], 3*sizeof(int)*(factorsfound-i));
+      /* move the remaining stored factors down and clear the now unused last slot */
+      if (factorsstored > i + 1) memmove(&mystuff->h_RES[i*3 + 1], &mystuff->h_RES[i*3 + 4], 3*sizeof(int)*(factorsstored-i-1));
+      --factorsstored;
+      memset(&mystuff->h_RES[factorsstored*3 + 1], 0, 3*sizeof(int));
       mystuff->h_RES[0] = --factorsfound;
       --i;
       continue;
