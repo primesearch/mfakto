@@ -594,7 +594,7 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
     if (mystuff->legacy_results_txt == 1)
     {
       txtresultfile = fopen_and_lock(mystuff->resultfile, "a");
-      if(mystuff->print_timestamp == 1)print_timestamp(txtresultfile);
+      if(txtresultfile != NULL && mystuff->print_timestamp == 1)print_timestamp(txtresultfile);
     }
     jsonresultfile = fopen_and_lock(mystuff->jsonresultfile, "a");
   }
@@ -626,11 +626,25 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
   {
     if (mystuff->legacy_results_txt == 1)
     {
-      fprintf(txtresultfile, "%s%s\n", UID, txtstring);
-      unlock_and_fclose(txtresultfile);
+      if (txtresultfile != NULL)
+      {
+        fprintf(txtresultfile, "%s%s\n", UID, txtstring);
+        unlock_and_fclose(txtresultfile);
+      }
+      else
+      {
+        printf("WARNING: could not open result file \"%s\"\n", mystuff->resultfile);
+      }
     }
-    fprintf(jsonresultfile, "%s\n", jsonstring);
-    unlock_and_fclose(jsonresultfile);
+    if (jsonresultfile != NULL)
+    {
+      fprintf(jsonresultfile, "%s\n", jsonstring);
+      unlock_and_fclose(jsonresultfile);
+    }
+    else
+    {
+      printf("WARNING: could not open result file \"%s\"\n", mystuff->jsonresultfile);
+    }
   }
 }
 
@@ -652,7 +666,8 @@ void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bi
   if(mystuff->mode == MODE_NORMAL && mystuff->legacy_results_txt == 1)
   {
     txtresultfile = fopen_and_lock(mystuff->resultfile, "a");
-    if(mystuff->print_timestamp == 1 && factor_number == 0)print_timestamp(txtresultfile);
+    if(txtresultfile == NULL)printf("WARNING: could not open result file \"%s\"\n", mystuff->resultfile);
+    else if(mystuff->print_timestamp == 1 && factor_number == 0)print_timestamp(txtresultfile);
   }
 
   if(factor_number < 10)
@@ -662,7 +677,7 @@ void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bi
       if(mystuff->printmode == 1 && factor_number == 0)logprintf(mystuff, "\n");
       logprintf(mystuff, "M%u has a factor: %s (%f bits)\n", mystuff->exponent, factor, bits);
     }
-    if(mystuff->mode == MODE_NORMAL && mystuff->legacy_results_txt == 1)
+    if(txtresultfile != NULL)
     {
       fprintf(txtresultfile, "%sM%u has a factor: %s [TF:%d:%d%s:%s %s]\n",
         UID, mystuff->exponent, factor, mystuff->bit_min, mystuff->bit_max_stage,
@@ -673,13 +688,13 @@ void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bi
   else /* factor_number >= 10 */
   {
     if(mystuff->mode != MODE_SELFTEST_SHORT)      printf("M%u: %d additional factors not shown\n",      mystuff->exponent, factor_number-10);
-    if(mystuff->mode == MODE_NORMAL && mystuff->legacy_results_txt == 1)
+    if(txtresultfile != NULL)
     {
       fprintf(txtresultfile,"%sM%u: %d additional factors not shown\n", UID, mystuff->exponent, factor_number-10);
     }
   }
 
-  if(mystuff->mode == MODE_NORMAL && mystuff->legacy_results_txt == 1)unlock_and_fclose(txtresultfile);
+  if(txtresultfile != NULL)unlock_and_fclose(txtresultfile);
 }
 
 /* estimate the GHz-days for current job
