@@ -170,10 +170,10 @@
       </Command>
     </PostBuildEvent>
     <CustomBuildStep>
-      <Command>for %%x in ($(RootNamespace)_Kernels.cl, barrett.cl, barrett15.cl, mul24.cl, gpusieve.cl, tf_debug.h, datatypes.h, montgomery.cl, common.cl, mfakto.ini) do (copy src\%%x "$(OUTDIR)"\%%x)</Command>
+      <Command>for %%x in ($(RootNamespace)_Kernels.cl, barrett.cl, barrett15.cl, mul24.cl, gpusieve.cl, tf_debug.h, datatypes.h, montgomery.cl, common.cl) do (copy src\%%x "$(OUTDIR)"\%%x) &amp; copy src\mfakto.ini "$(OUTDIR)"\mfakto.ini.example</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Copy kernels and mfakto.ini</Message>
+      <Message>Copy kernels and mfakto.ini.example</Message>
       <Outputs>$(OUTDIR)\*.cl</Outputs>
       <Inputs>%(SRCDIR)\*.cl</Inputs>
     </CustomBuildStep>
@@ -203,10 +203,10 @@
       </Command>
     </PostBuildEvent>
     <CustomBuildStep>
-      <Command>for %%x in ($(RootNamespace)_Kernels.cl, barrett.cl, barrett15.cl, mul24.cl, gpusieve.cl, tf_debug.h, datatypes.h, montgomery.cl, common.cl, mfakto.ini) do (copy src\%%x "$(OUTDIR)"\%%x)</Command>
+      <Command>for %%x in ($(RootNamespace)_Kernels.cl, barrett.cl, barrett15.cl, mul24.cl, gpusieve.cl, tf_debug.h, datatypes.h, montgomery.cl, common.cl) do (copy src\%%x "$(OUTDIR)"\%%x) &amp; copy src\mfakto.ini "$(OUTDIR)"\mfakto.ini.example</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Copy kernels and mfakto.ini</Message>
+      <Message>Copy kernels and mfakto.ini.example</Message>
       <Outputs>$(OUTDIR)\*.cl</Outputs>
       <Inputs>%(SRCDIR)\*.cl</Inputs>
     </CustomBuildStep>
@@ -240,10 +240,10 @@
       </Command>
     </PostBuildEvent>
     <CustomBuildStep>
-      <Command>for %%x in ($(RootNamespace)_Kernels.cl, barrett.cl, barrett15.cl, mul24.cl, gpusieve.cl, tf_debug.h, datatypes.h, montgomery.cl, common.cl, mfakto.ini) do (copy src\%%x "$(OUTDIR)"\%%x)</Command>
+      <Command>for %%x in ($(RootNamespace)_Kernels.cl, barrett.cl, barrett15.cl, mul24.cl, gpusieve.cl, tf_debug.h, datatypes.h, montgomery.cl, common.cl) do (copy src\%%x "$(OUTDIR)"\%%x) &amp; copy src\mfakto.ini "$(OUTDIR)"\mfakto.ini.example</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Copy kernels and mfakto.ini</Message>
+      <Message>Copy kernels and mfakto.ini.example</Message>
       <Outputs>$(OUTDIR)\*.cl</Outputs>
       <Inputs>%(SRCDIR)\*.cl</Inputs>
     </CustomBuildStep>
@@ -276,10 +276,10 @@
       </Command>
     </PostBuildEvent>
     <CustomBuildStep>
-      <Command>for %%x in ($(RootNamespace)_Kernels.cl, barrett.cl, barrett15.cl, mul24.cl, gpusieve.cl, tf_debug.h, datatypes.h, montgomery.cl, common.cl, mfakto.ini) do (copy src\%%x "$(OUTDIR)"\%%x)</Command>
+      <Command>for %%x in ($(RootNamespace)_Kernels.cl, barrett.cl, barrett15.cl, mul24.cl, gpusieve.cl, tf_debug.h, datatypes.h, montgomery.cl, common.cl) do (copy src\%%x "$(OUTDIR)"\%%x) &amp; copy src\mfakto.ini "$(OUTDIR)"\mfakto.ini.example</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Copy kernels and mfakto.ini</Message>
+      <Message>Copy kernels and mfakto.ini.example</Message>
       <Outputs>$(OUTDIR)\*.cl</Outputs>
       <Inputs>%(SRCDIR)\*.cl</Inputs>
     </CustomBuildStep>

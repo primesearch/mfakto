@@ -101,7 +101,7 @@ COBJS = $(CSRC:.c=.o) mfakto.o gpusieve.o perftest.o menu.o kbhit.o
 
 ALL_TARGETS = ../mfakto ../barrett15.cl ../barrett.cl ../common.cl \
 	      ../gpusieve.cl ../mfakto_Kernels.cl ../montgomery.cl \
-	      ../mul24.cl ../datatypes.h ../tf_debug.h ../mfakto.ini
+	      ../mul24.cl ../datatypes.h ../tf_debug.h ../mfakto.ini.example
 
 all: $(ALL_TARGETS)
 
@@ -126,8 +126,10 @@ sieve.o : sieve.c
 ../%.h : %.h
 	$(INSTALL) -m 444 $< ..
 
-../%.ini : %.ini
-	$(INSTALL) -m 644 $< ..
+# install the default settings as mfakto.ini.example so that an existing
+# mfakto.ini isn't overwritten; mfakto creates mfakto.ini from it on first start
+../mfakto.ini.example : mfakto.ini
+	$(INSTALL) -m 644 $< $@
 
 .PHONY: all clean
 

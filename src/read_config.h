@@ -22,6 +22,7 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 extern "C" {
 #endif
 
+void create_inifile_from_example(char *inifile);
 int read_config(mystuff_t *mystuff);
 int read_array(char *filename, char *name, cl_uint num, cl_uint *arr);
 int my_read_int(char *inifile, char *name, int *value);

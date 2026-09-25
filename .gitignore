@@ -19,6 +19,7 @@ mfakto
 /*.cl
 /*.h
 /*.ini
+/*.ini.example
 
 # device-specific Visual Studio files
 *.suo
