@@ -633,7 +633,7 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
       }
       else
       {
-        printf("WARNING: could not open result file \"%s\"\n", mystuff->resultfile);
+        printf("Warning: could not open result file \"%s\"\n", mystuff->resultfile);
       }
     }
     if (jsonresultfile != NULL)
@@ -643,7 +643,7 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
     }
     else
     {
-      printf("WARNING: could not open result file \"%s\"\n", mystuff->jsonresultfile);
+      printf("Warning: could not open JSON result file \"%s\"\n", mystuff->jsonresultfile);
     }
   }
 }
@@ -666,7 +666,7 @@ void print_factor(mystuff_t *mystuff, int factor_number, char *factor, double bi
   if(mystuff->mode == MODE_NORMAL && mystuff->legacy_results_txt == 1)
   {
     txtresultfile = fopen_and_lock(mystuff->resultfile, "a");
-    if(txtresultfile == NULL)printf("WARNING: could not open result file \"%s\"\n", mystuff->resultfile);
+    if(txtresultfile == NULL)printf("Warning: could not open result file \"%s\"\n", mystuff->resultfile);
     else if(mystuff->print_timestamp == 1 && factor_number == 0)print_timestamp(txtresultfile);
   }
 
