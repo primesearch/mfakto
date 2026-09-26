@@ -105,40 +105,43 @@ static int my_read_ulong(char *inifile, char *name, unsigned long long int *valu
 
 int my_read_string(char *inifile, char *name, char *string, unsigned int len)
 {
-  FILE *in;
-  char buf[512];
-  unsigned int found=0;
-  unsigned int idx = (unsigned int) strlen(name);
+    FILE *in;
+    char buf[512];
+    unsigned int found = 0;
+    unsigned int idx   = (unsigned int)strlen(name);
 
-  in=fopen(inifile,"r");
-  if(!in)
-  {
-    if (!inifile_unavailable)
-    {
-      char msg[80];
-      inifile_unavailable = 1;
-      sprintf(msg, "Cannot load INI file \"%.55s\"", inifile);
-      perror(msg);
+    in = fopen(inifile, "r");
+    if (!in) {
+        if (!inifile_unavailable) {
+            char msg[80];
+            inifile_unavailable = 1;
+            sprintf(msg, "Cannot load INI file \"%.55s\"", inifile);
+            perror(msg);
+        }
+        return 1;
     }
+    while (fgets(buf, 512, in) && !found) {
+        if (!strncmp(buf, name, idx) && buf[idx] == '=') {
+            found = (unsigned int)strlen(buf + idx + 1);
+            // last line of the file is an empty value without a trailing
+            // newline; found - 1 would wrap around and cause a buffer overflow
+            if (found == 0)
+            {
+                string[0] = '\0';
+                continue;
+            }
+            found = (len > found ? found : len) - 1;
+            if (found) {
+                strncpy(string, buf + idx + 1, found);
+                if (string[found - 1] == '\r')
+                    found--; //remove '\r' from string, this happens when reading a DOS/Windows formatted file on Linux
+            }
+            string[found] = '\0';
+        }
+    }
+    fclose(in);
+    if (found > 0) return 0;
     return 1;
-  }
-  while(fgets(buf,512,in) && !found)
-  {
-    if(!strncmp(buf,name,idx) && buf[idx]=='=')
-    {
-      found = (unsigned int) strlen(buf + idx + 1);
-      found = (len > found ? found : len) - 1;
-      if (found)
-      {
-        strncpy(string, buf + idx + 1, found);
-        if(string[found - 1] == '\r') found--; //remove '\r' from string, this happens when reading a DOS/Windows formatted file on Linux
-      }
-      string[found]='\0';
-    }
-  }
-  fclose(in);
-  if(found>0)return 0;
-  return 1;
 }
 
 
