@@ -127,6 +127,11 @@ int my_read_string(char *inifile, char *name, char *string, unsigned int len)
     if(!strncmp(buf,name,idx) && buf[idx]=='=')
     {
       found = (unsigned int) strlen(buf + idx + 1);
+      if (found == 0) // empty value without a trailing newline (last line of the file), found - 1 would wrap around
+      {
+        string[0] = '\0';
+        continue;
+      }
       found = (len > found ? found : len) - 1;
       if (found)
       {
