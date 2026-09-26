@@ -108,7 +108,9 @@ int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cu
 {
   FILE *f;
   int ret=0,i,chksum;
-  char ckp_buffer[MAX_BUFFER_LENGTH] = { 0 }, cur_buffer[MAX_BUFFER_LENGTH], *ptr, *ptr2, filename[20], filename_save[32], version[81], factors_buffer[MAX_FACTOR_BUFFER_LENGTH];
+  char ckp_buffer[MAX_BUFFER_LENGTH] = { 0 }, cur_buffer[MAX_BUFFER_LENGTH], *ptr, *ptr2, filename[40], filename_save[32], version[81], factors_buffer[MAX_FACTOR_BUFFER_LENGTH];
+  const char *prefix = "";
+  int mfaktc_file = 0;
 
   *cur_class=-1;
   *num_factors=0;
@@ -118,12 +120,21 @@ int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cu
   f=fopen(filename, "r");
   if(f==NULL)
   {
-    if (verbosity>1) printf("No checkpoint file \"%s\" found.\n", filename);
-    return 0;
+    // no mfakto checkpoint file, try the one mfaktc writes for the same job
+    sprintf(filename, "M%u_%d-%d_%d.ckp", exp, bit_min, bit_max, mystuff.num_classes);
+    f=fopen(filename, "r");
+    if(f==NULL)
+    {
+      if (verbosity>1) printf("No checkpoint file \"M%u.ckp\" found.\n", exp);
+      return 0;
+    }
+    mfaktc_file = 1;
   }
   i=(int)fread(ckp_buffer,sizeof(char), MAX_BUFFER_LENGTH - 1,f);
   ckp_buffer[i] = 0;
-  sprintf(cur_buffer,"%u %d %d %d ", exp, bit_min, bit_max, mystuff.num_classes);
+  // mfaktc checkpoint files start with "M" (or "W" for Wagstaff numbers, which mfakto doesn't support)
+  if (ckp_buffer[0] == 'M') prefix = "M";
+  sprintf(cur_buffer,"%s%u %d %d %d ", prefix, exp, bit_min, bit_max, mystuff.num_classes);
   ptr=strstr(ckp_buffer, cur_buffer);
   if(ptr==ckp_buffer)
   {
@@ -145,10 +156,10 @@ int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cu
       /* factors_buffer holds MAX_FACTOR_BUFFER_LENGTH (600) chars including the NUL */
       if (sscanf(ptr,": %d %d %599s %llu", &cur_class_ckp, &num_factors_ckp, factors_buffer, &bit_level_time_ckp) == 4)
       {
-        sprintf(cur_buffer,"%u %d %d %d %s: %d %d %s %llu", exp, bit_min, bit_max, mystuff.num_classes, version, cur_class_ckp, num_factors_ckp, factors_buffer, bit_level_time_ckp);
+        sprintf(cur_buffer,"%s%u %d %d %d %s: %d %d %s %llu", prefix, exp, bit_min, bit_max, mystuff.num_classes, version, cur_class_ckp, num_factors_ckp, factors_buffer, bit_level_time_ckp);
         chksum= crc32_checksum(cur_buffer,(int)strlen(cur_buffer));
         // no trainling '\n' for the compare buffer to allow interchanging \n\r and \n files 
-        i=sprintf(cur_buffer,"%u %d %d %d %s: %d %d %s %llu %08X", exp, bit_min, bit_max, mystuff.num_classes, version, cur_class_ckp, num_factors_ckp, factors_buffer, bit_level_time_ckp, chksum);
+        i=sprintf(cur_buffer,"%s%u %d %d %d %s: %d %d %s %llu %08X", prefix, exp, bit_min, bit_max, mystuff.num_classes, version, cur_class_ckp, num_factors_ckp, factors_buffer, bit_level_time_ckp, chksum);
         if(cur_class_ckp >= 0 && \
            cur_class_ckp < (int)mystuff.num_classes && \
            num_factors_ckp >= 0 && \
@@ -195,7 +206,11 @@ int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cu
     if (verbosity>0) printf("Cannot use checkpoint file \"%s\": Content \"%s\" does not match expected \"%s\".\n", filename, ckp_buffer, cur_buffer);
   }
   fclose(f);
-  if (ret==0)
+  if (ret==1 && mfaktc_file)
+  {
+    if (verbosity>0) printf("Resuming from mfaktc checkpoint file \"%s\".\n", filename);
+  }
+  if (ret==0 && !mfaktc_file) // leave mfaktc's checkpoint files alone
   {
     sprintf(filename_save, "M%u.ckp.bad-%08X", exp, crc32_checksum(ckp_buffer,(int)strlen(ckp_buffer))); // append some "random" number (same number means same content)
     if (rename(filename, filename_save) == 0)
