@@ -24,6 +24,7 @@ extern "C" {
 int file_exists(char *filename);
 FILE *fopen_and_lock(const char *path, const char *mode);
 int unlock_and_fclose(FILE *f);
+int lock_workfile(const char *workfile);
 
 #ifdef __cplusplus
 }

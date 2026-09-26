@@ -1365,6 +1365,12 @@ int main(int argc, char **argv)
 
   read_config(&mystuff);
 
+  if (mystuff.mode == MODE_NORMAL && use_worktodo && lock_workfile(mystuff.workfile) != 0)
+  {
+    logprintf(&mystuff, "ERROR: another mfakto instance is already working on \"%s\"\n", mystuff.workfile);
+    return ERR_INIT;
+  }
+
 /* print current configuration */
   if(mystuff.verbosity >= 1)
   {
