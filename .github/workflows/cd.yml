@@ -40,7 +40,7 @@ jobs:
           COPYING
           datatypes.h
           mfakto
-          mfakto.ini
+          mfakto.ini.example
           README-SpecialVersions.txt
           README.txt
           tf_debug.h
@@ -49,7 +49,7 @@ jobs:
     - name: Create artifacts and release assets
       if: startsWith(github.ref, 'refs/tags/')
       run: |
-        tar -cvjf mfakto-linux64.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
+        tar -cvjf mfakto-linux64.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini.example README-SpecialVersions.txt README.txt tf_debug.h todo.txt
     - name: Release
       uses: softprops/action-gh-release@v3
       if: startsWith(github.ref, 'refs/tags/')
@@ -121,7 +121,7 @@ jobs:
           COPYING
           datatypes.h
           mfakto.exe
-          mfakto.ini
+          mfakto.ini.example
           README-SpecialVersions.txt
           README.txt
           tf_debug.h
@@ -130,7 +130,7 @@ jobs:
     - name: Create artifacts and release assets
       if: startsWith(github.ref, 'refs/tags/')
       run: |
-        Compress-Archive -DestinationPath mfakto-windows-msys2.zip -CompressionLevel Optimal -Path *.cl, Changelog-mfakto.txt, COPYING, datatypes.h, mfakto.exe, mfakto.ini, README-SpecialVersions.txt, README.txt, tf_debug.h, todo.txt
+        Compress-Archive -DestinationPath mfakto-windows-msys2.zip -CompressionLevel Optimal -Path *.cl, Changelog-mfakto.txt, COPYING, datatypes.h, mfakto.exe, mfakto.ini.example, README-SpecialVersions.txt, README.txt, tf_debug.h, todo.txt
 
     - name: Release
       uses: softprops/action-gh-release@v3
@@ -169,7 +169,7 @@ jobs:
           COPYING
           datatypes.h
           mfakto
-          mfakto.ini
+          mfakto.ini.example
           README-SpecialVersions.txt
           README.txt
           tf_debug.h
@@ -178,7 +178,7 @@ jobs:
     - name: Create artifacts and release assets
       if: startsWith(github.ref, 'refs/tags/')
       run: |
-        tar -cvjf mfakto-macos-${{ env.SELFARCH }}.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
+        tar -cvjf mfakto-macos-${{ env.SELFARCH }}.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini.example README-SpecialVersions.txt README.txt tf_debug.h todo.txt
 
     - name: Release
       uses: softprops/action-gh-release@v3
