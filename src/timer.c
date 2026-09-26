@@ -32,6 +32,14 @@ unsigned long long int timer_diff(struct timeval *timer)
     unsigned long long int usecs;
     struct timeval t2;
     gettimeofday(&t2, NULL);
+
+    /* Guard against a non-monotonic (backward) wall-clock adjustment, e.g. an
+       NTP step, which would otherwise underflow the unsigned subtraction below
+       into an enormous bogus elapsed time. */
+    if (t2.tv_sec < timer->tv_sec || (t2.tv_sec == timer->tv_sec && t2.tv_usec < timer->tv_usec)) {
+        return 0;
+    }
+
     usecs = t2.tv_sec - timer->tv_sec;
     usecs *= 1000000;
     //  usecs += t2.tv_usec - timer->tv_usec;
