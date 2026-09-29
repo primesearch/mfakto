@@ -31,7 +31,7 @@ jobs:
         gcc --version
         ldd --version
 
-        make -C src -j "$(nproc)"
+        make -C src -j "$(nproc)" STATIC_RUNTIME=1
         EOF
 
     - name: Upload build artifacts
@@ -80,7 +80,7 @@ jobs:
 
     - name: Build
       run: |
-        msbuild mfaktoVS12.vcxproj /p:Configuration=Release /p:Platform=${{ endsWith(matrix.os, '-arm') && 'ARM64' || 'x64' }}
+        msbuild mfaktoVS12.vcxproj /p:Configuration=Release /p:Platform=${{ endsWith(matrix.os, '-arm') && 'ARM64' || 'x64' }} /p:StaticRuntime=true
 
     - name: Create artifacts and release assets
       run: |

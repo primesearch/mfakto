@@ -30,6 +30,7 @@ ARCH := $(shell uname -m)
 
 BITS =
 STATIC =
+STATIC_RUNTIME = 0
 
 # check whether to build 32-bit version
 ifdef bitness
@@ -79,6 +80,14 @@ CPPFLAGS =
 # linker settings
 LD = $(CXX)
 LDFLAGS = $(ARCHFLAGS) $(BITS) $(STATIC) $(OPTIMIZE_FLAG) $(AMD_APP_LIB) $(OPENCL_LIB)
+
+ifeq ($(STATIC_RUNTIME), 1)
+  LDFLAGS += -static-libstdc++ -static-libgcc
+
+  ifeq ($(findstring MINGW, $(OS)), MINGW)
+    LDFLAGS += -static
+  endif
+endif
 
 # optimize or debug
 ifeq ($(DEBUG), 1)
