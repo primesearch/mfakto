@@ -67,10 +67,16 @@ jobs:
 
   WindowsMSVC:
     name: Windows MSVC
-    runs-on: windows-2022
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-2022, windows-11-arm]
+      fail-fast: false
     steps:
     - uses: actions/checkout@v7
     - uses: step-security/msvc-dev-cmd@v1
+      with:
+        arch: ${{ endsWith(matrix.os, '-arm') && 'amd64_arm64' || 'x64' }}
 
     - name: Install dependencies
       run: |
@@ -78,38 +84,42 @@ jobs:
 
     - name: Build
       run: |
-        msbuild mfaktoVS12.vcxproj /p:Configuration=Debug
+        msbuild mfaktoVS12.vcxproj /p:Configuration=Debug /p:Platform=${{ endsWith(matrix.os, '-arm') && 'ARM64' || 'x64' }}
 
     - name: Create artifacts and release assets
       run: |
-        Copy-Item -Path Changelog-mfakto.txt, COPYING, README-SpecialVersions.txt, README.txt, todo.txt -Destination x64/Debug/
-        Compress-Archive -DestinationPath mfakto-windows-msvc.zip -CompressionLevel Optimal -Path x64/Debug/*
+        Copy-Item -Path Changelog-mfakto.txt, COPYING, README-SpecialVersions.txt, README.txt, todo.txt -Destination ${{ endsWith(matrix.os, '-arm') && 'ARM64' || 'x64' }}/Debug/
+        Compress-Archive -DestinationPath mfakto-windows-msvc-${{ endsWith(matrix.os, '-arm') && 'ARM64' || 'x64' }}.zip -CompressionLevel Optimal -Path ${{ endsWith(matrix.os, '-arm') && 'ARM64' || 'x64' }}/Debug/*
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v7
       if: always()
       with:
-        name: mfakto-windows-msvc
-        path: x64/Debug/
+        name: mfakto-windows-msvc-${{ endsWith(matrix.os, '-arm') && 'ARM64' || 'x64' }}
+        path: ${{ endsWith(matrix.os, '-arm') && 'ARM64' || 'x64' }}/Debug/
 
   WindowsMSYS2:
     name: Windows MSYS2
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest] # windows-11-arm
+        os: [windows-latest]
         cc: [gcc, clang]
+        include:
+          - os: windows-11-arm
+            cc: clang
       fail-fast: false
     env:
       CC: ${{ matrix.cc }}
       CXX: ${{ matrix.cc == 'gcc' && 'g++' || 'clang++' }}
+      PREFIX: ${{ endsWith(matrix.os, '-arm') && 'clangarm64' || 'mingw64' }}
       PACKAGE_PREFIX: mingw-w64-${{ endsWith(matrix.os, '-arm') && 'clang-aarch64' || 'x86_64' }}-
     steps:
     - uses: actions/checkout@v7
 
     - name: Configure paths
       run: |
-        echo "C:\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        echo "C:\msys64\${env:PREFIX}\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
         echo "C:\msys64\usr\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
     - name: Install dependencies
@@ -123,7 +133,7 @@ jobs:
 
     - name: Build
       run: |
-        make -C src -O -j $env:NUMBER_OF_PROCESSORS DEBUG=1 AMD_APP_INCLUDE="-IC:\msys64\mingw64\include" AMD_APP_LIB="-LC:\msys64\mingw64\lib"
+        make -C src -O -j $env:NUMBER_OF_PROCESSORS DEBUG=1 AMD_APP_INCLUDE="-IC:\msys64\${env:PREFIX}\include" AMD_APP_LIB="-LC:\msys64\${env:PREFIX}\lib"
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v7
@@ -153,7 +163,7 @@ jobs:
       # needed for Homebrew 4.6.4 and above
       HOMEBREW_DEVELOPER: '1'
       # Just because we use a new builder doesn't mean we don't want the build to run on an older OS
-      MACOSX_DEPLOYMENT_TARGET: 11.0.0
+      MACOSX_DEPLOYMENT_TARGET: 10.13
     steps:
     - uses: actions/checkout@v7
 
