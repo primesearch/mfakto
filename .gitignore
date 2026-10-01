@@ -15,6 +15,9 @@ mfakto
 *.elf
 *.exe
 
+# stale lock files
+*.pid
+
 # automatically copied from source directory
 /*.cl
 /*.h
