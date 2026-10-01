@@ -44,7 +44,7 @@ jobs:
           COPYING
           datatypes.h
           mfakto
-          mfakto.ini
+          mfakto.ini.example
           README-SpecialVersions.txt
           README.txt
           tf_debug.h
@@ -53,7 +53,7 @@ jobs:
     - name: Create artifacts and release assets
       if: startsWith(github.ref, 'refs/tags/')
       run: |
-        tar -cvjf mfakto-linux-${{ endsWith(matrix.os, '-arm') && 'ARM64' || 'x64' }}.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
+        tar -cvjf mfakto-linux-${{ endsWith(matrix.os, '-arm') && 'ARM64' || 'x64' }}.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini.example README-SpecialVersions.txt README.txt tf_debug.h todo.txt
     - name: Release
       uses: softprops/action-gh-release@v3
       if: startsWith(github.ref, 'refs/tags/')
@@ -130,7 +130,7 @@ jobs:
           COPYING
           datatypes.h
           mfakto
-          mfakto.ini
+          mfakto.ini.example
           README-SpecialVersions.txt
           README.txt
           tf_debug.h
@@ -139,7 +139,7 @@ jobs:
     - name: Create artifacts and release assets
       if: startsWith(github.ref, 'refs/tags/')
       run: |
-        tar -cvjf mfakto-macos-${{ env.SELFARCH }}.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini README-SpecialVersions.txt README.txt tf_debug.h todo.txt
+        tar -cvjf mfakto-macos-${{ env.SELFARCH }}.tar.bz2 *.cl Changelog-mfakto.txt COPYING datatypes.h mfakto mfakto.ini.example README-SpecialVersions.txt README.txt tf_debug.h todo.txt
 
     - name: Release
       uses: softprops/action-gh-release@v3

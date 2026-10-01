@@ -176,6 +176,12 @@ also want to check mfakto.ini for additional settings. mfakto typically fetches
 work from worktodo.txt as specified in the INI file. See section 3 on how to
 obtain assignments and report results.
 
+Default settings are shipped in the mfakto.ini.example file. If an mfakto.ini
+file is not in the root folder, mfakto creates it from mfakto.ini.example on
+startup; this ensures your mfakto.ini is not affected when you upgrade or
+compile mfakto. It is recommended to compare your INI file with the new
+mfakto.ini.example after an upgrade as there may be new or changed settings.
+
 A typical worktodo.txt file looks like this:
   -- begin example --
   Factor=[assignment ID],66362159,64,68
