@@ -1191,7 +1191,8 @@ int main(int argc, char **argv)
   snprintf(mystuff.inifile, sizeof(mystuff.inifile), CFG_FILE);
   mystuff.force_rebuild = 0;
 
-  // create mfakto.ini from mfakto.ini.example on the first start, unless another INI file is used
+  // create mfakto.ini from mfakto.ini.example on the first start unless a
+  // custom INI file is specified
   int custom_inifile = 0;
   for (int a = 1; a < argc; a++)
   {

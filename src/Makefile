@@ -136,7 +136,8 @@ sieve.o : sieve.c
 	$(INSTALL) -m 444 $< ..
 
 # install the default settings as mfakto.ini.example so that an existing
-# mfakto.ini isn't overwritten; mfakto creates mfakto.ini from it on first start
+# mfakto.ini isn't overwritten; mfakto creates mfakto.ini from it on first
+# start unless a custom INI file is specified
 ../mfakto.ini.example : mfakto.ini
 	$(INSTALL) -m 644 $< $@
 

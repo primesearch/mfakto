@@ -38,8 +38,9 @@ static int inifile_unavailable = 0;
 
 /*
 Release archives and "make" ship the default settings as mfakto.ini.example so
-that unpacking or building a new version doesn't overwrite the user's
-mfakto.ini. Create mfakto.ini from it when it doesn't exist yet.
+that the user's mfakto.ini is not overwritten when mfakto is upgraded or built
+from source. We create mfakto.ini from mfakto.ini.example if the former is not
+found when mfakto starts.
 */
 void create_inifile_from_example(char *inifile)
 {
