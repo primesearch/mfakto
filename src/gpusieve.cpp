@@ -642,6 +642,7 @@ void gpusieve_init_exponent (mystuff_t *mystuff)
 
 void gpusieve_init_class (mystuff_t *mystuff, unsigned long long k_min)
 {
+  (void)mystuff;
 #ifdef RAW_GPU_BENCH
   // Quick hack (leave bit array set to all ones) to eliminate sieve time from GPU-code benchmarks.
   // Can also be used to isolate a bug by eliminating the GPU sieving code as a possible cause.

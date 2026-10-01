@@ -237,7 +237,7 @@ typedef struct _stats_t
   cl_uint  output_counter;            /* count how often the status line was written since last headline */
   cl_uint  class_counter;             /* number of finished classes of the current job */
   double   ghzdays;                   /* PrimeNet GHz-days for the current assignment (current stage) */
-  char     kernelname[32];
+  char     kernelname[48];            /* kernel_info[].kernelname + "_" + vector size */
 }stats_t;
 
 typedef struct _mystuff_t

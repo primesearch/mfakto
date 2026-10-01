@@ -880,12 +880,12 @@ GPUKernels test_cpu_tf_kernels(cl_uint par)
 {
   static cl_uint num_test=0; // use this counter to cycle through the FC blocks to avoid successive runs blocking each other
   timeval  timer;
-  double   time1, time2[UNKNOWN_KERNEL-_71BIT_MUL24], ghzdt, ghz;
+  double   time1, time2[UNKNOWN_KERNEL-_71BIT_MUL24], ghzdt, ghz = 0.0;
   cl_uint  use_kernel, num_loops, i, idxs[UNKNOWN_KERNEL-_71BIT_MUL24];
   double   ghzd = primenet_ghzdays(mystuff.exponent, mystuff.bit_min, mystuff.bit_min + 1);
   int72    k_base;
-  int144   b_preinit = {0};
-  int192   b_192 = {0};
+  int144   b_preinit = {};
+  int192   b_192 = {};
   cl_uint8 b_in = {{0}};
   cl_uint  shiftcount, ln2b, status;
   cl_ulong num_fcs, b_preinit_lo, b_preinit_mid, b_preinit_hi;
@@ -1081,7 +1081,7 @@ GPUKernels test_cpu_tf_kernels(cl_uint par)
   cl_uint bitlevels[100];
 
   cl_uint last_kernel = UNKNOWN_KERNEL;
-  double last_ghz;
+  double last_ghz = 0.0;
   cl_uint bitlevel;
   cl_uint bit_min = mystuff.bit_min;
   cl_uint bit_max_stage = mystuff.bit_max_stage;
@@ -1121,14 +1121,14 @@ GPUKernels test_cpu_tf_kernels(cl_uint par)
 GPUKernels test_gpu_tf_kernels(cl_uint par)
 {
   struct timeval timer;
-  double time1, time2[UNKNOWN_GS_KERNEL-BARRETT79_MUL32_GS], ghzdt, ghz;
+  double time1, time2[UNKNOWN_GS_KERNEL-BARRETT79_MUL32_GS], ghzdt, ghz = 0.0;
   cl_uint i, idxs[UNKNOWN_GS_KERNEL-BARRETT79_MUL32_GS];
   cl_uint use_class=0;
   cl_ulong k = calculate_k(mystuff.exponent,mystuff.bit_min);
   cl_ulong num_fcs = mystuff.gpu_sieve_size - 1; //start with one full sieve block
   cl_uint use_kernel;
   double ghzd = primenet_ghzdays(mystuff.exponent, mystuff.bit_min, mystuff.bit_min + 1);
-  GPUKernels fastest_kernel;
+  GPUKernels fastest_kernel = UNKNOWN_KERNEL;
   cl_uint bit_min = mystuff.bit_min;
   cl_uint bit_max_stage = mystuff.bit_max_stage;
 
@@ -1180,7 +1180,7 @@ GPUKernels test_gpu_tf_kernels(cl_uint par)
   cl_uint bitlevels[100];
 
   cl_uint last_kernel = UNKNOWN_KERNEL;
-  double last_ghz;
+  double last_ghz = 0.0;
   cl_uint bitlevel;
   for (bitlevel=10; bitlevel<100; ++bitlevel)
   {

@@ -94,7 +94,10 @@ ifeq ($(DEBUG), 1)
   OPTIMIZE_FLAG = -g -Og
 else
   OPTIMIZE_FLAG = -O3 -funroll-loops -ffast-math -flto
-  CFLAGS_EXTRA_SIEVE = -funroll-all-loops
+  # clang (also as "gcc" on macOS) doesn't support -funroll-all-loops
+  ifeq ($(shell $(CC) --version 2>/dev/null | grep -c clang),0)
+    CFLAGS_EXTRA_SIEVE = -funroll-all-loops
+  endif
 endif
 
 ##############################################################################

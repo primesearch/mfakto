@@ -29,6 +29,7 @@ static mystuff_t *signal_handler_mystuff;
 
 void my_signal_handler(int signum)
 {
+    (void)signum; /* only used on Windows */
 #ifdef _MSC_VER
     /* Windows resets the signal handler to the default action once it is invoked so we just register it again. */
     signal(signum, &my_signal_handler);
@@ -43,7 +44,6 @@ void my_signal_handler(int signum)
         printf("mfakto will exit NOW!\n");
         exit(1);
     }
-    signum++; /* useless but avoids warning about unused variable... */
 }
 
 void register_signal_handler(mystuff_t *mystuff)

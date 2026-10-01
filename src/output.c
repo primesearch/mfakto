@@ -203,7 +203,7 @@ int96 parse_dez96(char* str)
     if (len == 0 || (len == 1 && *str == '0')) {
         return result;
     }
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < (int)len; i++) {
         if (str[i] < '0' || str[i] > '9') {
             continue;
         }
