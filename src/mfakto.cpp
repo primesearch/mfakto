@@ -2661,6 +2661,8 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
   char string[50];
   int running=0;
   int aborted=0;                // set if a second ^C stops the class early
+  cl_event gs_batch_events[GS_MAX_QUEUED_BATCHES] = {0}; // markers after the last GPU sieve batches
+  cl_uint  gs_batch = 0;
 
   int h_ktab_index = 0;
   unsigned long long int k_min_grid[NUM_STREAMS_MAX];  // k_min_grid[N] contains the k_min for h_ktab[N], only valid for preprocessed h_ktab[]s
@@ -2921,6 +2923,32 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
           fprintf(stderr, "Programming error: kernel %d unknown or not prepared for GPU-sieving\n", use_kernel);
           return RET_ERROR;
         }
+        /* Keep at most GS_MAX_QUEUED_BATCHES batches in the queue by waiting for the batch enqueued
+           GS_MAX_QUEUED_BATCHES batches earlier. Otherwise the whole class is queued at once, and as queued work
+           can't be cancelled, a second ^C couldn't stop the class early. */
+        {
+          cl_event *ev = &gs_batch_events[gs_batch++ % GS_MAX_QUEUED_BATCHES];
+
+          if (*ev != NULL)
+          {
+            status = clWaitForEvents(1, ev);
+            clReleaseEvent(*ev);
+            *ev = NULL;
+            if (status != CL_SUCCESS)
+            {
+              std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Waiting for a GPU sieve batch. (clWaitForEvents)\n";
+              return RET_ERROR;
+            }
+          }
+          status = clEnqueueMarkerWithWaitList(QUEUE, 0, NULL, ev);
+          if (status != CL_SUCCESS)
+          {
+            std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clEnqueueMarkerWithWaitList\n";
+            return RET_ERROR;
+          }
+          clFlush(QUEUE);
+        }
+
         // Count the number of blocks processed
         count += numblocks;
 
@@ -3212,6 +3240,11 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
   {
     std::cout << "Error " << status << " (" << ClErrorString(status) << "): clEnqueueReadBuffer RES failed.\n";
     return RET_ERROR;
+  }
+
+  for (i=0; i<GS_MAX_QUEUED_BATCHES; i++)
+  {
+    if (gs_batch_events[i] != NULL) clReleaseEvent(gs_batch_events[i]);
   }
 
   /* the blocking read above waited for all kernels of the class, the results of the unfinished class are discarded */
