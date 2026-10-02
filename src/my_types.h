@@ -20,6 +20,7 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __MY_TYPES_H
 #define __MY_TYPES_H
 #include <stdio.h>
+#include <signal.h>
 #include "params.h"
 
 #define CL_TARGET_OPENCL_VERSION 120
@@ -292,7 +293,7 @@ typedef struct _mystuff_t
   cl_uint  vectorsize;
   cl_uint  printmode;
   cl_uint  print_timestamp;
-  cl_uint  quit;
+  volatile sig_atomic_t quit;  /* set by the signal handler */
   cl_ulong cpu_mask;           /* CPU affinity mask for the siever thread */
   cl_int   verbosity;          /* -1 = uninitialized, 0 = reduced number of screen printfs, 1= default, >= 2 = some additional printfs */
   cl_int   logging;

@@ -1173,6 +1173,8 @@ int main(int argc, char **argv)
   char *ptr;
   int use_worktodo = 1;
 
+  line_buffered(stdout); // see my_signal_handler()
+
   //memset(&mystuff, 0, sizeof(mystuff));
   mystuff.mode = MODE_NORMAL;
   mystuff.quit = 0;
@@ -1210,6 +1212,7 @@ int main(int argc, char **argv)
           snprintf(mystuff.logfile, sizeof(mystuff.logfile), LOG_FILE);
       }
       mystuff.logfileptr = fopen(mystuff.logfile, "a");
+      line_buffered(mystuff.logfileptr);
   }
 
   logprintf(&mystuff, "%s (%d-bit build)\n\n", MFAKTO_VERSION, (int)(sizeof(void*)*8));

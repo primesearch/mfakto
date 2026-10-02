@@ -31,6 +31,7 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #include "my_types.h"
 #include "output.h"
 #include "filelocking.h"
+#include "signal_handler.h"
 
 extern kernel_info_t   kernel_info[];
 extern GPU_type        gpu_types[];
@@ -702,6 +703,7 @@ int read_config(mystuff_t *mystuff)
   if (mystuff->logging == 1 && mystuff->logfileptr == NULL)
   {
       mystuff->logfileptr = fopen(mystuff->logfile, "a");
+      line_buffered(mystuff->logfileptr);
       if (mystuff->logfileptr == NULL)
       {
           logprintf(mystuff, "Warning: Cannot open %s for appending, error: %d", mystuff->logfile, errno);
