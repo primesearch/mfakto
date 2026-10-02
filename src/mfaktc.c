@@ -763,7 +763,11 @@ other return value
 
   if (mystuff->gpu_sieving == 1)
   {
-    gpusieve_init_exponent(mystuff);
+    if (gpusieve_init_exponent(mystuff) != 0)
+    {
+      logprintf(mystuff, "ERROR: GPU sieve initialization for M%u failed\n", mystuff->exponent);
+      return RET_ERROR;
+    }
   }
 
   for(; cur_class <= max_class; cur_class++)
@@ -787,7 +791,11 @@ other return value
 
         if (mystuff->gpu_sieving == 1)
         {
-          gpusieve_init_class(mystuff, k_min+cur_class);
+          if (gpusieve_init_class(mystuff, k_min+cur_class) != 0)
+          {
+            logprintf(mystuff, "ERROR: GPU sieve initialization for class %d failed\n", cur_class);
+            return RET_ERROR;
+          }
           if ((use_kernel >= BARRETT79_MUL32_GS) && (use_kernel < UNKNOWN_GS_KERNEL))
           {
             numfactors = tf_class_opencl (k_min+cur_class, k_max, mystuff, use_kernel);
