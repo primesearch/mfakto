@@ -2810,7 +2810,11 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
 
         // the sieving
 
-        gpusieve (mystuff, k_remaining);
+        if (gpusieve (mystuff, k_remaining) != 0)
+        {
+          std::cerr << "Error: GPU sieving failed in tf_class_opencl()\n";
+          return RET_ERROR;
+        }
 
 #ifdef DETAILED_INFO
   // as a first test, copy the sieve bits into the usual sieve array - later, the kernels will do that.
@@ -2882,6 +2886,11 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
           fprintf(stderr, "Programming error: kernel %d unknown or not prepared for GPU-sieving\n", use_kernel);
           return RET_ERROR;
         }
+        if (status != CL_SUCCESS)
+        {
+          std::cerr << "Error: starting kernel " << kernel_info[use_kernel].kernelname << " failed in tf_class_opencl()\n";
+          return RET_ERROR;
+        }
         // Count the number of blocks processed
         count += numblocks;
 
@@ -2892,7 +2901,11 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
         //BUG - we should call a different routine to advance the bit-to-clear values by gpusieve_size bits
         // This will be cheaper than recomputing the bit-to-clears from scratch
         // HOWEVER, the self-test code will not check this new code unless we make the gpusieve_size much smaller
-        gpusieve_init_class (mystuff, k_min);
+        if (gpusieve_init_class (mystuff, k_min) != 0)
+        {
+          std::cerr << "Error: GPU sieve initialization failed in tf_class_opencl()\n";
+          return RET_ERROR;
+        }
         continue; // don't go to the stream-scheduling code below - the GPU sieve runs the TF kernels all in one stream
       }
       mystuff->stream_status[h_ktab_index] = PREPARED;
