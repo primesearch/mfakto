@@ -1416,7 +1416,7 @@ int main(int argc, char **argv)
     logprintf(&mystuff, "  DETAILED_INFO             enabled (DEBUG option)\n");
 #endif
 #ifdef CL_PERFORMANCE_INFO
-    logprintf(mystuff, "  CL_PERFORMANCE_INFO       enabled (DEBUG option)\n");
+    logprintf(&mystuff, "  CL_PERFORMANCE_INFO       enabled (DEBUG option)\n");
 #endif
     logprintf(&mystuff, "\n");
   }
