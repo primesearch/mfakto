@@ -32,9 +32,13 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 static mystuff_t *signal_handler_mystuff;
 
 /*
+The first ^C lets mfakto finish the current class, the second one stops the class early; in both cases the main
+loop exits normally. A third ^C exits immediately.
+
 On POSIX systems the handler interrupts the main program, which may be in the middle of printf(), malloc() or an
 OpenCL call, so it may only use async-signal-safe functions: write() and _exit() instead of printf() and exit().
-stdout and the log file are unbuffered (unbuffered()), so _exit() doesn't lose anything that was printed before. On Windows the handler runs in a separate thread, where printf() and exit() are fine.
+stdout and the log file are unbuffered (unbuffered()), so _exit() doesn't lose anything that was printed before.
+On Windows the handler runs in a separate thread, where printf() and exit() are fine.
 */
 static void signal_message(const char *msg)
 {
@@ -61,9 +65,17 @@ void my_signal_handler(int signum)
     if (signal_handler_mystuff->quit == 1) {
         signal_message(signal_handler_mystuff->mode == MODE_NORMAL ? "\nmfakto will exit once the current class is finished.\n"
                                                                    : "\nmfakto will exit once the current test is finished.\n");
+        signal_message(signal_handler_mystuff->mode == MODE_NORMAL ? "press ^C again to stop the current class and exit\n"
+                                                                   : "press ^C again to stop the current test and exit\n");
+    }
+    else if (signal_handler_mystuff->quit == 2) {
+        /* the main loop stops the class early and exits normally, so files are closed and lock files removed */
+        signal_message(signal_handler_mystuff->mode == MODE_NORMAL ? "mfakto will stop the current class and exit.\n"
+                                                                   : "mfakto will stop the current test and exit.\n");
         signal_message("press ^C again to exit immediately\n");
     }
     else {
+        /* last resort, such as when mfakto is waiting for a lock file */
         signal_message("mfakto will exit NOW!\n");
 #if defined _MSC_VER || defined __MINGW32__
         exit(1);

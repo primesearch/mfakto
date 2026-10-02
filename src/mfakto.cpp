@@ -2660,6 +2660,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
   cl_ulong k_diff, k_remaining;
   char string[50];
   int running=0;
+  int aborted=0;                // set if a second ^C stops the class early
 
   int h_ktab_index = 0;
   unsigned long long int k_min_grid[NUM_STREAMS_MAX];  // k_min_grid[N] contains the k_min for h_ktab[N], only valid for preprocessed h_ktab[]s
@@ -2794,12 +2795,15 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
 #endif
   shared_mem_required = mystuff->gpu_sieve_processing_size * sizeof (short) * shared_mem_required / 100;
 
-  while((k_min <= k_max) || (running > 0))
+  while(((k_min <= k_max) && !aborted) || (running > 0))
   {
+    /* second ^C: don't start any more work, let the running blocks finish and return RET_QUIT */
+    if (mystuff->quit > 1) aborted = 1;
+
     h_ktab_index = count % mystuff->num_streams;
 
 /* preprocessing: calculate a ktab (factor table) */
-    if((mystuff->stream_status[h_ktab_index] == UNUSED) && (k_min <= k_max))  // if we have an empty h_ktab we can preprocess another one
+    if((mystuff->stream_status[h_ktab_index] == UNUSED) && (k_min <= k_max) && !aborted)  // if we have an empty h_ktab we can preprocess another one
     {
 #ifdef DEBUG_STREAM_SCHEDULE
       printf(" STREAM_SCHEDULE: preprocessing on h_ktab[%d]\n", h_ktab_index);
@@ -2949,7 +2953,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
       {
         case UNUSED:
           {
-            if (k_min <= k_max)
+            if ((k_min <= k_max) && !aborted)
             {
               wait = 0;
             }
@@ -3114,7 +3118,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
           {                              // or maybe not; wait until the class is done.
             mystuff->stream_status[i] = UNUSED;
             --running;
-            if ((k_min <= k_max) || (running==0))
+            if (((k_min <= k_max) && !aborted) || (running==0))
             {
               wait = 0;  // some k's left to be processed, or nothing running on GPU - not time to sleep!
             }
@@ -3209,6 +3213,9 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
     std::cout << "Error " << status << " (" << ClErrorString(status) << "): clEnqueueReadBuffer RES failed.\n";
     return RET_ERROR;
   }
+
+  /* the blocking read above waited for all kernels of the class, the results of the unfinished class are discarded */
+  if (aborted) return RET_QUIT;
 
   if (mystuff->verbosity > 2)
   {

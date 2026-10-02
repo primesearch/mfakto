@@ -815,6 +815,11 @@ other return value
           logprintf(mystuff, "ERROR from tf_class.\n");
           return RET_ERROR;
         }
+        if (numfactors == RET_QUIT) /* a second ^C stopped the class early: don't write a checkpoint for it */
+        {
+          if(mystuff->printmode == 1)logprintf(mystuff, "\n");
+          return RET_QUIT;
+        }
         factorsfound+=numfactors;
 
         if(mystuff->mode == MODE_NORMAL)
@@ -1124,6 +1129,11 @@ RET_ERROR we might have a serios problem
     {
       num_selftests++;
       tf_res=tf(mystuff, f_class, st_data[ind].k, kernels[--j]);
+      if(tf_res == RET_QUIT) /* stopped early by a second ^C */
+      {
+        num_selftests--;
+        break;
+      }
             if(tf_res == 0)st_success++;
       else if(tf_res == 1)st_nofactor++;
       else if(tf_res == 2)st_wrongfactor++;
