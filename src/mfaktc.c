@@ -1374,6 +1374,25 @@ int main(int argc, char **argv)
 
   read_config(&mystuff);
 
+  if (mystuff.mode == MODE_NORMAL && use_worktodo)
+  {
+    int lock = lock_workfile(mystuff.workfile);
+    if (lock == 1)
+    {
+      logprintf(&mystuff, "ERROR: \"%s\" is in use by another mfakto instance\n", mystuff.workfile);
+      return ERR_INIT;
+    }
+    if (lock != 0 && mystuff.require_workfile_lock)
+    {
+      logprintf(&mystuff, "ERROR: can't determine whether \"%s\" is in use by another mfakto instance (see RequireWorkFileLock in %s)\n", mystuff.workfile, mystuff.inifile);
+      return ERR_INIT;
+    }
+    if (lock != 0)
+    {
+      logprintf(&mystuff, "Warning: can't determine whether \"%s\" is in use by another mfakto instance, starting anyway (RequireWorkFileLock=0)\n", mystuff.workfile);
+    }
+  }
+
 /* print current configuration */
   if(mystuff.verbosity >= 1)
   {
