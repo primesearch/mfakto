@@ -33,13 +33,13 @@ D = index for modbasecase_debug[];
   if(C > (A)) \
   { \
     printf((__constant char *)"warning: step %lld qi = %x, tid=%u\n", B, C, get_global_id(0)); \
-    modbasecase_debug[D]++; \
+    ATOMIC_INC(modbasecase_debug[D]); \
   }
 #else
   #define MODBASECASE_QI_ERROR(A, B, C, D) \
   if(C > (A)) \
   { \
-    modbasecase_debug[D]++; \
+    ATOMIC_INC(modbasecase_debug[D]); \
   }
 #endif
 
@@ -56,13 +56,13 @@ D = index for modbasecase_debug[];
   if(A) \
   { \
     printf((__constant char *)"warning: step %d q.d%d is non-zero: %u, tid=%u\n", B, C, A, get_global_id(0)); \
-    modbasecase_debug[D]++; \
+    ATOMIC_INC(modbasecase_debug[D]); \
   }
 #else
   #define MODBASECASE_NONZERO_ERROR(A, B, C, D) \
   if(A) \
   { \
-    modbasecase_debug[D]++; \
+    ATOMIC_INC(modbasecase_debug[D]); \
   }
 #endif
 
@@ -79,13 +79,13 @@ D = index for modbasecase_debug[];
   if(C > A) \
   { \
     printf((__constant char *)"warning: step %d nn.dX is too big: %x, tid=%u\n", B, C, get_global_id(0)); \
-    modbasecase_debug[D]++; \
+    ATOMIC_INC(modbasecase_debug[D]); \
   }
 #else
   #define MODBASECASE_NN_BIG_ERROR(A, B, C, D) \
   if(C > A) \
   { \
-    modbasecase_debug[D]++; \
+    ATOMIC_INC(modbasecase_debug[D]); \
   }
 #endif
 #define MODBASECASE_PAR_DEF , __global uint * restrict modbasecase_debug
