@@ -2264,7 +2264,8 @@ __kernel void cl_barrett32_92(__private uint exponent, const int96_t k_base, con
  ****************************************
  ****************************************/
 
-__kernel void cl_barrett32_76_gs(__private uint exponent, const int96_t k_base,
+__kernel void __attribute__((reqd_work_group_size(256, 1, 1)))
+              cl_barrett32_76_gs(__private uint exponent, const int96_t k_base,
                                  const __global uint * restrict bit_array,
                                  const uint bits_to_process, __local ushort *smem,
                                  const int shiftcount,
@@ -2409,7 +2410,8 @@ tid = mad24((uint)get_group_id(0), (uint)get_local_size(0), lid);
   }
 }
 
-__kernel void cl_barrett32_77_gs(__private uint exponent, const int96_t k_base,
+__kernel void __attribute__((reqd_work_group_size(256, 1, 1)))
+              cl_barrett32_77_gs(__private uint exponent, const int96_t k_base,
                                  const __global uint * restrict bit_array,
                                  const uint bits_to_process, __local ushort *smem,
                                  const int shiftcount,
@@ -2554,7 +2556,8 @@ tid = mad24((uint)get_group_id(0), (uint)get_local_size(0), lid);
   }
 }
 
-__kernel void cl_barrett32_79_gs(__private uint exponent, const int96_t k_base,
+__kernel void __attribute__((reqd_work_group_size(256, 1, 1)))
+              cl_barrett32_79_gs(__private uint exponent, const int96_t k_base,
                                  const __global uint * restrict bit_array,
                                  const uint bits_to_process, __local ushort *smem,
                                  const int shiftcount,
@@ -2699,7 +2702,8 @@ tid = mad24((uint)get_group_id(0), (uint)get_local_size(0), lid);
   }
 }
 
-__kernel void cl_barrett32_87_gs(__private uint exponent, const int96_t k_base,
+__kernel void __attribute__((reqd_work_group_size(256, 1, 1)))
+              cl_barrett32_87_gs(__private uint exponent, const int96_t k_base,
                                  const __global uint * restrict bit_array,
                                  const uint bits_to_process, __local ushort *smem,
                                  const int shiftcount,
@@ -2844,7 +2848,8 @@ tid = mad24((uint)get_group_id(0), (uint)get_local_size(0), lid);
   }
 }
 
-__kernel void cl_barrett32_88_gs(__private uint exponent, const int96_t k_base,
+__kernel void __attribute__((reqd_work_group_size(256, 1, 1)))
+              cl_barrett32_88_gs(__private uint exponent, const int96_t k_base,
                                  const __global uint * restrict bit_array,
                                  const uint bits_to_process, __local ushort *smem,
                                  const int shiftcount,
@@ -2989,7 +2994,8 @@ tid = mad24((uint)get_group_id(0), (uint)get_local_size(0), lid);
   }
 }
 
-__kernel void cl_barrett32_92_gs(__private uint exponent, const int96_t k_base,
+__kernel void __attribute__((reqd_work_group_size(256, 1, 1)))
+              cl_barrett32_92_gs(__private uint exponent, const int96_t k_base,
                                  const __global uint * restrict bit_array,
                                  const uint bits_to_process, __local ushort *smem,
                                  const int shiftcount,
