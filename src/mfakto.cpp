@@ -474,7 +474,7 @@ int init_CL(int num_streams, cl_int *devnumber)
       std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetContextInfo(CL_DRIVER_VERSION)\n";
       return 1;
     }
-    status = clGetDeviceInfo(devices[i], CL_DEVICE_EXTENSIONS, sizeof(deviceinfo.exts), deviceinfo.exts, NULL);
+    status = get_device_extensions(devices[i]);
     if(status != CL_SUCCESS)
     {
       std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetContextInfo(CL_DEVICE_EXTENSIONS)\n";
@@ -1385,6 +1385,29 @@ __kernel void __attribute__((reqd_work_group_size(256, 1, 1))) CalcModularInvers
                           block_counts. But for now the kernel is run synchronously, so this
                           is not needed.
 */
+/*
+reads CL_DEVICE_EXTENSIONS into deviceinfo.exts, which is (re)allocated to fit as the lists of some drivers are long
+(about 1700 characters on Intel GPUs). deviceinfo.exts is a valid string afterwards unless allocating it failed.
+*/
+cl_int get_device_extensions(cl_device_id device)
+{
+  size_t size = 0;
+  char *exts;
+  cl_int status = clGetDeviceInfo(device, CL_DEVICE_EXTENSIONS, 0, NULL, &size);
+
+  if (status != CL_SUCCESS) size = 0;
+  exts = (char *) realloc(deviceinfo.exts, size + 1);
+  if (exts == NULL) return CL_OUT_OF_HOST_MEMORY;
+  deviceinfo.exts = exts;
+  exts[0] = '\0';
+  if (status == CL_SUCCESS && size > 0)
+  {
+    status = clGetDeviceInfo(device, CL_DEVICE_EXTENSIONS, size, exts, NULL);
+    exts[status == CL_SUCCESS ? size : 0] = '\0';
+  }
+  return status;
+}
+
 cl_int run_calc_mod_inv(cl_uint numblocks, size_t localThreads, cl_event *run_event)
 {
   cl_int status;

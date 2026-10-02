@@ -1629,7 +1629,7 @@ void CL_test(cl_int devnumber)
     {
       std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetContextInfo(CL_DRIVER_VERSION)\n";
     }
-    status = clGetDeviceInfo(devices[i], CL_DEVICE_EXTENSIONS, sizeof(deviceinfo.exts), deviceinfo.exts, NULL);
+    status = get_device_extensions(devices[i]);
     if(status != CL_SUCCESS)
     {
       std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clGetContextInfo(CL_DEVICE_EXTENSIONS)\n";
