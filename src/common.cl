@@ -161,8 +161,11 @@ uint popcount(uint x)
 // by primenet, then run the bitlevel again with the smallest possible grid size,
 // or run it on at least HD5...
 
-#ifdef cl_khr_global_int32_base_atomics 
+// atomic_inc() on 32-bit global memory is a core function since OpenCL C 1.1, the extension is only needed before
+#if defined(cl_khr_global_int32_base_atomics) || (defined(__OPENCL_VERSION__) && __OPENCL_VERSION__ >= 110)
+#ifdef cl_khr_global_int32_base_atomics
 #pragma  OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
+#endif
 #define ATOMIC_INC(x) atomic_inc(&x)
 #else
 #pragma "Replacing atomic_inc by non-atomics"
