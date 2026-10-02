@@ -537,6 +537,7 @@ int process_add_file(char *filename)
   char	*dot;
   FILE  *f_work, *f_add;
   char  line[101];
+  int   write_error;
 
   if (add_file_disabled) return 1;  // there was an error with this add file earlier
 	strncpy (add_filename, filename, 245);  // leave room if ".add.txt" will be appended
@@ -570,11 +571,21 @@ int process_add_file(char *filename)
     {
       fprintf(stderr, "Error %d appending \"%s\" to \"%s\"\n", errno, add_filename, filename);
       add_file_disabled = 1;  // Do not try again in order to avoid duplicating entries
+      unlock_and_fclose(f_add);
+      unlock_and_fclose(f_work);
       return 1;
     }
   }
   unlock_and_fclose(f_add);
-  unlock_and_fclose(f_work);
+  // buffered write errors (e.g. disk full) may only be reported when the file is closed
+  write_error = ferror(f_work);
+  if (unlock_and_fclose(f_work) != 0) write_error = 1;
+  if (write_error)
+  {
+    fprintf(stderr, "Error appending \"%s\" to \"%s\", keeping \"%s\"\n", add_filename, filename, add_filename);
+    add_file_disabled = 1;  // Do not try again in order to avoid duplicating entries
+    return 1;
+  }
   if (remove(add_filename)!= 0)
   {
     perror("Failed to delete add_file");
