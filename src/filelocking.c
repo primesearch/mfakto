@@ -19,6 +19,7 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -69,6 +70,29 @@ static lockinfo     locked_files[MAX_LOCKED_FILES];
 static char* current_dir = NULL;
 static int   current_drive = 0;
 
+/*
+remove_lock_files() is called at exit and removes the lock files that are still held, such as when mfakto exits
+because of an error or a second ^C while a file is locked. A lock file can still be left behind by a crash or a
+power loss. fopen_and_lock() then waits until it is deleted: it doesn't take over lock files it didn't create, since
+there is no reliable way to tell whether their creator is still running (process IDs are reused, and other programs
+such as AutoPrimeNet, or instances in containers or virtual machines, may share the directory).
+*/
+static void remove_lock_files(void)
+{
+  unsigned int i;
+
+  if (num_locked_files == 0) return;
+  if (chdrive(current_drive) || current_dir == NULL || chdir(current_dir)) {
+      fprintf(stderr, "\nWarning: Current directory \"%s\" is not available.\n", current_dir);
+  }
+  for (i=0; i<num_locked_files; i++)
+  {
+    close(locked_files[i].lockfd);
+    remove(locked_files[i].lock_filename);
+  }
+  num_locked_files = 0;
+}
+
 /* See if the given file exists */
 
 int file_exists (char	*filename)
@@ -93,6 +117,13 @@ FILE *fopen_and_lock(const char *path, const char *mode)
   unsigned int i;
   int lockfd;
   FILE *f;
+  static int remove_lock_files_registered = 0;
+
+  if (!remove_lock_files_registered)
+  {
+    atexit(remove_lock_files);
+    remove_lock_files_registered = 1;
+  }
 
   if (strlen(path) > 250)
   {
@@ -122,7 +153,11 @@ FILE *fopen_and_lock(const char *path, const char *mode)
     {
       if (errno == EEXIST)
       {
-        if (i==0) fprintf(stderr, "%.250s already exists, waiting ...\n", locked_files[num_locked_files].lock_filename);
+        if (i==0)
+        {
+          fprintf(stderr, "%.250s already exists, waiting ...\n", locked_files[num_locked_files].lock_filename);
+          fprintf(stderr, "If no other program (such as AutoPrimeNet or another mfakto instance) is using %.250s, the lock file was left behind by a crash or power loss and can be deleted.\n", path);
+        }
         if (i<1000) i++; // slowly increase sleep time up to 1 sec
         Sleep(i);
         continue;
