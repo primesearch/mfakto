@@ -34,8 +34,7 @@ static mystuff_t *signal_handler_mystuff;
 /*
 On POSIX systems the handler interrupts the main program, which may be in the middle of printf(), malloc() or an
 OpenCL call, so it may only use async-signal-safe functions: write() and _exit() instead of printf() and exit().
-stdout and the log file are line-buffered (line_buffered()), so _exit() doesn't lose complete lines that were
-printed before. On Windows the handler runs in a separate thread, where printf() and exit() are fine.
+stdout and the log file are unbuffered (unbuffered()), so _exit() doesn't lose anything that was printed before. On Windows the handler runs in a separate thread, where printf() and exit() are fine.
 */
 static void signal_message(const char *msg)
 {
@@ -74,14 +73,10 @@ void my_signal_handler(int signum)
     }
 }
 
-/* make f line-buffered on POSIX systems (see my_signal_handler()); on Windows, _IOLBF means full buffering */
-void line_buffered(FILE *f)
+/* make f unbuffered (see my_signal_handler()) */
+void unbuffered(FILE *f)
 {
-#if !(defined _MSC_VER || defined __MINGW32__)
-  if (f != NULL) setvbuf(f, NULL, _IOLBF, BUFSIZ);
-#else
-  (void)f;
-#endif
+  if (f != NULL) setvbuf(f, NULL, _IONBF, 0);
 }
 
 void register_signal_handler(mystuff_t *mystuff)

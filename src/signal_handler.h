@@ -22,7 +22,7 @@ extern "C" {
 
 void my_signal_handler(int signum);
 void register_signal_handler(mystuff_t *mystuff);
-void line_buffered(FILE *f);
+void unbuffered(FILE *f);
 
 #ifdef __cplusplus
 }
