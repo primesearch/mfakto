@@ -937,7 +937,8 @@ GPUKernels test_cpu_tf_kernels(cl_uint par)
     else if(ln2b<72 )b_preinit.d2=1<<(ln2b-48);
     else if(ln2b<96 )b_preinit.d3=1<<(ln2b-72);
     else if(ln2b<120)b_preinit.d4=1<<(ln2b-96);
-    else             b_preinit.d5=1<<(ln2b-120);  // b_preinit = 2^ln2b
+    else if(ln2b<144)b_preinit.d5=1<<(ln2b-120);  // b_preinit = 2^ln2b
+    // larger ln2b don't fit into the int144, which only the 24-bit kernels (< 2^72) use
   }
 
   { // skip the "lowest" 4 levels, so that uint8 is sufficient for 12 components of int180
