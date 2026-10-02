@@ -3720,7 +3720,7 @@ __kernel void __attribute__((reqd_work_group_size(256, 1, 1)))
 #endif
 
   // extract the bits set in bit_array into smem and get the total count (call to gpusieve.cl)
-  total_bit_count = extract_bits(bits_to_process, tid, lid, bitcount, smem, bit_array);
+  total_bit_count = extract_bits(bits_to_process, tid, lid, bitcount, smem, bit_array, shared_mem_allocated, RES);
 
 // Here, all warps in our block have placed their candidates in shared memory.
 // Now we can start TFing candidates.
@@ -3856,7 +3856,7 @@ __kernel void __attribute__((reqd_work_group_size(256, 1, 1)))
 #endif
 
   // extract the bits set in bit_array into smem and get the total count (call to gpusieve.cl)
-  total_bit_count = extract_bits(bits_to_process, tid, lid, bitcount, smem, bit_array);
+  total_bit_count = extract_bits(bits_to_process, tid, lid, bitcount, smem, bit_array, shared_mem_allocated, RES);
 
 // Here, all warps in our block have placed their candidates in shared memory.
 // Now we can start TFing candidates.
@@ -3992,7 +3992,7 @@ __kernel void __attribute__((reqd_work_group_size(256, 1, 1)))
 #endif
 
   // extract the bits set in bit_array into smem and get the total count (call to gpusieve.cl)
-  total_bit_count = extract_bits(bits_to_process, tid, lid, bitcount, smem, bit_array);
+  total_bit_count = extract_bits(bits_to_process, tid, lid, bitcount, smem, bit_array, shared_mem_allocated, RES);
 
 // Here, all warps in our block have placed their candidates in shared memory.
 // Now we can start TFing candidates.
@@ -4128,7 +4128,7 @@ __kernel void __attribute__((reqd_work_group_size(256, 1, 1)))
 #endif
 
   // extract the bits set in bit_array into smem and get the total count (call to gpusieve.cl)
-  total_bit_count = extract_bits(bits_to_process, tid, lid, bitcount, smem, bit_array);
+  total_bit_count = extract_bits(bits_to_process, tid, lid, bitcount, smem, bit_array, shared_mem_allocated, RES);
 
 // Here, all warps in our block have placed their candidates in shared memory.
 // Now we can start TFing candidates.
@@ -4259,7 +4259,7 @@ __kernel void __attribute__((reqd_work_group_size(256, 1, 1)))
 	tid = mad24(get_group_id(0), get_local_size(0), lid);
 
   // extract the bits set in bit_array into smem and get the total count (call to gpusieve.cl)
-  total_bit_count = extract_bits(bits_to_process, tid, lid, bitcount, smem, bit_array);
+  total_bit_count = extract_bits(bits_to_process, tid, lid, bitcount, smem, bit_array, shared_mem_allocated, RES);
 
 // Here, all warps in our block have placed their candidates in shared memory.
 // Now we can start TFing candidates.
@@ -4404,7 +4404,7 @@ __kernel void __attribute__((reqd_work_group_size(256, 1, 1)))
 #endif
 
   // extract the bits set in bit_array into smem and get the total count (call to gpusieve.cl)
-  total_bit_count = extract_bits(bits_to_process, tid, lid, bitcount, smem, bit_array);
+  total_bit_count = extract_bits(bits_to_process, tid, lid, bitcount, smem, bit_array, shared_mem_allocated, RES);
 // Here, all warps in our block have placed their candidates in shared memory.
 // Now we can start TFing candidates.
 
@@ -4543,7 +4543,7 @@ __kernel void __attribute__((reqd_work_group_size(256, 1, 1)))
 #endif
 
   // extract the bits set in bit_array into smem and get the total count (call to gpusieve.cl)
-  total_bit_count = extract_bits(bits_to_process, tid, lid, bitcount, smem, bit_array);
+  total_bit_count = extract_bits(bits_to_process, tid, lid, bitcount, smem, bit_array, shared_mem_allocated, RES);
 
 // Here, all warps in our block have placed their candidates in shared memory.
 // Now we can start TFing candidates.
@@ -4683,7 +4683,7 @@ __kernel void __attribute__((reqd_work_group_size(256, 1, 1)))
 #endif
 
   // extract the bits set in bit_array into smem and get the total count (call to gpusieve.cl)
-  total_bit_count = extract_bits(bits_to_process, tid, lid, bitcount, smem, bit_array);
+  total_bit_count = extract_bits(bits_to_process, tid, lid, bitcount, smem, bit_array, shared_mem_allocated, RES);
 
 // Here, all warps in our block have placed their candidates in shared memory.
 // Now we can start TFing candidates.

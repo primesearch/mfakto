@@ -32,7 +32,8 @@ See (http://www.mersenneforum.org/showthread.php?t=11900) for Ben's initial work
 
 unsigned int modularinverse (uint n, uint orig_d);
 
-uint extract_bits(const uint bits_to_process, const uint tid, const uint lid, __local ushort *bitcount, __local ushort *smem, const __global uint * restrict bit_array);
+uint extract_bits(const uint bits_to_process, const uint tid, const uint lid, __local ushort *bitcount, __local ushort *smem, const __global uint * restrict bit_array,
+                  const uint shared_mem_allocated, __global uint * restrict RES);
 
 // end prototypes
 
@@ -1457,9 +1458,10 @@ if (factor_mod_p != 0)
 /* This function is used at the beginning of each GPU-sieve TF-kernel in order to extract the bits from the sieve.
    returns total number of bits set */
 
-uint extract_bits(const uint bits_to_process, const uint tid, const uint lid, __local ushort *bitcount, __local ushort *smem, const __global uint * restrict bit_array)
+uint extract_bits(const uint bits_to_process, const uint tid, const uint lid, __local ushort *bitcount, __local ushort *smem, const __global uint * restrict bit_array,
+                  const uint shared_mem_allocated, __global uint * restrict RES)
 {
-  __private uint     i, words_per_thread, sieve_word, k_bit_base, total_bit_count;
+  __private uint     i, start, words_per_thread, sieve_word, k_bit_base, total_bit_count, max_bit_count, stored_bit_count;
 
   // Get pointer to section of the bit_array this thread is processing.
 
@@ -1587,13 +1589,27 @@ uint extract_bits(const uint bits_to_process, const uint tid, const uint lid, __
 //POSSIBLE OPTIMIZATION - bitcounts and smem could use the same memory space if we'd read bitcount into a register
 // and sync threads before doing any writes to smem.
 
-//POSSIBLE SANITY CHECK -- is there any way to test if total_bit_count exceeds the amount of shared memory allocated?
+// smem holds shared_mem_allocated bytes: the candidates and VECTOR_SIZE-1 entries after the last one, which are
+// filled with copies of it because the TF kernels read VECTOR_SIZE entries at a time. If a block has more candidates
+// than fit (not expected with the allocation sizes used), none are stored or tested, and RES[31] is set so that the
+// host stops instead of silently skipping them.
+
+  max_bit_count = shared_mem_allocated / sizeof(ushort) - (VECTOR_SIZE - 1);
+  stored_bit_count = total_bit_count;
+  sieve_word = *bit_array;
+  if (total_bit_count > max_bit_count)
+  {
+    if (lid == 0) RES[31] = total_bit_count;
+    stored_bit_count = 0;
+    sieve_word = 0;         // skip the loop below
+    words_per_thread = 1;
+  }
 
 // Loop til this thread's section of the bit array is finished.
 
-  sieve_word = *bit_array;
   k_bit_base = lid * words_per_thread * 32;
-  for (i = total_bit_count - bitcount[lid]; ; i++) {
+  start = total_bit_count - bitcount[lid];
+  for (i = start; ; i++) {
     int bit_to_test;
 
 // Make sure we have a non-zero sieve word
@@ -1622,6 +1638,14 @@ uint extract_bits(const uint bits_to_process, const uint tid, const uint lid, __
 #endif
   }
 
+#if (VECTOR_SIZE > 1)
+  // the work-item that stored the last candidate pads the list with copies of it
+  if (i > start && i == stored_bit_count)
+  {
+    for (uint j = 0; j < VECTOR_SIZE - 1; j++) smem[i + j] = smem[i - 1];
+  }
+#endif
+
   barrier(CLK_LOCAL_MEM_FENCE);
 
 #if (TRACE_SIEVE_KERNEL > 3)
@@ -1630,5 +1654,5 @@ uint extract_bits(const uint bits_to_process, const uint tid, const uint lid, __
         smem[246], smem[247], smem[248], smem[249], smem[250], smem[251], smem[252], smem[253], smem[254], smem[255],
         total_bit_count-2, smem[total_bit_count-2], smem[total_bit_count-1]);
 #endif
-  return total_bit_count;
+  return stored_bit_count;
 }
