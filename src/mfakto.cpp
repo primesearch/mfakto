@@ -1316,54 +1316,32 @@ int load_kernels(cl_int *devnumber)
 }
 
 
+/* releases a CL object (if set) and reports an error; returns 1 on error */
+#define CL_RELEASE(func, obj, name) \
+  ((obj) == NULL ? 0 : (status = func(obj), (obj) = NULL, \
+    status == CL_SUCCESS ? 0 : (std::cerr << "Error " << status << " (" << ClErrorString(status) << "): " #func " (" << (name) << ")\n", 1)))
+
+/* releases all CL objects and buffers; continues after errors, returns 1 if any release failed */
 int cleanup_CL(void)
 {
   cl_int status;
   cl_uint i;
+  int errors = 0;
 
   for (i=0; i<NUM_KERNELS; i++)
   {
-    if (kernel_info[i].kernel)
-    {
-      status = clReleaseKernel(kernel_info[i].kernel); kernel_info[i].kernel = NULL;
-      if(status != CL_SUCCESS)
-      {
-        fprintf(stderr, "Error %d: clReleaseKernel(%d)\n", status, i);
-        return 1;
-      }
-    }
+    errors |= CL_RELEASE(clReleaseKernel, kernel_info[i].kernel, kernel_info[i].kernelname);
   }
-
-  status = clReleaseProgram(program); program=NULL;
-  if(status != CL_SUCCESS)
-  {
-    std::cerr<<"Error" << status << " (" << ClErrorString(status) << "): clReleaseProgram\n";
-    return 1;
-  }
+  errors |= CL_RELEASE(clReleaseProgram, program, "program");
   for (i=0; i<mystuff.num_streams; i++)
   {
-    status = clReleaseMemObject(mystuff.d_ktab[i]); mystuff.d_ktab[i]=NULL;
-    if(status != CL_SUCCESS)
-    {
-      std::cerr<<"Error" << status << " (" << ClErrorString(status) << "): clReleaseMemObject (d_ktab" << i << ")\n";
-      return 1;
-    }
+    errors |= CL_RELEASE(clReleaseMemObject, mystuff.d_ktab[i], "d_ktab");
     free(mystuff.h_ktab[i]); mystuff.h_ktab[i]=NULL;
   }
-  status = clReleaseMemObject(mystuff.d_RES); mystuff.d_RES=NULL;
-  if(status != CL_SUCCESS)
-  {
-    std::cerr<<"Error" << status << " (" << ClErrorString(status) << "): clReleaseMemObject (d_RES)\n";
-    return 1;
-  }
+  errors |= CL_RELEASE(clReleaseMemObject, mystuff.d_RES, "d_RES");
   free(mystuff.h_RES); mystuff.h_RES=NULL;
 #ifdef CHECKS_MODBASECASE
-  status = clReleaseMemObject(mystuff.d_modbasecase_debug); mystuff.d_modbasecase_debug=NULL;
-  if(status != CL_SUCCESS)
-  {
-    std::cerr<<"Error" << status << " (" << ClErrorString(status) << "): clReleaseMemObject (d_modbasecase_debug)\n";
-    return 1;
-  }
+  errors |= CL_RELEASE(clReleaseMemObject, mystuff.d_modbasecase_debug, "d_modbasecase_debug");
   free(mystuff.h_modbasecase_debug); mystuff.h_modbasecase_debug=NULL;
 #endif
   if (mystuff.gpu_sieving == 1)
@@ -1371,33 +1349,16 @@ int cleanup_CL(void)
     gpusieve_free (&mystuff);
   }
 
-  status = clReleaseCommandQueue(commandQueue);
-  if(status != CL_SUCCESS)
-  {
-    std::cerr<<"Error" << status << " (" << ClErrorString(status) << "): clReleaseCommandQueue\n";
-    return 1;
-  }
-  if (commandQueuePrf) status = clReleaseCommandQueue(commandQueuePrf);
-  if(status != CL_SUCCESS)
-  {
-    std::cerr<<"Error" << status << " (" << ClErrorString(status) << "): clReleaseCommandQueuePrf\n";
-    return 1;
-    status = clReleaseContext(context);
-  }
-  if(status != CL_SUCCESS)
-  {
-    std::cerr<<"Error" << status << " (" << ClErrorString(status) << "): clReleaseContext\n";
-    return 1;
-  }
+  errors |= CL_RELEASE(clReleaseCommandQueue, commandQueue, "commandQueue");
+  errors |= CL_RELEASE(clReleaseCommandQueue, commandQueuePrf, "commandQueuePrf");
+  errors |= CL_RELEASE(clReleaseContext, context, "context");
   if(devices != NULL)
   {
       free(devices);
       devices = NULL;
   }
-  clReleaseContext(context);
-  context = NULL;
 
-  return 0;
+  return errors;
 }
 
 #ifdef __cplusplus
