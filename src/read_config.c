@@ -18,6 +18,7 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #ifdef _WIN32
 #define strcasecmp _stricmp
@@ -78,14 +79,24 @@ void create_inifile_from_example(char *inifile)
     printf("Created \"%s\" from \"%s\"\n", inifile, example);
 }
 
-int my_read_int(char *inifile, char *name, int *value)
+/*
+read_config() reads the INI file into memory once (ini_cache) instead of opening it again for every setting.
+my_read_int() and my_read_string() split it into lines exactly as fgets(buf, 512, ...) did, and read the
+file itself when it isn't cached (e.g. the settings main() reads before read_config()).
+*/
+static char *ini_cache = NULL;
+static size_t ini_cache_size = 0;
+static char ini_cache_name[sizeof(((mystuff_t *)0)->inifile)];
+
+/* reads the whole file into *data (malloc'ed, NUL-terminated); returns 0 on success */
+static int ini_load(const char *inifile, char **data, size_t *size)
 {
   FILE *in;
-  char buf[512];
-  int found=0;
+  char *buf = NULL, *tmp;
+  size_t used = 0, alloc = 0, n;
 
-  in=fopen(inifile,"r");
-  if(!in)
+  in = fopen(inifile, "rb");
+  if (!in)
   {
     if (!inifile_unavailable)
     {
@@ -96,37 +107,108 @@ int my_read_int(char *inifile, char *name, int *value)
     }
     return 1;
   }
-  while(fgets(buf,512,in) && !found)
+  do
+  {
+    if (alloc - used < 4096)
+    {
+      alloc += 65536;
+      tmp = (char *)realloc(buf, alloc + 1);
+      if (tmp == NULL)
+      {
+        free(buf);
+        fclose(in);
+        return 1;
+      }
+      buf = tmp;
+    }
+    n = fread(buf + used, 1, alloc - used, in);
+    used += n;
+  } while (n > 0);
+  fclose(in);
+  buf[used] = '\0';
+  *data = buf;
+  *size = used;
+  return 0;
+}
+
+/* returns the cached contents of inifile, or reads it; release with ini_release() */
+static int ini_get(const char *inifile, char **data, size_t *size)
+{
+  if (ini_cache != NULL && strcmp(inifile, ini_cache_name) == 0)
+  {
+    *data = ini_cache;
+    *size = ini_cache_size;
+    return 0;
+  }
+  return ini_load(inifile, data, size);
+}
+
+static void ini_release(char *data)
+{
+  if (data != ini_cache) free(data);
+}
+
+static void ini_cache_load(const char *inifile)
+{
+  if (ini_load(inifile, &ini_cache, &ini_cache_size) == 0)
+  {
+    snprintf(ini_cache_name, sizeof(ini_cache_name), "%s", inifile);
+  }
+  else
+  {
+    ini_cache = NULL;
+  }
+}
+
+static void ini_cache_free(void)
+{
+  free(ini_cache);
+  ini_cache = NULL;
+}
+
+/* like fgets(buf, bufsize, ...) on data: copies the next line, or bufsize - 1 bytes of it; returns 0 at the end */
+static int ini_getline(const char *data, size_t size, size_t *pos, char *buf, int bufsize)
+{
+  int i = 0;
+
+  if (*pos >= size) return 0;
+  while (i < bufsize - 1 && *pos < size)
+  {
+    buf[i] = data[(*pos)++];
+    if (buf[i++] == '\n') break;
+  }
+  buf[i] = '\0';
+  return 1;
+}
+
+int my_read_int(char *inifile, char *name, int *value)
+{
+  char *data;
+  size_t size, pos = 0;
+  char buf[512];
+  int found=0;
+
+  if (ini_get(inifile, &data, &size)) return 1;
+  while(!found && ini_getline(data, size, &pos, buf, sizeof(buf)))
   {
     if(!strncmp(buf,name,strlen(name)) && buf[strlen(name)]=='=')
     {
       if(sscanf(&(buf[strlen(name)+1]),"%d",value)==1)found=1;
     }
   }
-  fclose(in);
+  ini_release(data);
   if(found)return 0;
   return 1;
 }
-
 static int my_read_ulong(char *inifile, char *name, unsigned long long int *value)
 {
-    FILE* in;
+    char *data;
+    size_t size, pos = 0;
     char buf[512];
     int found = 0;
 
-    in = fopen(inifile, "r");
-    if (!in)
-    {
-        if (!inifile_unavailable)
-        {
-            char msg[80];
-            inifile_unavailable = 1;
-            snprintf(msg, sizeof(msg) - 1, "Cannot load INI file \"%.55s\"", inifile);
-            perror(msg);
-        }
-        return 1;
-    }
-    while (fgets(buf, 512, in) && !found)
+    if (ini_get(inifile, &data, &size)) return 1;
+    while (!found && ini_getline(data, size, &pos, buf, sizeof(buf)))
     {
         if (!strncmp(buf, name, strlen(name)) && buf[strlen(name)] == '=')
         {
@@ -139,31 +221,22 @@ static int my_read_ulong(char *inifile, char *name, unsigned long long int *valu
             }
         }
     }
-    fclose(in);
+    ini_release(data);
     if (found) {
         return 0;
     }
     return 1;
 }
-
 int my_read_string(char *inifile, char *name, char *string, unsigned int len)
 {
-    FILE *in;
+    char *data;
+    size_t size, pos = 0;
     char buf[512];
     unsigned int found = 0;
     unsigned int idx   = (unsigned int)strlen(name);
 
-    in = fopen(inifile, "r");
-    if (!in) {
-        if (!inifile_unavailable) {
-            char msg[80];
-            inifile_unavailable = 1;
-            sprintf(msg, "Cannot load INI file \"%.55s\"", inifile);
-            perror(msg);
-        }
-        return 1;
-    }
-    while (fgets(buf, 512, in) && !found) {
+    if (ini_get(inifile, &data, &size)) return 1;
+    while (!found && ini_getline(data, size, &pos, buf, sizeof(buf))) {
         if (!strncmp(buf, name, idx) && buf[idx] == '=') {
             // the value ends at the line ending ("\r\n" when reading a DOS/Windows formatted file on Linux), but the
             // last line of the file may not have one
@@ -173,13 +246,13 @@ int my_read_string(char *inifile, char *name, char *string, unsigned int len)
             string[found] = '\0';
         }
     }
-    fclose(in);
+    ini_release(data);
     if (found > 0) return 0;
     return 1;
 }
 
 
-int read_config(mystuff_t *mystuff)
+static int read_config_settings(mystuff_t *mystuff)
 {
   int i;
   char tmp[51];
@@ -926,4 +999,14 @@ int read_array(char *filename, char *keyname, cl_uint num, cl_uint *arr)
   }
   fclose(in);
   return i;
+}
+
+int read_config(mystuff_t *mystuff)
+{
+  int ret;
+
+  ini_cache_load(mystuff->inifile);
+  ret = read_config_settings(mystuff);
+  ini_cache_free();
+  return ret;
 }
