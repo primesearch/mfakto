@@ -553,7 +553,10 @@ int init_CL(int num_streams, cl_int *devnumber)
         << "] , Max clock speed:" << deviceinfo.max_clock << ", compute units:" << deviceinfo.units << std::endl;
   }
 
-  if (strstr(deviceinfo.exts, "global_int32_base_atomics") == NULL)
+  int cl_major = 0, cl_minor = 0;
+  sscanf(deviceinfo.d_ver, "OpenCL %d.%d", &cl_major, &cl_minor);
+  // atomic_inc() on global memory is a core function since OpenCL 1.1, the extension is only needed before
+  if (strstr(deviceinfo.exts, "global_int32_base_atomics") == NULL && cl_major * 10 + cl_minor < 11)
   {
     printf("\nWarning: Device does not support atomic operations. mfakto may report only\n"
            "      one factor or an invalid one when multiple factors are found in the same\n"
