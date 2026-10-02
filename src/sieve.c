@@ -104,7 +104,7 @@ void sieve_init(unsigned int ssize, unsigned int max_global)
 
   for(i=0;i<32;i++)
   {
-    mask1[i]=1<<i;
+    mask1[i]=1U<<i;
     mask0[i]=0xFFFFFFFF-mask1[i];
   }
   sieve      = malloc(SIEVE_BYTES);
