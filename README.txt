@@ -182,15 +182,15 @@ startup; this ensures your mfakto.ini is not affected when you upgrade or
 compile mfakto. It is recommended to compare your INI file with the new
 mfakto.ini.example after an upgrade as there may be new or changed settings.
 
-Only one mfakto instance can work on a worktodo file at a time, as instances
-sharing one would work on the same assignment. mfakto locks the file
-"<worktodo file>.pid" while it runs; the lock is released automatically when
-mfakto exits, even after a crash, so the file can be left alone. If the lock
-can't be taken (e.g. the directory isn't writable, or file locking isn't
-available on a network filesystem), mfakto doesn't start unless
-RequireWorkFileLock=0 is set in mfakto.ini. To run several instances (e.g. to
-fully load a GPU with CPU sieving), give each one its own directory or its own
-WorkFile.
+Only one mfakto instance can use a worktodo.txt file at a time, as instances
+sharing one would process the same set of assignments. mfakto locks the file
+"<worktodo file>.pid" while it runs; the lock is released automatically on
+exit (even after a crash) so the file can be left alone. mfakto will not start
+if it fails to acquire a lock (such as when the directory isn't writable, or
+file locking isn't supported on a network file system). You can set
+RequireWorkFileLock=0 in mfakto.ini to override this. To run more than one
+instance, such as on a system with multiple GPUs, give each instance its own
+directory or separate worktodo.txt file.
 
 A typical worktodo.txt file looks like this:
   -- begin example --

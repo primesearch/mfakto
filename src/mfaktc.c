@@ -1379,17 +1379,17 @@ int main(int argc, char **argv)
     int lock = lock_workfile(mystuff.workfile);
     if (lock == 1)
     {
-      logprintf(&mystuff, "ERROR: another mfakto instance is already working on \"%s\"\n", mystuff.workfile);
+      logprintf(&mystuff, "ERROR: \"%s\" is in use by another mfakto instance\n", mystuff.workfile);
       return ERR_INIT;
     }
     if (lock != 0 && mystuff.require_workfile_lock)
     {
-      logprintf(&mystuff, "ERROR: can't check whether another mfakto instance is working on \"%s\" (see RequireWorkFileLock in %s)\n", mystuff.workfile, mystuff.inifile);
+      logprintf(&mystuff, "ERROR: can't determine whether \"%s\" is in use by another mfakto instance (see RequireWorkFileLock in %s)\n", mystuff.workfile, mystuff.inifile);
       return ERR_INIT;
     }
     if (lock != 0)
     {
-      logprintf(&mystuff, "WARNING: can't check whether another mfakto instance is working on \"%s\", starting anyway (RequireWorkFileLock=0)\n", mystuff.workfile);
+      logprintf(&mystuff, "Warning: can't determine whether \"%s\" is in use by another mfakto instance, starting anyway (RequireWorkFileLock=0)\n", mystuff.workfile);
     }
   }
 
