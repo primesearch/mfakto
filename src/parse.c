@@ -36,7 +36,7 @@ mfaktc 0.07-0.14 to see Luigis code.
  *     1 - get_next_assignment : cannot open file							    *
  *     2 - get_next_assignment : no valid assignment found						    *
  *     3 - clear_assignment    : cannot open file <filename>						    *
- *     4 - clear_assignment    : cannot open file "__worktodo__.tmp"					    *
+ *     4 - clear_assignment    : cannot create/write temporary file "__worktodo__.XXXXXX"  *
  *     5 - clear_assignment    : assignment not found							    *
  *     6 - clear_assignment    : cannot rename temporary workfile to regular workfile			    *
  ************************************************************************************************************/
@@ -393,7 +393,7 @@ enum ASSIGNMENT_ERRORS get_next_assignment(char *filename, unsigned int *exponen
  *                                                                                                          *
  *     0 - OK												                                                *
  *     3 - clear_assignment    : cannot open file <filename>						                        *
- *     4 - clear_assignment    : cannot open file "__worktodo__.tmp"					                    *
+ *     4 - clear_assignment    : cannot create/write temporary file "__worktodo__.XXXXXX"                  *
  *     5 - clear_assignment    : assignment not found							                            *
  *     6 - clear_assignment    : cannot rename temporary workfile to regular workfile			            *
  *                                                                                                          *
@@ -410,12 +410,16 @@ enum ASSIGNMENT_ERRORS clear_assignment(char *filename, unsigned int exponent, i
   unsigned int line_to_drop = UINT_MAX;
   unsigned int current_line;
   struct ASSIGNMENT assignment;	// the found assignment....
+  char temp_filename[] = "__worktodo__.XXXXXX"; // unique, instances may share a directory
+  int write_error;
 
   f_in = fopen_and_lock(filename, "r");
   if (NULL == f_in)
     return CANT_OPEN_WORKFILE;
 
-  f_out = fopen_and_lock("__worktodo__.tmp", "w");
+  f_out = NULL;
+  if (make_temp_file(temp_filename) == 0)
+    f_out = fopen(temp_filename, "w");
   if (NULL == f_out)
   {
     unlock_and_fclose(f_in);
@@ -455,7 +459,8 @@ enum ASSIGNMENT_ERRORS clear_assignment(char *filename, unsigned int exponent, i
     f_in = fopen_and_lock(filename, "r");
     if (NULL == f_in)
     {
-      unlock_and_fclose(f_out);
+      fclose(f_out);
+      remove(temp_filename);
       return CANT_OPEN_WORKFILE;
     }
   }
@@ -491,15 +496,25 @@ enum ASSIGNMENT_ERRORS clear_assignment(char *filename, unsigned int exponent, i
       }
     }
   }	// while.....
-  unlock_and_fclose(f_out);
-  unlock_and_fclose(f_in);
+  write_error = ferror(f_out);
+  if (fclose(f_out) != 0) write_error = 1;
 
-  if (!found)
-    return ASSIGNMENT_NOT_FOUND;
-  if(remove(filename) != 0)
+  /* Keep the workfile locked until it has been replaced: another process (e.g. AutoPrimeNet) that adds
+     assignments in between would otherwise lose them when the temporary file replaces the workfile. */
+  fclose_keep_lock(f_in);
+  if (!found || write_error)
+  {
+    remove(temp_filename);
+    unlock_file(filename);
+    return found ? CANT_OPEN_TEMPFILE : ASSIGNMENT_NOT_FOUND;
+  }
+  if (replace_file(temp_filename, filename) != 0)
+  {
+    remove(temp_filename);
+    unlock_file(filename);
     return CANT_RENAME;
-  if(rename("__worktodo__.tmp", filename) != 0)
-    return CANT_RENAME;
+  }
+  unlock_file(filename);
   return OK;
 }
 
