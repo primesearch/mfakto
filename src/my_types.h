@@ -323,7 +323,8 @@ typedef struct _mystuff_t
 
 typedef struct
 {
-    char d_name[128], d_ver[128], v_name[128], dr_version[128], exts[2048];
+    char d_name[128], d_ver[128], v_name[128], dr_version[128];
+    char *exts;                /* allocated by get_device_extensions() as some drivers report long lists */
     cl_ulong gl_cache, gl_mem, l_mem;
     cl_uint max_clock, units, w_dim;
     size_t wg_size, wi_sizes[10], maxThreadsPerBlock, maxThreadsPerGrid;
