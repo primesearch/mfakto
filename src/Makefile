@@ -89,12 +89,17 @@ ifeq ($(STATIC_RUNTIME), 1)
   endif
 endif
 
+CC_VERSION = $(shell $(CC) --version)
+
 # optimize or debug
 ifeq ($(DEBUG), 1)
   OPTIMIZE_FLAG = -g -Og
 else
   OPTIMIZE_FLAG = -O3 -funroll-loops -ffast-math -flto
-  CFLAGS_EXTRA_SIEVE = -funroll-all-loops
+  # clang (also as "gcc" on macOS) doesn't support -funroll-all-loops
+  ifeq (, $(findstring clang, $(CC_VERSION)))
+    CFLAGS_EXTRA_SIEVE = -funroll-all-loops
+  endif
 endif
 
 ##############################################################################
