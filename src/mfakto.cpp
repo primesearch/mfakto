@@ -1360,6 +1360,8 @@ int cleanup_CL(void)
       free(devices);
       devices = NULL;
   }
+  free(deviceinfo.exts);
+  deviceinfo.exts = NULL;
 
   return errors;
 }
