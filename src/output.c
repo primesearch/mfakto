@@ -595,15 +595,6 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
   getOSJSON(osjson);
   get_utc_timestamp(timestamp);
 
-  if(mystuff->mode == MODE_NORMAL)
-  {
-    if (mystuff->legacy_results_txt == 1)
-    {
-      txtresultfile = fopen_and_lock(mystuff->resultfile, "a");
-      if(txtresultfile != NULL && mystuff->print_timestamp == 1)print_timestamp(txtresultfile);
-    }
-    jsonresultfile = fopen_and_lock(mystuff->jsonresultfile, "a");
-  }
   bool partialresult = (mystuff->mode == MODE_NORMAL) && (mystuff->stats.class_counter < max_class_number);
   if(factorsfound)
   {
@@ -630,10 +621,14 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
   }
   if(mystuff->mode == MODE_NORMAL)
   {
+    /* Lock and write one result file at a time. Holding both locks at once could deadlock with another
+       program that locks them in the opposite order: mfaktc 0.24.0 and later lock the JSON file first. */
     if (mystuff->legacy_results_txt == 1)
     {
+      txtresultfile = fopen_and_lock(mystuff->resultfile, "a");
       if (txtresultfile != NULL)
       {
+        if (mystuff->print_timestamp == 1) print_timestamp(txtresultfile);
         fprintf(txtresultfile, "%s%s\n", UID, txtstring);
         unlock_and_fclose(txtresultfile);
       }
@@ -642,6 +637,7 @@ void print_result_line(mystuff_t *mystuff, int factorsfound)
         printf("Warning: could not open result file \"%s\"\n", mystuff->resultfile);
       }
     }
+    jsonresultfile = fopen_and_lock(mystuff->jsonresultfile, "a");
     if (jsonresultfile != NULL)
     {
       fprintf(jsonresultfile, "%s\n", jsonstring);
