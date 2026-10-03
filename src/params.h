@@ -227,6 +227,12 @@ The following lines define the min, default and max value.
 #define GPU_SIEVE_PROCESS_SIZE_DEFAULT      16 /* Default is processing 16K bits */
 #define GPU_SIEVE_PROCESS_SIZE_MAX          32 /* Upper limit is 64K, since we store k values as "short". Shared memory requirements limit usable values */
 
+/*
+GS_MAX_QUEUED_BATCHES is the number of GPU sieve batches (sieving and trial factoring of GPUSieveSize bits) that may
+be queued at once. Enough to keep the GPU busy, and few enough that a second ^C stops a class quickly.
+*/
+#define GS_MAX_QUEUED_BATCHES                4
+
 /* settings related to worktodo.txt file */
 #define WORKTODO_FILE               "worktodo.txt"  // should not exceed 50 characters
 #define MAX_LINE_LENGTH             100
