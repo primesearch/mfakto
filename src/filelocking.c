@@ -71,132 +71,122 @@ static char* current_dir = NULL;
 static int   current_drive = 0;
 
 /*
-remove_lock_files() is called at exit and removes the lock files that are still held, such as when mfakto exits
-because of an error or a second ^C while a file is locked. A lock file can still be left behind by a crash or a
-power loss. fopen_and_lock() then waits until it is deleted: it doesn't take over lock files it didn't create, since
-there is no reliable way to tell whether their creator is still running (process IDs are reused, and other programs
-such as AutoPrimeNet, or instances in containers or virtual machines, may share the directory).
+remove_lock_files() is called at exit and removes any currently held lock
+files, such as those that remain when mfakto exits because of an error or if
+Ctrl + C is pressed a second time while a file is locked. Such files can still
+be left behind by a crash or a power loss. fopen_and_lock() then waits until
+they are deleted: it doesn't take over lock files it didn't create, as there
+is no reliable way to tell whether the lock owner is still alive. Operating
+systems recycle process IDs, and other programs such as AutoPrimeNet may share
+the same directory as mfakto.
 */
 static void remove_lock_files(void)
 {
-  unsigned int i;
+    unsigned int i;
 
-  if (num_locked_files == 0) return;
-  if (chdrive(current_drive) || current_dir == NULL || chdir(current_dir)) {
-      fprintf(stderr, "\nWarning: Current directory \"%s\" is not available.\n", current_dir);
-  }
-  for (i=0; i<num_locked_files; i++)
-  {
-    close(locked_files[i].lockfd);
-    remove(locked_files[i].lock_filename);
-  }
-  num_locked_files = 0;
+    if (num_locked_files == 0) return;
+    if (chdrive(current_drive) || current_dir == NULL || chdir(current_dir)) {
+        fprintf(stderr, "\nWarning: Current directory \"%s\" is not available.\n", current_dir);
+    }
+    for (i = 0; i < num_locked_files; i++) {
+        close(locked_files[i].lockfd);
+        remove(locked_files[i].lock_filename);
+    }
+    num_locked_files = 0;
 }
 
 /* See if the given file exists */
-
-int file_exists (char	*filename)
+int file_exists(char *filename)
 {
-	int fd;
-  if (current_dir == NULL) {
-      current_dir = getcwd(NULL, 0);
-      current_drive = getdrive();
-  }
-  if (chdrive(current_drive) || current_dir == NULL || chdir(current_dir)) {
-      fprintf(stderr, "\nWarning: Current directory \"%s\" is not available.\n", current_dir);
-  }
-  fd = open(filename, O_RDONLY);
-//  printf ("file_exists(%s)\n", filename);
-	if (fd < 0) return 0;
-	close(fd);
-	return 1;
+    int fd;
+    if (current_dir == NULL) {
+        current_dir   = getcwd(NULL, 0);
+        current_drive = getdrive();
+    }
+    if (chdrive(current_drive) || current_dir == NULL || chdir(current_dir)) {
+        fprintf(stderr, "\nWarning: Current directory \"%s\" is not available.\n", current_dir);
+    }
+    fd = open(filename, O_RDONLY);
+    //  printf ("file_exists(%s)\n", filename);
+    if (fd < 0) return 0;
+    close(fd);
+    return 1;
 }
 
 FILE *fopen_and_lock(const char *path, const char *mode)
 {
-  unsigned int i;
-  int lockfd;
-  FILE *f;
-  static int remove_lock_files_registered = 0;
+    unsigned int i;
+    int lockfd;
+    FILE *f;
+    static int remove_lock_files_registered = 0;
 
-  if (!remove_lock_files_registered)
-  {
-    atexit(remove_lock_files);
-    remove_lock_files_registered = 1;
-  }
-
-  if (strlen(path) > 250)
-  {
-    fprintf(stderr, "Cannot open %.250s: Name too long.\n", path);
-    return NULL;
-  }
-
-  if (num_locked_files >= MAX_LOCKED_FILES)
-  {
-    fprintf(stderr, "Cannot open %.250s: Too many locked files.\n", path);
-    return NULL;
-  }
-
-  sprintf(locked_files[num_locked_files].lock_filename, "%.250s.lck", path);
-
-  if (current_dir == NULL) {
-      current_dir = getcwd(NULL, 0);
-      current_drive = getdrive();
-  }
-  if (chdrive(current_drive) || current_dir == NULL || chdir(current_dir)) {
-      fprintf(stderr, "\nWarning: Current directory \"%s\" is not available.\n", current_dir);
-  }
-//  printf("fopen_and_lock(%s)\n", path);
-  for(i=0;;)
-  {
-    if ((lockfd = open(locked_files[num_locked_files].lock_filename, O_EXCL | O_CREAT, MODE)) < 0)
-    {
-      if (errno == EEXIST)
-      {
-        if (i==0)
-        {
-          fprintf(stderr, "%.250s already exists, waiting ...\n", locked_files[num_locked_files].lock_filename);
-          fprintf(stderr, "If no other program (such as AutoPrimeNet or another mfakto instance) is using %.250s, the lock file was left behind by a crash or power loss and can be deleted.\n", path);
-        }
-        if (i<1000) i++; // slowly increase sleep time up to 1 sec
-        Sleep(i);
-        continue;
-      }
-      else
-      {
-        perror("Cannot open lockfile");
-        break;
-      }
+    if (!remove_lock_files_registered) {
+        atexit(remove_lock_files);
+        remove_lock_files_registered = 1;
     }
-    break;
-  }
 
-  if (lockfd < 0)
-  {
-    /* The lock file could not be created for a reason other than
+    if (strlen(path) > 250) {
+        fprintf(stderr, "Cannot open %.250s: Name too long.\n", path);
+        return NULL;
+    }
+
+    if (num_locked_files >= MAX_LOCKED_FILES) {
+        fprintf(stderr, "Cannot open %.250s: Too many locked files.\n", path);
+        return NULL;
+    }
+
+    sprintf(locked_files[num_locked_files].lock_filename, "%.250s.lck", path);
+
+    if (current_dir == NULL) {
+        current_dir   = getcwd(NULL, 0);
+        current_drive = getdrive();
+    }
+    if (chdrive(current_drive) || current_dir == NULL || chdir(current_dir)) {
+        fprintf(stderr, "\nWarning: Current directory \"%s\" is not available.\n", current_dir);
+    }
+    //  printf("fopen_and_lock(%s)\n", path);
+    for (i = 0;;) {
+        if ((lockfd = open(locked_files[num_locked_files].lock_filename, O_EXCL | O_CREAT, MODE)) < 0) {
+            if (errno == EEXIST) {
+                if (i == 0) {
+                    fprintf(stderr, "%.250s already exists, waiting ...\n", locked_files[num_locked_files].lock_filename);
+                    fprintf(
+                        stderr,
+                        "If no other program (such as AutoPrimeNet or another mfakto instance) is using %.250s, the lock file was left behind by an unexpected exit and can be deleted.\n",
+                        path);
+                }
+                if (i < 1000) i++; // slowly increase sleep time up to 1 sec
+                Sleep(i);
+                continue;
+            } else {
+                perror("Cannot open lockfile");
+                break;
+            }
+        }
+        break;
+    }
+
+    if (lockfd < 0) {
+        /* The lock file could not be created for a reason other than
        contention; do not pretend the file is locked. */
-    return NULL;
-  }
+        return NULL;
+    }
 
-  locked_files[num_locked_files].lockfd = lockfd;
+    locked_files[num_locked_files].lockfd = lockfd;
 
-  if (i > 0)
-  {
-    printf("Locked %.250s\n", path);
-  }
+    if (i > 0) {
+        printf("Locked %.250s\n", path);
+    }
 
-  f=fopen(path, mode);
-  if (f)
-  {
-    locked_files[num_locked_files++].open_file = f;
-  }
-  else
-  {
-    if (close(locked_files[num_locked_files].lockfd) != 0) perror("Failed to close lockfile");
-    if (remove(locked_files[num_locked_files].lock_filename)!= 0) perror("Failed to delete lockfile");
-  }
+    f = fopen(path, mode);
+    if (f) {
+        locked_files[num_locked_files++].open_file = f;
+    } else {
+        if (close(locked_files[num_locked_files].lockfd) != 0) perror("Failed to close lockfile");
+        if (remove(locked_files[num_locked_files].lock_filename) != 0) perror("Failed to delete lockfile");
+    }
 
-  return f;
+    return f;
 }
 
 int unlock_and_fclose(FILE *f)
