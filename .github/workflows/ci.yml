@@ -157,7 +157,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-14, macos-15-intel, macos-15, macos-26-intel, macos-26]
+        os: [macos-15-intel, macos-15, macos-26-intel, macos-26]
       fail-fast: false
     env:
       # needed for Homebrew 4.6.4 and above
