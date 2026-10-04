@@ -3273,8 +3273,8 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
   if (mystuff->gpu_sieving && mystuff->h_RES[31] != 0)
   {
     std::cerr << "ERROR: a GPU sieve block had " << mystuff->h_RES[31] << " candidates, more than its buffer of "
-              << (shared_mem_required / sizeof(short) - (mystuff->vectorsize - 1)) << " holds. Some candidates were not tested, "
-              << "so factors could have been missed. Please report this.\n";
+              << (shared_mem_required / sizeof(short) - (mystuff->vectorsize - 1)) << " holds. Factors could have been missed "
+              << "due to untested candidates. Please report this.\n";
     return RET_ERROR;
   }
 

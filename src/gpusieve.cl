@@ -1589,10 +1589,12 @@ uint extract_bits(const uint bits_to_process, const uint tid, const uint lid, __
 //POSSIBLE OPTIMIZATION - bitcounts and smem could use the same memory space if we'd read bitcount into a register
 // and sync threads before doing any writes to smem.
 
-// smem holds shared_mem_allocated bytes: the candidates and VECTOR_SIZE-1 entries after the last one, which are
-// filled with copies of it because the TF kernels read VECTOR_SIZE entries at a time. If a block has more candidates
-// than fit (not expected with the allocation sizes used), none are stored or tested, and RES[31] is set so that the
-// host stops instead of silently skipping them.
+// smem holds shared_mem_allocated bytes: the candidates and VECTOR_SIZE - 1
+// entries after the last one, which are filled with copies of it because the
+// TF kernels read VECTOR_SIZE entries at a time. If a block has more
+// candidates its buffer holds, then none are stored or tested. In this case,
+// RES[31] is set so that the host stops instead of silently skipping them.
+// However, this is not expected with the allocation sizes used.
 
   max_bit_count = shared_mem_allocated / sizeof(ushort) - (VECTOR_SIZE - 1);
   stored_bit_count = total_bit_count;
