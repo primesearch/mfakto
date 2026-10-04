@@ -20,6 +20,10 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#if !(defined _MSC_VER || defined __MINGW32__)
+  #include <unistd.h>
+#endif
 
 #include "params.h"
 #include "my_types.h"
@@ -27,23 +31,64 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 
 static mystuff_t *signal_handler_mystuff;
 
+/*
+The first ^C lets mfakto finish the current class, the second one stops the class early; in both cases the main
+loop exits normally. A third ^C exits immediately.
+
+On POSIX systems the handler interrupts the main program, which may be in the middle of printf(), malloc() or an
+OpenCL call, so it may only use async-signal-safe functions: write() and _exit() instead of printf() and exit().
+stdout and the log file are unbuffered (unbuffered()), so _exit() doesn't lose anything that was printed before.
+On Windows the handler runs in a separate thread, where printf() and exit() are fine.
+*/
+static void signal_message(const char *msg)
+{
+#if defined _MSC_VER || defined __MINGW32__
+  fputs(msg, stdout);
+#else
+  if (write(STDOUT_FILENO, msg, strlen(msg)) < 0)
+  {
+    /* nothing to do */
+  }
+#endif
+}
+
 void my_signal_handler(int signum)
 {
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __MINGW32__
     /* Windows resets the signal handler to the default action once it is invoked so we just register it again. */
     signal(signum, &my_signal_handler);
+#else
+    (void)signum;
 #endif
 
     signal_handler_mystuff->quit++;
     if (signal_handler_mystuff->quit == 1) {
-        printf("\nmfakto will exit once the current %s is finished.\n", signal_handler_mystuff->mode == MODE_NORMAL ? "class" : "test");
-        printf("press ^C again to exit immediately\n");
+        signal_message(signal_handler_mystuff->mode == MODE_NORMAL ? "\nmfakto will exit once the current class is finished.\n"
+                                                                   : "\nmfakto will exit once the current test is finished.\n");
+        signal_message(signal_handler_mystuff->mode == MODE_NORMAL ? "press ^C again to stop the current class and exit\n"
+                                                                   : "press ^C again to stop the current test and exit\n");
     }
-    if (signal_handler_mystuff->quit > 1) {
-        printf("mfakto will exit NOW!\n");
+    else if (signal_handler_mystuff->quit == 2) {
+        /* the main loop stops the class early and exits normally, so files are closed and lock files removed */
+        signal_message(signal_handler_mystuff->mode == MODE_NORMAL ? "mfakto will stop the current class and exit.\n"
+                                                                   : "mfakto will stop the current test and exit.\n");
+        signal_message("press ^C again to exit immediately\n");
+    }
+    else {
+        /* last resort, such as when mfakto is waiting for a lock file */
+        signal_message("mfakto will exit NOW!\n");
+#if defined _MSC_VER || defined __MINGW32__
         exit(1);
+#else
+        _exit(1);
+#endif
     }
-    signum++; /* useless but avoids warning about unused variable... */
+}
+
+/* make f unbuffered (see my_signal_handler()) */
+void unbuffered(FILE *f)
+{
+  if (f != NULL) setvbuf(f, NULL, _IONBF, 0);
 }
 
 void register_signal_handler(mystuff_t *mystuff)
