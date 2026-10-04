@@ -2758,6 +2758,8 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
   else shared_mem_required = 19;          // 550453 primes expect 16.97%
 #endif
   shared_mem_required = mystuff->gpu_sieve_processing_size * sizeof (short) * shared_mem_required / 100;
+  // the kernels read VECTOR_SIZE candidates at a time, extract_bits() pads the list for that
+  shared_mem_required += (mystuff->vectorsize - 1) * sizeof (short);
 
   while((k_min <= k_max) || (running > 0))
   {
@@ -3231,6 +3233,14 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
       mystuff->sieve_primes /= 8;
       if(mystuff->sieve_primes < mystuff->sieve_primes_min) mystuff->sieve_primes = mystuff->sieve_primes_min;
     }
+  }
+
+  if (mystuff->gpu_sieving && mystuff->h_RES[31] != 0)
+  {
+    std::cerr << "ERROR: a GPU sieve block had " << mystuff->h_RES[31] << " candidates, more than its buffer of "
+              << (shared_mem_required / sizeof(short) - (mystuff->vectorsize - 1)) << " holds. Factors could have been missed "
+              << "due to untested candidates. Please report this.\n";
+    return RET_ERROR;
   }
 
   factorsfound = mystuff->h_RES[0];
