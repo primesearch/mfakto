@@ -37,6 +37,7 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #include "output.h"
 #include "gpusieve.h"
 #include "menu.h"
+#include "crc.h"
 #ifndef _MSC_VER
 #include <sys/time.h>
 #else
@@ -897,6 +898,63 @@ void set_gpu_type()
   }
 }
 
+/* the files the kernels are compiled from (KERNEL_FILE and the files it includes) */
+static const char *kernel_source_files[] = { KERNEL_FILE, "common.cl", "gpusieve.cl", "barrett15.cl", "barrett.cl",
+                                             "mul24.cl", "montgomery.cl", "datatypes.h", "tf_debug.h" };
+
+/*
+ * kernel_sources_checksum
+ * checksum over the contents of all kernel source files, a missing file counts as empty
+ */
+static unsigned int kernel_sources_checksum(void)
+{
+  char checksums[sizeof(kernel_source_files) / sizeof(kernel_source_files[0]) * 9 + 1];
+  size_t n = 0;
+
+  for (size_t i = 0; i < sizeof(kernel_source_files) / sizeof(kernel_source_files[0]); i++)
+  {
+    unsigned int crc = 0;
+    std::fstream f(kernel_source_files[i], (std::fstream::in | std::fstream::binary));
+
+    if (f.is_open())
+    {
+      f.seekg(0, std::fstream::end);
+      size_t size = (size_t)f.tellg();
+      f.seekg(0, std::fstream::beg);
+      char *contents = (char *)malloc(size + 1);
+      if (contents)
+      {
+        f.read(contents, size);
+        crc = crc32_checksum(contents, size);
+        free(contents);
+      }
+      f.close();
+    }
+    n += snprintf(checksums + n, sizeof(checksums) - n, "%08X ", crc);
+  }
+  return crc32_checksum(checksums, n);
+}
+
+/*
+ * binfile_header
+ * The header of a binary kernel file. A binary kernel can only be used with the
+ * build options, platform, device, driver and kernel sources it was built with.
+ */
+static void binfile_header(char *header, size_t size, const char *program_options, cl_device_id device)
+{
+  char platform_name[256] = "", device_name[256] = "", driver_version[256] = "";
+  cl_platform_id platform = NULL;
+
+  clGetDeviceInfo(device, CL_DEVICE_NAME, sizeof(device_name), device_name, NULL);
+  clGetDeviceInfo(device, CL_DRIVER_VERSION, sizeof(driver_version), driver_version, NULL);
+  if (clGetDeviceInfo(device, CL_DEVICE_PLATFORM, sizeof(platform), &platform, NULL) == CL_SUCCESS)
+    clGetPlatformInfo(platform, CL_PLATFORM_NAME, sizeof(platform_name), platform_name, NULL);
+  platform_name[sizeof(platform_name) - 1] = device_name[sizeof(device_name) - 1] = driver_version[sizeof(driver_version) - 1] = '\0';
+
+  snprintf(header, size, "Compile options: %s\nPlatform: %s\nDevice: %s\nDriver version: %s\nKernel sources: %08X\n",
+           program_options, platform_name, device_name, driver_version, kernel_sources_checksum());
+}
+
 /*
  * load_kernels
  * compile cl files or load the precompiled binary, and load all kernels
@@ -910,6 +968,7 @@ int load_kernels(cl_int *devnumber)
   char*  source = NULL;
   int binary_loaded = 0;
   char program_options[256]; /* default options (< 100 chars) + CompileOptions (< 151 chars) */
+  char header[256 + 3 * 256 + 100]; /* program_options, platform, device and driver names, checksum */
 
   // so far use the same vector size for all kernels ...
   if (mystuff.CompileOptions[0] && mystuff.CompileOptions[0] != '+')  // if mfakto.ini defined compile options, override the default with them
@@ -954,6 +1013,7 @@ int load_kernels(cl_int *devnumber)
 
   if (mystuff.binfile[0])
   {
+    binfile_header(header, sizeof(header), program_options, devices[*devnumber]);
     if (mystuff.force_rebuild == 1) remove(mystuff.binfile);
 
     // check if binfile exists
@@ -979,23 +1039,24 @@ int load_kernels(cl_int *devnumber)
         f.read(source, size);
         f.close();
         source[size] = '\0';
-        char source_options[256];
-#ifdef _MSC_VER
-        std::ignore = sscanf(source, "Compile options: %255[^\r\n]\n", source_options);
-#else
-        sscanf(source, "Compile options: %255[^\r\n]\n", source_options);
-#endif
-        if (strcmp(source_options, program_options) != 0)
+        size_t len = strlen(header);
+        if (size < len || memcmp(source, header, len) != 0)
         {
-          printf("\nCannot use binary kernel: its build options (%s) are different than the current build options (%s). Rebuilding kernels.\n", source_options, program_options);
+          // show the first line of the expected header that doesn't match
+          size_t start = 0, end;
+          while (start < len && start < size && source[start] == header[start]) start++;
+          while (start > 0 && header[start - 1] != '\n') start--;
+          for (end = start; header[end] != '\n'; end++);
+          printf("\nCannot use binary kernel file %s: it wasn't built for \"%.*s\" (it was built with other build options, "
+                 "for another device or driver, or from other kernel sources). Rebuilding kernels.\n",
+                 mystuff.binfile, (int)(end - start), header + start);
           free(source);
           source = NULL;
         }
         else
         {
-          // locate the binary and load it
-          size_t len=strlen(source_options) + 18; // fix text part
-          memmove(source, source+len, size-len);
+          // skip the header and load the binary
+          memmove(source, source + len, size - len);
           size -= len;
         }
       }
@@ -1016,10 +1077,14 @@ int load_kernels(cl_int *devnumber)
           fprintf(stderr, "Cannot use binary kernel: binary status=%d (%s), error code=%d (%s)\n",
             status, ClErrorString(status), errcode, ClErrorString(errcode));
           free(source); source = NULL;
-          status = clReleaseProgram(program); program = NULL;
-          if(status != CL_SUCCESS)
+          if (program != NULL)
           {
-            std::cerr<<"Error" << status << " (" << ClErrorString(status) << "): clReleaseProgram\n";
+            status = clReleaseProgram(program);
+            if(status != CL_SUCCESS)
+            {
+              std::cerr<<"Error " << status << " (" << ClErrorString(status) << "): clReleaseProgram\n";
+            }
+            program = NULL;
           }
         }
         else
@@ -1030,6 +1095,7 @@ int load_kernels(cl_int *devnumber)
     }
   }
 
+build_from_source:
   if (!program) // load binary failed or is not enabled
   {
     std::fstream f(KERNEL_FILE, (std::fstream::in | std::fstream::binary));
@@ -1065,7 +1131,7 @@ int load_kernels(cl_int *devnumber)
       return 1;
     }
   }
-  if (source) free(source);
+  if (source) { free(source); source = NULL; }
 
   if (mystuff.verbosity > 1)
     printf("Compiling kernels (build options: \"%s\").", program_options);
@@ -1110,11 +1176,6 @@ int load_kernels(cl_int *devnumber)
         std::cout << " \n\tBUILD OUTPUT\n";
         std::cout << buildLog << std::endl;
         std::cout << " \tEND OF BUILD OUTPUT\n";
-        if (strstr(buildLog, " not for the target") && binary_loaded)
-        {
-          printf("Removing binary kernel file %s as it seems to be for a different platform.\nPlease restart mfakto.", mystuff.binfile);
-          remove (mystuff.binfile);
-        }
         free(buildLog);
       }
       else
@@ -1122,13 +1183,27 @@ int load_kernels(cl_int *devnumber)
         printf("No build log available.\n");
       }
     }
-    std::cerr<<"Error " << status << " (" << ClErrorString(status) << "): clBuildProgram\n";
-    if (status != CL_SUCCESS) return 1;
+    if (status != CL_SUCCESS && binary_loaded)
+    {
+      // e.g. a binary for another device that the driver didn't reject when loading it
+      printf("Cannot use binary kernel file %s: building it failed. Rebuilding kernels.\n", mystuff.binfile);
+      clReleaseProgram(program);
+      program = NULL;
+      binary_loaded = 0;
+      remove(mystuff.binfile);
+      goto build_from_source;
+    }
+    if (status != CL_SUCCESS)
+    {
+      std::cerr<<"Error " << status << " (" << ClErrorString(status) << "): clBuildProgram\n";
+      return 1;
+    }
   }
 
   size_t numDevices=0;
   char **binaries=NULL;
   size_t *binarySizes=NULL;
+  cl_device_id *program_devices = NULL;
   while (!binary_loaded && mystuff.binfile[0]) // should be an if, but I want to use break on errors
   {
     // write the binary file if we did not load from there
@@ -1144,9 +1219,8 @@ int load_kernels(cl_int *devnumber)
       break;
     }
 
-    cl_device_id *devices = (cl_device_id *)malloc( sizeof(cl_device_id) *
-                            numDevices );
-    if(!devices)
+    program_devices = (cl_device_id *)malloc( sizeof(cl_device_id) * numDevices );
+    if(!program_devices)
     {
       std::cerr << "Failed to allocate host memory.(devices, " << sizeof(cl_device_id) << " bytes)\n";
       break;
@@ -1156,7 +1230,7 @@ int load_kernels(cl_int *devnumber)
                  program,
                  CL_PROGRAM_DEVICES,
                  sizeof(cl_device_id) * numDevices,
-                 devices,
+                 program_devices,
                  NULL );
     if(status != CL_SUCCESS)
     {
@@ -1228,7 +1302,7 @@ int load_kernels(cl_int *devnumber)
     {
         char deviceName[1024];
         status = clGetDeviceInfo(
-                     devices[active_device],
+                     program_devices[active_device],
                      CL_DEVICE_NAME,
                      sizeof(deviceName),
                      deviceName,
@@ -1242,8 +1316,6 @@ int load_kernels(cl_int *devnumber)
         std::fstream f(mystuff.binfile, (std::fstream::out | std::fstream::binary | std::fstream::trunc));
         if(f.is_open())
         {
-          char header[256 + 20]; /* "Compile options: " + program_options + "\n" */
-          snprintf(header, sizeof(header), "Compile options: %s\n", program_options);
           f.write(header, strlen(header));
           f.write(binaries[active_device], binarySizes[active_device]);
           f.close();
@@ -1281,10 +1353,10 @@ int load_kernels(cl_int *devnumber)
     free(binarySizes);
     binarySizes = NULL;
   }
-  if(devices != NULL)
+  if(program_devices != NULL)
   {
-    free(devices);
-    devices = NULL;
+    free(program_devices);
+    program_devices = NULL;
   }
 
   /* get kernels by name */
