@@ -68,7 +68,7 @@ extern "C"
 #include "signal_handler.h"
 extern mystuff_t    mystuff;
 extern GPU_type     gpu_types[];
-OpenCL_deviceinfo_t deviceinfo={{0}};
+OpenCL_deviceinfo_t deviceinfo={};
 kernel_info_t       kernel_info[] = {
   /*   kernel (in sequence) | kernel function name | bit_min | bit_max | stages? | loaded kernel pointer */
      {   AUTOSELECT_KERNEL,   "auto",                  0,      0,         0,      NULL},
@@ -258,6 +258,7 @@ int init_CLstreams(int gs_reinit_only)
  */
 int init_CL(int num_streams, cl_int *devnumber)
 {
+  (void)num_streams; /* the streams are created in init_CLstreams() */
   cl_int status;
   size_t dev_s;
   cl_uint numplatforms, i;
@@ -1182,7 +1183,7 @@ int load_kernels(cl_int *devnumber)
       break;
     }
     // we copy only the first binary, but numDevices is usually 1 anyway
-    binaries = (char **)calloc( sizeof(char *), numDevices );
+    binaries = (char **)calloc( numDevices, sizeof(char *) );
     if (!binaries)
     {
       std::cerr << "Failed to allocate host memory.(binaries, " << (sizeof(char *) * numDevices) << " bytes)\n";
@@ -1376,6 +1377,9 @@ void  CL_CALLBACK CL_error_cb(const char *errinfo,
     size_t  cb,
     void  *user_data)
 {
+  (void)private_info;
+  (void)cb;
+  (void)user_data;
   std::cerr << "Error callback: " << errinfo << std::endl;
 }
 
@@ -1998,6 +2002,7 @@ int run_kernel24(cl_kernel l_kernel, cl_uint exp, int72 k_base, int stream, int1
 */
 {
   cl_int   status;
+  (void)bin_min63; /* not used by the 24-bit kernels */
   /*
   __kernel void mfakto_cl_71(__private uint exp, __private int72_t k_base,
                              __global uint *k_tab, __private int shiftcount,
@@ -2638,11 +2643,11 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
 #endif
   cl_uint i;
 // for TF_72BIT
-  int72  k_base = {0};
-  int144 b_preinit = {0};
-  int192 b_192 = {0};
+  int72  k_base = {};
+  int144 b_preinit = {};
+  int192 b_192 = {};
   cl_uint8 b_in = {{0}};
-  int96  factor = {0}, prev_factor = {0};
+  int96  factor = {}, prev_factor = {};
   cl_uint  factorsfound=0;
   cl_uint  shiftcount, ln2b, count=1, shared_mem_required, numblocks;
   cl_ulong b_preinit_lo, b_preinit_mid, b_preinit_hi;
@@ -2888,7 +2893,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
 
         if (use_kernel >= BARRETT73_MUL15_GS && use_kernel <= BARRETT74_MUL15_GS)
         {
-          int75 k_base = {0};
+          int75 k_base = {};
           k_base.d0 =  k_min & 0x7FFF;
           k_base.d1 = (k_min >> 15) & 0x7FFF;
           k_base.d2 = (k_min >> 30) & 0x7FFF;
@@ -2959,7 +2964,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
             }
             else if (((use_kernel >= BARRETT73_MUL15) && (use_kernel <= BARRETT74_MUL15)) || (use_kernel == MG88))
             {
-              int75 k_base = {0};
+              int75 k_base = {};
               k_base.d0 =  k_min_grid[i] & 0x7FFF;
               k_base.d1 = (k_min_grid[i] >> 15) & 0x7FFF;
               k_base.d2 = (k_min_grid[i] >> 30) & 0x7FFF;
@@ -3102,6 +3107,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
               }
             }
           }
+          // fall through
         case DONE:                       // get the results
           {                              // or maybe not; wait until the class is done.
             mystuff->stream_status[i] = UNUSED;
