@@ -617,47 +617,49 @@ int gpusieve_init (mystuff_t *mystuff, cl_context context)
 
 
 // GPU sieve initialization that needs to be done once for each Mersenne exponent to be factored.
+// The GPU sieve functions return 0 on success and non-zero if a kernel couldn't be started.
 
-void gpusieve_init_exponent (mystuff_t *mystuff)
+int gpusieve_init_exponent (mystuff_t *mystuff)
 {
 
 #ifdef RAW_GPU_BENCH
   // Quick hack (leave bit array set to all ones) to eliminate sieve time from GPU-code benchmarks.
   // Can also be used to isolate a bug by eliminating the GPU sieving code as a possible cause.
-  return;
+  return 0;
 #endif
 
   // If we've already initialized this exponent, return
-  if (mystuff->exponent == last_exponent_initialized) return;
-  last_exponent_initialized = mystuff->exponent;
+  if (mystuff->exponent == last_exponent_initialized) return 0;
 
   // Calculate the modular inverses that will be used by each class to calculate initial bit-to-clear for each prime
   // CalcModularInverses<<<primes_per_thread+1, threadsPerBlock>>>(mystuff->exponent, (int *)mystuff->d_calc_bit_to_clear_info);
   // cudaThreadSynchronize ();
-  run_calc_mod_inv(primes_per_thread+1, threadsPerBlock, NULL);
+  if (run_calc_mod_inv(primes_per_thread+1, threadsPerBlock, NULL) != 0) return 1;
+  last_exponent_initialized = mystuff->exponent;
+  return 0;
 }
 
 
 // GPU sieve initialization that needs to be done once for each class to be factored.
 
-void gpusieve_init_class (mystuff_t *mystuff, unsigned long long k_min)
+int gpusieve_init_class (mystuff_t *mystuff, unsigned long long k_min)
 {
 #ifdef RAW_GPU_BENCH
   // Quick hack (leave bit array set to all ones) to eliminate sieve time from GPU-code benchmarks.
   // Can also be used to isolate a bug by eliminating the GPU sieving code as a possible cause.
-  return;
+  return 0;
 #endif
 
   // Calculate the initial bit-to-clear for each prime
   // CalcBitToClear<<<primes_per_thread+1, threadsPerBlock>>>(mystuff->exponent, k_base, (int *)mystuff->d_calc_bit_to_clear_info, (cl_uchar *)mystuff->d_sieve_info);
   // cudaThreadSynchronize ();
-  run_calc_bit_to_clear(primes_per_thread+1, threadsPerBlock, NULL, k_min);
+  return run_calc_bit_to_clear(primes_per_thread+1, threadsPerBlock, NULL, k_min) != 0;
 }
 
 
 // GPU sieve the next chunk
 
-void gpusieve (mystuff_t *mystuff, unsigned long long num_k_remaining)
+int gpusieve (mystuff_t *mystuff, unsigned long long num_k_remaining)
 {
   cl_uint maxp = 0xFFFFFFFF; // marker to not copy the param to the GPU
   int  sieve_size;
@@ -665,7 +667,7 @@ void gpusieve (mystuff_t *mystuff, unsigned long long num_k_remaining)
 #ifdef RAW_GPU_BENCH
   // Quick hack (leave bit array set to all ones) to eliminate sieve time from GPU-code benchmarks.
   // Can also be used to isolate a bug by eliminating the GPU sieving code as a possible cause.
-  return;
+  return 0;
 #endif
 
   // Sieve at most 128 million k values.
@@ -682,7 +684,7 @@ void gpusieve (mystuff_t *mystuff, unsigned long long num_k_remaining)
   // Do some sieving on the GPU!
   // SegSieve<<<(sieve_size + block_size - 1) / block_size, threadsPerBlock>>>((cl_uchar *)mystuff->d_bitarray, (cl_uchar *)mystuff->d_sieve_info, primes_per_thread);
   // cudaThreadSynchronize ();
-  run_cl_sieve((sieve_size + block_size - 1) / block_size, threadsPerBlock, NULL, maxp);
+  return run_cl_sieve((sieve_size + block_size - 1) / block_size, threadsPerBlock, NULL, maxp) != 0;
 }
 
 int gpusieve_free (mystuff_t *mystuff)
