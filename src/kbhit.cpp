@@ -9,7 +9,31 @@
 
 keyboard::keyboard()
 {
-    tcgetattr(0,&initial_settings);
+    peek_character=-1;
+    configured = false;
+    configure();
+}
+
+keyboard::~keyboard()
+{
+    if (configured && foreground_terminal()) tcsetattr(0, TCSANOW, &initial_settings);
+}
+
+/*
+Keys are only read from a terminal while mfakto runs in the foreground. read() would block if stdin is a pipe or a
+socket (such as when mfakto is started by another program), and a background process that changes the terminal
+settings or reads from the terminal is stopped (SIGTTOU/SIGTTIN).
+*/
+bool keyboard::foreground_terminal()
+{
+    return isatty(0) && tcgetpgrp(0) == getpgrp();
+}
+
+/* switch the terminal to non-canonical mode, once mfakto runs in the foreground */
+void keyboard::configure()
+{
+    if (configured || !foreground_terminal()) return;
+    if (tcgetattr(0,&initial_settings) != 0) return;
     new_settings = initial_settings;
     new_settings.c_lflag &= ~ICANON;
 //    new_settings.c_lflag &= ~ECHO;
@@ -17,12 +41,7 @@ keyboard::keyboard()
     new_settings.c_cc[VMIN] = 1;
     new_settings.c_cc[VTIME] = 0;
     tcsetattr(0, TCSANOW, &new_settings);
-    peek_character=-1;
-}
-
-keyboard::~keyboard()
-{
-    tcsetattr(0, TCSANOW, &initial_settings);
+    configured = true;
 }
 
 int keyboard::kbhit()
@@ -31,6 +50,8 @@ unsigned char ch;
 int nread;
 
     if (peek_character != -1) return 1;
+    configure();
+    if (!configured || !foreground_terminal()) return 0;
     new_settings.c_cc[VMIN]=0;
     tcsetattr(0, TCSANOW, &new_settings);
     nread = read(0,&ch,1);
