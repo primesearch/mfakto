@@ -189,13 +189,25 @@ FILE *fopen_and_lock(const char *path, const char *mode)
     return f;
 }
 
-int unlock_and_fclose(FILE *f)
+/* closes the lock file of locked_files[i] and removes the entry */
+static void release_lock(unsigned int i)
 {
-  unsigned int i, j;
-  int ret;
+  unsigned int j;
 
-  if (f == NULL) return -1;
+  if (close(locked_files[i].lockfd) != 0) perror("Failed to close lockfile");
+  if (remove(locked_files[i].lock_filename)!= 0) perror("Failed to delete lockfile");
+//      printf("release_lock(%s)\n", locked_files[i].lock_filename);
+  for (j=i+1; j<num_locked_files; j++)
+  {
+    locked_files[j-1].lockfd = locked_files[j].lockfd;
+    locked_files[j-1].open_file = locked_files[j].open_file;
+    strcpy(locked_files[j-1].lock_filename, locked_files[j].lock_filename);
+  }
+  num_locked_files--;
+}
 
+static void restore_current_dir(void)
+{
   if (current_dir == NULL) {
       current_dir = getcwd(NULL, 0);
       current_drive = getdrive();
@@ -203,6 +215,16 @@ int unlock_and_fclose(FILE *f)
   if (chdrive(current_drive) || current_dir == NULL || chdir(current_dir)) {
       fprintf(stderr, "\nWarning: Current directory \"%s\" is not available.\n", current_dir);
   }
+}
+
+int unlock_and_fclose(FILE *f)
+{
+  unsigned int i;
+  int ret;
+
+  if (f == NULL) return -1;
+
+  restore_current_dir();
 
   for (i=0; i<num_locked_files; i++)
   {
@@ -210,16 +232,7 @@ int unlock_and_fclose(FILE *f)
     {
       ret = fclose(f);
       f = NULL;
-      if (close(locked_files[i].lockfd) != 0) perror("Failed to close lockfile");
-      if (remove(locked_files[i].lock_filename)!= 0) perror("Failed to delete lockfile");
-//      printf("unlock_and_fclose(%s)\n", locked_files[i].lock_filename);
-      for (j=i+1; j<num_locked_files; j++)
-      {
-        locked_files[j-1].lockfd = locked_files[j].lockfd;
-        locked_files[j-1].open_file = locked_files[j].open_file;
-        strcpy(locked_files[j-1].lock_filename, locked_files[j].lock_filename);
-      }
-      num_locked_files--;
+      release_lock(i);
       break;
     }
   }
@@ -306,4 +319,67 @@ int lock_workfile(const char *workfile)
   /* lock_fd stays open until the process exits */
 #endif
   return 0;
+}
+
+/* closes a file opened with fopen_and_lock() but keeps it locked until unlock_file(path) */
+int fclose_keep_lock(FILE *f)
+{
+  unsigned int i;
+
+  if (f == NULL) return -1;
+  for (i=0; i<num_locked_files; i++)
+  {
+    if (locked_files[i].open_file == f)
+    {
+      locked_files[i].open_file = NULL;
+      break;
+    }
+  }
+  return fclose(f);
+}
+
+/* releases the lock of a file closed with fclose_keep_lock() */
+int unlock_file(const char *path)
+{
+  unsigned int i;
+  char lock_filename[256];
+
+  snprintf(lock_filename, sizeof(lock_filename), "%.250s.lck", path);
+  restore_current_dir();
+  for (i=0; i<num_locked_files; i++)
+  {
+    if (locked_files[i].open_file == NULL && strcmp(locked_files[i].lock_filename, lock_filename) == 0)
+    {
+      release_lock(i);
+      return 0;
+    }
+  }
+  return -1;
+}
+
+/* replaces the file "to" with the file "from"; on POSIX systems atomically. returns 0 on success */
+int replace_file(const char *from, const char *to)
+{
+#if defined _MSC_VER || defined __MINGW32__
+  return MoveFileExA(from, to, MOVEFILE_REPLACE_EXISTING) ? 0 : -1;
+#else
+  struct stat st;
+
+  /* keep the permissions of the replaced file (mkstemp() creates files with mode 0600) */
+  if (stat(to, &st) == 0) chmod(from, st.st_mode & 07777);
+  return rename(from, to);
+#endif
+}
+
+/* creates a file with a unique name from tpl, whose last six characters must be "XXXXXX". returns 0 on success */
+int make_temp_file(char *tpl)
+{
+#if defined _MSC_VER || defined __MINGW32__
+  return _mktemp_s(tpl, strlen(tpl) + 1);
+#else
+  int temp_fd = mkstemp(tpl);
+  if (temp_fd == -1) return errno ? errno : EINVAL;
+  close(temp_fd);
+  return 0;
+#endif
 }
