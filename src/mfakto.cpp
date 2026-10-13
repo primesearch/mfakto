@@ -962,6 +962,27 @@ static void binfile_header(char *header, size_t size, const char *program_option
 }
 
 /*
+build_program() builds program with the given options. Optimization options such as -O3 aren't part of the OpenCL
+standard: some drivers (e.g. Mesa's rusticl) reject them with CL_INVALID_BUILD_OPTIONS. In this case the program is
+built again without -O3, so it doesn't have to be known in advance which drivers accept it.
+*/
+cl_int build_program(cl_program program, cl_device_id device, const char *options)
+{
+  cl_int status = clBuildProgram(program, 1, &device, options, NULL, NULL);
+  const char *o3 = strstr(options, " -O3");
+
+  if (status == CL_INVALID_BUILD_OPTIONS && o3 != NULL && (o3[4] == ' ' || o3[4] == '\0'))
+  {
+    char retry_options[512];
+
+    snprintf(retry_options, sizeof(retry_options), "%.*s%s", (int)(o3 - options), options, o3 + 4);
+    printf("The OpenCL driver doesn't accept -O3, building without it.\n");
+    status = clBuildProgram(program, 1, &device, retry_options, NULL, NULL);
+  }
+  return status;
+}
+
+/*
  * load_kernels
  * compile cl files or load the precompiled binary, and load all kernels
  */
@@ -1145,7 +1166,7 @@ build_from_source:
 
   // program_options can be overridden by setting en environment variable AMD_OCL_BUILD_OPTIONS
 
-  status = clBuildProgram(program, 1, &devices[*devnumber], program_options, NULL, NULL);
+  status = build_program(program, devices[*devnumber], program_options);
   if((status != CL_SUCCESS) || (mystuff.verbosity > 2))
   {
     if((status == CL_BUILD_PROGRAM_FAILURE) || (mystuff.verbosity > 2))
