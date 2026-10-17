@@ -417,11 +417,12 @@ A: The 73-bit Barrett kernel is currently the fastest and works for factors
 Q: I modified something in the kernel files, but my changes are not picked up
    by mfakto. How come?
 A: mfakto loads the pre-compiled kernels from the file named by the INI file
-   parameter UseBinfile. mfakto recompiles the kernels when the kernel files,
-   the build options, the device or the driver version differ from those the
-   file was built with (versions up to 0.16.0-beta.5 only check the build
-   options: delete the file and restart mfakto). You can also force a
-   recompile with -r.
+   parameter UseBinfile. It recompiles the kernels when the kernel files,
+   build options, the platform or device device names, or the driver version
+   differ from those specified in the header. You can also use the -r option
+   to force mfakto to recompile the kernels. Please note that mfakto
+   0.16.0-beta.5 and earlier only check the build options; the user must
+   delete the .elf file and restart mfakto.
 
 ###########
 # 7 Plans #

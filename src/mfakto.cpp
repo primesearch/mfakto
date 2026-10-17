@@ -895,61 +895,60 @@ void set_gpu_type()
   }
 }
 
-/* the files the kernels are compiled from (KERNEL_FILE and the files it includes) */
-static const char *kernel_source_files[] = { KERNEL_FILE, "common.cl", "gpusieve.cl", "barrett15.cl", "barrett.cl",
-                                             "mul24.cl", "montgomery.cl", "datatypes.h", "tf_debug.h" };
+/* the files the kernels are compiled from (specifically KERNEL_FILE and the files it includes) */
+static const char *kernel_source_files[] = { KERNEL_FILE, "common.cl",     "gpusieve.cl", "barrett15.cl", "barrett.cl",
+                                             "mul24.cl",  "montgomery.cl", "datatypes.h", "tf_debug.h" };
 
 /*
- * kernel_sources_checksum
- * checksum over the contents of all kernel source files, a missing file counts as empty
+ * kernel_sources_checksum()
+ * checksum over the contents of all kernel source files; a missing file
+ * counts as empty
  */
 static unsigned int kernel_sources_checksum(void)
 {
-  char checksums[sizeof(kernel_source_files) / sizeof(kernel_source_files[0]) * 9 + 1];
-  size_t n = 0;
+    char checksums[sizeof(kernel_source_files) / sizeof(kernel_source_files[0]) * 9 + 1];
+    size_t n = 0;
 
-  for (size_t i = 0; i < sizeof(kernel_source_files) / sizeof(kernel_source_files[0]); i++)
-  {
-    unsigned int crc = 0;
-    std::fstream f(kernel_source_files[i], (std::fstream::in | std::fstream::binary));
+    for (size_t i = 0; i < sizeof(kernel_source_files) / sizeof(kernel_source_files[0]); i++) {
+        unsigned int crc = 0;
+        std::fstream f(kernel_source_files[i], (std::fstream::in | std::fstream::binary));
 
-    if (f.is_open())
-    {
-      f.seekg(0, std::fstream::end);
-      size_t size = (size_t)f.tellg();
-      f.seekg(0, std::fstream::beg);
-      char *contents = (char *)malloc(size + 1);
-      if (contents)
-      {
-        f.read(contents, size);
-        crc = crc32_checksum(contents, size);
-        free(contents);
-      }
-      f.close();
+        if (f.is_open()) {
+            f.seekg(0, std::fstream::end);
+            size_t size = (size_t)f.tellg();
+            f.seekg(0, std::fstream::beg);
+            char *contents = (char *)malloc(size + 1);
+            if (contents) {
+                f.read(contents, size);
+                crc = crc32_checksum(contents, size);
+                free(contents);
+            }
+            f.close();
+        }
+        n += snprintf(checksums + n, sizeof(checksums) - n, "%08X ", crc);
     }
-    n += snprintf(checksums + n, sizeof(checksums) - n, "%08X ", crc);
-  }
-  return crc32_checksum(checksums, n);
+    return crc32_checksum(checksums, n);
 }
 
 /*
- * binfile_header
- * The header of a binary kernel file. A binary kernel can only be used with the
- * build options, platform, device, driver and kernel sources it was built with.
+ * binfile_header()
+ * The header of a binary kernel file. A binary kernel can only be used with
+ * the same build options, driver and kernel sources it was built with.
+ * Platform and device names must also match.
  */
 static void binfile_header(char *header, size_t size, const char *program_options, cl_device_id device)
 {
-  char platform_name[256] = "", device_name[256] = "", driver_version[256] = "";
-  cl_platform_id platform = NULL;
+    char platform_name[256] = "", device_name[256] = "", driver_version[256] = "";
+    cl_platform_id platform = NULL;
 
-  clGetDeviceInfo(device, CL_DEVICE_NAME, sizeof(device_name), device_name, NULL);
-  clGetDeviceInfo(device, CL_DRIVER_VERSION, sizeof(driver_version), driver_version, NULL);
-  if (clGetDeviceInfo(device, CL_DEVICE_PLATFORM, sizeof(platform), &platform, NULL) == CL_SUCCESS)
-    clGetPlatformInfo(platform, CL_PLATFORM_NAME, sizeof(platform_name), platform_name, NULL);
-  platform_name[sizeof(platform_name) - 1] = device_name[sizeof(device_name) - 1] = driver_version[sizeof(driver_version) - 1] = '\0';
+    clGetDeviceInfo(device, CL_DEVICE_NAME, sizeof(device_name), device_name, NULL);
+    clGetDeviceInfo(device, CL_DRIVER_VERSION, sizeof(driver_version), driver_version, NULL);
+    if (clGetDeviceInfo(device, CL_DEVICE_PLATFORM, sizeof(platform), &platform, NULL) == CL_SUCCESS)
+        clGetPlatformInfo(platform, CL_PLATFORM_NAME, sizeof(platform_name), platform_name, NULL);
+    platform_name[sizeof(platform_name) - 1] = device_name[sizeof(device_name) - 1] = driver_version[sizeof(driver_version) - 1] = '\0';
 
-  snprintf(header, size, "Compile options: %s\nPlatform: %s\nDevice: %s\nDriver version: %s\nKernel sources: %08X\n",
-           program_options, platform_name, device_name, driver_version, kernel_sources_checksum());
+    snprintf(header, size, "Compile options: %s\nPlatform: %s\nDevice: %s\nDriver version: %s\nKernel sources: %08X\n", program_options,
+             platform_name, device_name, driver_version, kernel_sources_checksum());
 }
 
 /*
@@ -1044,8 +1043,7 @@ int load_kernels(cl_int *devnumber)
           while (start < len && start < size && source[start] == header[start]) start++;
           while (start > 0 && header[start - 1] != '\n') start--;
           for (end = start; header[end] != '\n'; end++);
-          printf("\nCannot use binary kernel file %s: it wasn't built for \"%.*s\" (it was built with other build options, "
-                 "for another device or driver, or from other kernel sources). Rebuilding kernels.\n",
+          printf("\nCannot use binary kernel file %s: expected \"%.*s\" but was built with other options, for another device or driver, or from other kernel sources. Rebuilding kernels.\n",
                  mystuff.binfile, (int)(end - start), header + start);
           free(source);
           source = NULL;
@@ -1183,7 +1181,7 @@ build_from_source:
     if (status != CL_SUCCESS && binary_loaded)
     {
       // e.g. a binary for another device that the driver didn't reject when loading it
-      printf("Cannot use binary kernel file %s: building it failed. Rebuilding kernels.\n", mystuff.binfile);
+      printf("Cannot use binary kernel file %s: build failed. Rebuilding kernels.\n", mystuff.binfile);
       clReleaseProgram(program);
       program = NULL;
       binary_loaded = 0;
