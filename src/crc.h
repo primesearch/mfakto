@@ -16,4 +16,14 @@ You should have received a copy of the GNU General Public License
 along with mfaktc.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stddef.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 unsigned int crc32_checksum(char *string, size_t chars);
+
+#ifdef __cplusplus
+}
+#endif
