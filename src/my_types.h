@@ -293,7 +293,11 @@ typedef struct _mystuff_t
   cl_uint  vectorsize;
   cl_uint  printmode;
   cl_uint  print_timestamp;
+#if defined _MSC_VER || defined __MINGW32__
+  volatile long quit;          /* set by the signal handler, which runs on its own thread on Windows (see my_signal_handler()) */
+#else
   volatile sig_atomic_t quit;  /* set by the signal handler */
+#endif
   cl_ulong cpu_mask;           /* CPU affinity mask for the siever thread */
   cl_int   verbosity;          /* -1 = uninitialized, 0 = reduced number of screen printfs, 1= default, >= 2 = some additional printfs */
   cl_int   logging;

@@ -21,7 +21,9 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if !(defined _MSC_VER || defined __MINGW32__)
+#if defined _MSC_VER || defined __MINGW32__
+  #include <intrin.h>
+#else
   #include <unistd.h>
 #endif
 
@@ -61,14 +63,23 @@ void my_signal_handler(int signum)
     (void)signum;
 #endif
 
-    signal_handler_mystuff->quit++;
-    if (signal_handler_mystuff->quit == 1) {
+    long n;
+
+    /* decide by the value of this increment and don't read quit again: on Windows, each ^C runs the handler on a new
+       thread, so handlers can overlap, and the increment must be atomic. On POSIX systems the handler can't be
+       interrupted by another SIGINT or SIGTERM (see register_signal_handler()). */
+#if defined _MSC_VER || defined __MINGW32__
+    n = _InterlockedIncrement(&signal_handler_mystuff->quit);
+#else
+    n = ++signal_handler_mystuff->quit;
+#endif
+    if (n == 1) {
         signal_message(signal_handler_mystuff->mode == MODE_NORMAL ? "\nmfakto will exit once the current class is finished.\n"
                                                                    : "\nmfakto will exit once the current test is finished.\n");
         signal_message(signal_handler_mystuff->mode == MODE_NORMAL ? "press ^C again to stop the current class and exit\n"
                                                                    : "press ^C again to stop the current test and exit\n");
     }
-    else if (signal_handler_mystuff->quit == 2) {
+    else if (n == 2) {
         /* the main loop stops the class early and exits normally, so files are closed and lock files removed */
         signal_message(signal_handler_mystuff->mode == MODE_NORMAL ? "mfakto will stop the current class and exit.\n"
                                                                    : "mfakto will stop the current test and exit.\n");
@@ -94,6 +105,21 @@ void unbuffered(FILE *f)
 void register_signal_handler(mystuff_t *mystuff)
 {
     signal_handler_mystuff = mystuff;
+#if defined _MSC_VER || defined __MINGW32__
     signal(SIGINT, &my_signal_handler);
     signal(SIGTERM, &my_signal_handler);
+#else
+    struct sigaction sa;
+
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = &my_signal_handler;
+    /* block both signals while the handler runs, so that a SIGTERM can't interrupt the handler of a SIGINT (or vice
+       versa) between reading and writing quit */
+    sigemptyset(&sa.sa_mask);
+    sigaddset(&sa.sa_mask, SIGINT);
+    sigaddset(&sa.sa_mask, SIGTERM);
+    sa.sa_flags = SA_RESTART; /* restart interrupted system calls, as signal() does on Linux */
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGTERM, &sa, NULL);
+#endif
 }
