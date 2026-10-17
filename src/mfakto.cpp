@@ -964,20 +964,37 @@ static void binfile_header(char *header, size_t size, const char *program_option
 /*
 build_program() builds program with the given options. Optimization options such as -O3 aren't part of the OpenCL
 standard: some drivers (e.g. Mesa's rusticl) reject them with CL_INVALID_BUILD_OPTIONS. In this case the program is
-built again without -O3, so it doesn't have to be known in advance which drivers accept it.
+built again without -O3 (every occurrence, including any from CompileOptions in the INI file), so it doesn't have to
+be known in advance which drivers accept it.
 */
 cl_int build_program(cl_program program, cl_device_id device, const char *options)
 {
   cl_int status = clBuildProgram(program, 1, &device, options, NULL, NULL);
-  const char *o3 = strstr(options, " -O3");
 
-  if (status == CL_INVALID_BUILD_OPTIONS && o3 != NULL && (o3[4] == ' ' || o3[4] == '\0'))
+  if (status == CL_INVALID_BUILD_OPTIONS)
   {
-    char retry_options[512];
+    char retry_options[512] = "";
+    size_t n = 0;
+    int removed = 0;
 
-    snprintf(retry_options, sizeof(retry_options), "%.*s%s", (int)(o3 - options), options, o3 + 4);
-    printf("The OpenCL driver doesn't accept -O3, building without it.\n");
-    status = clBuildProgram(program, 1, &device, retry_options, NULL, NULL);
+    for (const char *p = options; *p != '\0'; )
+    {
+      size_t len;
+
+      p += strspn(p, " \t");
+      len = strcspn(p, " \t");
+      if (len == 0) break;
+      if (len == 3 && strncmp(p, "-O3", 3) == 0)
+        removed = 1;
+      else if (n + len + 2 < sizeof(retry_options))
+        n += snprintf(retry_options + n, sizeof(retry_options) - n, "%s%.*s", n ? " " : "", (int)len, p);
+      p += len;
+    }
+    if (removed)
+    {
+      printf("The OpenCL driver doesn't accept -O3, building without it.\n");
+      status = clBuildProgram(program, 1, &device, retry_options, NULL, NULL);
+    }
   }
   return status;
 }
