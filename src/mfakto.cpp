@@ -21,6 +21,11 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <iterator>
 #ifdef _MSC_VER
 #include <tuple>
 #endif
@@ -895,39 +900,41 @@ void set_gpu_type()
   }
 }
 
-/* the files the kernels are compiled from (specifically KERNEL_FILE and the files it includes) */
-static const char *kernel_source_files[] = { KERNEL_FILE, "common.cl",     "gpusieve.cl", "barrett15.cl", "barrett.cl",
-                                             "mul24.cl",  "montgomery.cl", "datatypes.h", "tf_debug.h" };
-
 /*
  * kernel_sources_checksum()
- * checksum over the contents of all kernel source files; a missing file
- * counts as empty
+ * checksum over the contents of KERNEL_FILE and all files it includes,
+ * directly or indirectly (#include "..."), so that changing any of them
+ * rebuilds the binary kernel file. Includes inside #if blocks are followed as
+ * well; a missing file counts as empty
  */
 static unsigned int kernel_sources_checksum(void)
 {
-    char checksums[sizeof(kernel_source_files) / sizeof(kernel_source_files[0]) * 9 + 1];
-    size_t n = 0;
+    std::vector<std::string> files(1, KERNEL_FILE);
+    std::string checksums;
 
-    for (size_t i = 0; i < sizeof(kernel_source_files) / sizeof(kernel_source_files[0]); i++) {
-        unsigned int crc = 0;
-        std::fstream f(kernel_source_files[i], (std::fstream::in | std::fstream::binary));
+    for (size_t i = 0; i < files.size(); i++) {
+        std::ifstream f(files[i].c_str(), std::ios::in | std::ios::binary);
+        std::string contents((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+        char crc[16];
 
-        if (f.is_open()) {
-            f.seekg(0, std::fstream::end);
-            size_t size = (size_t)f.tellg();
-            f.seekg(0, std::fstream::beg);
-            char *contents = (char *)malloc(size + 1);
-            if (contents) {
-                f.read(contents, size);
-                crc = crc32_checksum(contents, size);
-                free(contents);
-            }
-            f.close();
+        snprintf(crc, sizeof(crc), "%08X ", crc32_checksum(&contents[0], contents.size()));
+        checksums += files[i] + ":" + crc;
+
+        std::istringstream lines(contents);
+        std::string line;
+        while (std::getline(lines, line)) {
+            size_t p = line.find_first_not_of(" \t");
+            if (p == std::string::npos || line[p] != '#') continue;
+            p = line.find_first_not_of(" \t", p + 1);
+            if (p == std::string::npos || line.compare(p, 7, "include") != 0) continue;
+            size_t q = line.find('"', p + 7);
+            size_t r = (q == std::string::npos) ? q : line.find('"', q + 1);
+            if (r == std::string::npos) continue;
+            std::string name = line.substr(q + 1, r - q - 1);
+            if (std::find(files.begin(), files.end(), name) == files.end()) files.push_back(name);
         }
-        n += snprintf(checksums + n, sizeof(checksums) - n, "%08X ", crc);
     }
-    return crc32_checksum(checksums, n);
+    return crc32_checksum(&checksums[0], checksums.size());
 }
 
 /*
@@ -1143,35 +1150,37 @@ build_from_source:
       cl_int logstatus;
       char *buildLog = NULL;
       size_t buildLogSize = 0;
+      // failing to get the build log isn't fatal: a binary that failed to build is still replaced below
       logstatus = clGetProgramBuildInfo (program, devices[*devnumber], CL_PROGRAM_BUILD_LOG,
                 buildLogSize, buildLog, &buildLogSize);
       if(logstatus != CL_SUCCESS)
       {
-        std::cerr << "Error " << logstatus << " (" << ClErrorString(logstatus) << "): clGetProgramBuildInfo failed.";
-        return 1;
+        std::cerr << "Error " << logstatus << " (" << ClErrorString(logstatus) << "): clGetProgramBuildInfo failed.\n";
       }
-      if (buildLogSize >0)
+      else if (buildLogSize >0)
       {
         buildLog = (char*)calloc(buildLogSize,1);
         if(buildLog == NULL)
         {
           std::cerr << "\noom\n";
-          return 1;
         }
-        fflush(NULL);
-        logstatus = clGetProgramBuildInfo (program, devices[*devnumber], CL_PROGRAM_BUILD_LOG,
-                  buildLogSize, buildLog, NULL);
-        if(logstatus != CL_SUCCESS)
+        else
         {
-          std::cerr << "Error " << logstatus << " (" << ClErrorString(logstatus) << "): clGetProgramBuildInfo failed.";
+          fflush(NULL);
+          logstatus = clGetProgramBuildInfo (program, devices[*devnumber], CL_PROGRAM_BUILD_LOG,
+                    buildLogSize, buildLog, NULL);
+          if(logstatus != CL_SUCCESS)
+          {
+            std::cerr << "Error " << logstatus << " (" << ClErrorString(logstatus) << "): clGetProgramBuildInfo failed.\n";
+          }
+          else
+          {
+            std::cout << " \n\tBUILD OUTPUT\n";
+            std::cout << buildLog << std::endl;
+            std::cout << " \tEND OF BUILD OUTPUT\n";
+          }
           free(buildLog);
-          return 1;
         }
-
-        std::cout << " \n\tBUILD OUTPUT\n";
-        std::cout << buildLog << std::endl;
-        std::cout << " \tEND OF BUILD OUTPUT\n";
-        free(buildLog);
       }
       else
       {
