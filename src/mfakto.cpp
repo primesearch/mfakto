@@ -2925,6 +2925,26 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
         } else
           numblocks = mystuff->gpu_sieve_size / mystuff->gpu_sieve_processing_size;
 
+        /* Keep at most GS_MAX_QUEUED_BATCHES batches in the queue: before enqueueing another one, wait for the
+           batch enqueued GS_MAX_QUEUED_BATCHES batches earlier, whose marker is in the slot this batch will use.
+           Otherwise the whole class is queued at once, and as queued work can't be cancelled, a second ^C
+           couldn't stop the class early. */
+        {
+          cl_event *ev = &gs_batch_events[gs_batch % GS_MAX_QUEUED_BATCHES];
+
+          if (*ev != NULL)
+          {
+            status = clWaitForEvents(1, ev);
+            clReleaseEvent(*ev);
+            *ev = NULL;
+            if (status != CL_SUCCESS)
+            {
+              std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Waiting for a GPU sieve batch. (clWaitForEvents)\n";
+              return RET_ERROR;
+            }
+          }
+        }
+
         // the sieving
 
         gpusieve (mystuff, k_remaining);
@@ -2999,31 +3019,14 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
           fprintf(stderr, "Programming error: kernel %d unknown or not prepared for GPU-sieving\n", use_kernel);
           return RET_ERROR;
         }
-        /* Keep at most GS_MAX_QUEUED_BATCHES batches in the queue by waiting for the batch enqueued
-           GS_MAX_QUEUED_BATCHES batches earlier. Otherwise the whole class is queued at once, and as queued work
-           can't be cancelled, a second ^C couldn't stop the class early. */
+        /* mark the end of this batch, see above */
+        status = clEnqueueMarkerWithWaitList(QUEUE, 0, NULL, &gs_batch_events[gs_batch++ % GS_MAX_QUEUED_BATCHES]);
+        if (status != CL_SUCCESS)
         {
-          cl_event *ev = &gs_batch_events[gs_batch++ % GS_MAX_QUEUED_BATCHES];
-
-          if (*ev != NULL)
-          {
-            status = clWaitForEvents(1, ev);
-            clReleaseEvent(*ev);
-            *ev = NULL;
-            if (status != CL_SUCCESS)
-            {
-              std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Waiting for a GPU sieve batch. (clWaitForEvents)\n";
-              return RET_ERROR;
-            }
-          }
-          status = clEnqueueMarkerWithWaitList(QUEUE, 0, NULL, ev);
-          if (status != CL_SUCCESS)
-          {
-            std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clEnqueueMarkerWithWaitList\n";
-            return RET_ERROR;
-          }
-          clFlush(QUEUE);
+          std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clEnqueueMarkerWithWaitList\n";
+          return RET_ERROR;
         }
+        clFlush(QUEUE);
 
         // Count the number of blocks processed
         count += numblocks;
