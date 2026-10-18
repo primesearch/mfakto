@@ -2876,7 +2876,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
   while(((k_min <= k_max) && !aborted) || (running > 0))
   {
     /* second ^C: don't start any more work, let the running blocks finish and return RET_QUIT */
-    if (mystuff->quit > 1) aborted = 1;
+    if (QUIT_COUNT(mystuff) > 1) aborted = 1;
 
     h_ktab_index = count % mystuff->num_streams;
 
@@ -2942,7 +2942,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
               std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Waiting for a GPU sieve batch. (clWaitForEvents)\n";
               return RET_ERROR;
             }
-            if (mystuff->quit > 1)  // a second ^C during the wait: don't start this batch
+            if (QUIT_COUNT(mystuff) > 1)  // a second ^C during the wait: don't start this batch
             {
               aborted = 1;
               continue;

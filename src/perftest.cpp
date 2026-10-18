@@ -349,7 +349,7 @@ Sieved out:   63.63%  65.94%  67.95%  69.73%  71.31%  72.72%  74.00%  75.16%  76
       }
       printf(" %7.1f", Mps);
     }
-    if (mystuff.quit)
+    if (QUIT_COUNT(&mystuff))
     {
       j++; // adjustment for later calculation: j= number of finished rows.
       break;
@@ -610,7 +610,7 @@ int test_gpu_sieve(cl_uint par)
   time1 = (double)timer_diff(&timer);
 
   printf("\n gpusieve_init: %f ms (CPU work)\n", time1/1000.0);
-  if (mystuff.quit) exit(1);
+  if (QUIT_COUNT(&mystuff)) exit(1);
 
   timer_init(&timer);
   for (i=0; i<par; i++)
@@ -625,7 +625,7 @@ int test_gpu_sieve(cl_uint par)
   time1 = (double)timer_diff(&timer);
 
   printf(" gpusieve_init_exponent: %f ms (CalcModularInverses)\n", time1/2000.0/par);
-  if (mystuff.quit) exit(1);
+  if (QUIT_COUNT(&mystuff)) exit(1);
 
   timer_init(&timer);
   for (i=0; i<par; i++, k+=mystuff.gpu_sieve_size)
@@ -636,7 +636,7 @@ int test_gpu_sieve(cl_uint par)
   time1 = (double)timer_diff(&timer);
 
   printf(" gpusieve_init_class: %f ms (CalcBitToClear)\n", time1/1000.0/par);
-  if (mystuff.quit) exit(1);
+  if (QUIT_COUNT(&mystuff)) exit(1);
 
   timer_init(&timer);
   for (i=0; i<par; i++)
@@ -648,7 +648,7 @@ int test_gpu_sieve(cl_uint par)
   time1 = (double)timer_diff(&timer);
 
   printf(" gpusieve: %f ms (SegSieve)\n ", time1/1000.0/par);
-  if (mystuff.quit) exit(1);
+  if (QUIT_COUNT(&mystuff)) exit(1);
 
   // now also quickly test a GPU kernel ...
 
@@ -706,7 +706,7 @@ int test_gpu_sieve(cl_uint par)
 
   printf(" tf: %f ms = %f M/s (raw rate, cl_barrett15_69_gs)\n\n ", time1/1000.0/par, (double)par * mystuff.gpu_sieve_size/time1);
 
-  if (mystuff.quit) exit(1);
+  if (QUIT_COUNT(&mystuff)) exit(1);
 
 
   cl_uint ssizes[MAX_NUM_SPS];  //={1,2,3,4,5,6,7,8,10,11,13,16,19,20,21,22,25,30,36,43,50,60,72,86,88,170};
@@ -805,7 +805,7 @@ int test_gpu_sieve(cl_uint par)
       }
       printf(" %7.1f", Mps);
     }
-    if (mystuff.quit)
+    if (QUIT_COUNT(&mystuff))
     {
       j++; // adjustment for later calculation: j= number of finished rows.
       break;
@@ -1067,7 +1067,7 @@ GPUKernels test_cpu_tf_kernels(cl_uint par)
     time1 = (double)timer_diff(&timer);
     putchar('.'); fflush(stdout);
     insert_time(time1, time2, use_kernel, idxs, use_kernel - _71BIT_MUL24);
-    if (mystuff.quit) break;
+    if (QUIT_COUNT(&mystuff)) break;
   }
 
   for (i=0; i < use_kernel - _71BIT_MUL24; ++i)
@@ -1166,7 +1166,7 @@ GPUKernels test_gpu_tf_kernels(cl_uint par)
     time1 = (double)timer_diff(&timer);
     putchar('.'); fflush(stdout);
     insert_time(time1, time2, use_kernel, idxs, use_kernel - BARRETT79_MUL32_GS);
-    if (mystuff.quit) break;
+    if (QUIT_COUNT(&mystuff)) break;
   }
 
   for (i=0; i < use_kernel - BARRETT79_MUL32_GS; ++i)
@@ -1261,7 +1261,7 @@ int test_tf_kernels(cl_uint par, int devicenumber)
       mystuff.bit_max_stage = 69;
       mystuff.exponent=exps[i];
       test_gpu_tf_kernels((cl_uint) par);
-      if (mystuff.quit) break;
+      if (QUIT_COUNT(&mystuff)) break;
     }
   }
   else
@@ -1315,7 +1315,7 @@ int test_tf_kernels(cl_uint par, int devicenumber)
       mystuff.bit_max_stage = 69;
       mystuff.exponent=exps[i];
       test_cpu_tf_kernels((cl_uint) par);
-      if (mystuff.quit) break;
+      if (QUIT_COUNT(&mystuff)) break;
     }
     printf("\nNote, the calculated GHz-days/day assume sufficiently fast CPU sieve with SievePrimes=%u.\n", mystuff.sieve_primes);
   }
@@ -1368,19 +1368,19 @@ int perftest(int par, int devicenumber)
   printf("%.2f ms\n\n", time1/1000.0);
   free(p);
 
-  if (mystuff.quit) exit(1);
+  if (QUIT_COUNT(&mystuff)) exit(1);
 
   // 1. Sieve-Init
   test_sieve_init(par);
-  if (mystuff.quit) exit(1);
+  if (QUIT_COUNT(&mystuff)) exit(1);
 
   // 2. Sieve
   test_sieve(par);
-  if (mystuff.quit) exit(1);
+  if (QUIT_COUNT(&mystuff)) exit(1);
 
   // 3. memory copy
   test_copy((cl_uint)par);
-  if (mystuff.quit) exit(1);
+  if (QUIT_COUNT(&mystuff)) exit(1);
 
 // from here, assume GPU sieving
   init_gpu_test(devicenumber);

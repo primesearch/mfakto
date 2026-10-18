@@ -771,7 +771,7 @@ other return value
     if(class_needed(mystuff->exponent, k_min, cur_class))
     {
       mystuff->stats.class_number = cur_class;
-      if(mystuff->quit)
+      if(QUIT_COUNT(mystuff))
       {
 /* check if quit is requested. Because this is at the beginning of the class
    we can be sure that if RET_QUIT is returned the last class hasn't
@@ -875,7 +875,7 @@ other return value
           {
             if ( ((mystuff->checkpoints > 1) && (--do_checkpoint == 0)) ||
                  ((mystuff->checkpoints == 1) && (now - time_last_checkpoint > (time_t) mystuff->checkpointdelay)) ||
-                   mystuff->quit )
+                   QUIT_COUNT(mystuff) )
             {
               checkpoint_write(mystuff->exponent, mystuff->bit_min, mystuff->bit_max_stage, cur_class, factorsfound, mystuff->factors, mystuff->stats.bit_level_time);
               do_checkpoint = mystuff->checkpoints;
@@ -1142,9 +1142,9 @@ RET_ERROR we might have a serios problem
 #ifdef DETAILED_INFO
       logprintf(mystuff, "Test %d finished, so far suc: %d, no: %d, wr: %d, unk: %d\n", num_selftests, st_success, st_nofactor, st_wrongfactor, st_unknown);
 #endif
-      if (mystuff->quit) break;
+      if (QUIT_COUNT(mystuff)) break;
     }
-    if (mystuff->quit) break;
+    if (QUIT_COUNT(mystuff)) break;
   }
 
   logprintf(mystuff, "\n");
@@ -1589,7 +1589,7 @@ int main(int argc, char **argv)
           while( ((calculate_k(mystuff.exponent, mystuff.bit_max_stage) - calculate_k(mystuff.exponent, mystuff.bit_min)) > (250000000ULL * mystuff.num_classes)) && ((mystuff.bit_max_stage - mystuff.bit_min) > 1) )mystuff.bit_max_stage--;
         }
         tmp = 0;
-        while(mystuff.bit_max_stage <= mystuff.bit_max_assignment && !mystuff.quit)
+        while(mystuff.bit_max_stage <= mystuff.bit_max_assignment && !QUIT_COUNT(&mystuff))
         {
           tmp = tf(&mystuff, 0, 0, AUTOSELECT_KERNEL);
           if(tmp == RET_ERROR) return ERR_RUNTIME; /* bail out, we might have a serios problem  */
@@ -1623,7 +1623,7 @@ int main(int argc, char **argv)
       else if(parse_ret == VALID_ASSIGNMENT_NOT_FOUND) logprintf(&mystuff, "ERROR: get_next_assignment(): no valid assignment found in \"%s\"\n", mystuff.workfile);
       else if(parse_ret != OK)                         logprintf(&mystuff, "ERROR: get_next_assignment(): Unknown error (%d)\n", parse_ret);
     }
-    while(parse_ret == OK && use_worktodo && !mystuff.quit);
+    while(parse_ret == OK && use_worktodo && !QUIT_COUNT(&mystuff));
   }
   else // mystuff.mode != MODE_NORMAL
   {

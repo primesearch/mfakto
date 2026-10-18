@@ -326,6 +326,17 @@ typedef struct _mystuff_t
 
 }mystuff_t;		       /* FIXME: proper name needed */
 
+/* The signal handler changes quit, possibly on another thread (see my_signal_handler()): read it with QUIT_COUNT()
+   and increment it with QUIT_INCREMENT(), which returns the new value (lock-free, so the handler can use it). */
+#if defined _MSC_VER || defined __MINGW32__
+#include <intrin.h>
+#define QUIT_COUNT(m)     ((m)->quit)
+#define QUIT_INCREMENT(m) _InterlockedIncrement(&(m)->quit)
+#else
+#define QUIT_COUNT(m)     __atomic_load_n(&(m)->quit, __ATOMIC_SEQ_CST)
+#define QUIT_INCREMENT(m) __atomic_add_fetch(&(m)->quit, 1, __ATOMIC_SEQ_CST)
+#endif
+
 typedef struct
 {
     char d_name[128], d_ver[128], v_name[128], dr_version[128];
