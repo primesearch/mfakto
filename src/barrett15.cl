@@ -50,26 +50,32 @@ void shl_75(int75_v * const a);
 
 void shl_150(int150_v * const a);
 
-void div_150_75(int75_v * const res, const uint qhi, const int75_v n, const float_v nf
+#ifdef B15_NOINLINE
+#define B15_CHECK_ATTR __attribute__((noinline))
+#else
+#define B15_CHECK_ATTR
+#endif
+
+B15_CHECK_ATTR void div_150_75(int75_v * const res, const uint qhi, const int75_v n, const float_v nf
 #if (TRACE_KERNEL > 1)
                   , const uint tid
 #endif
                   MODBASECASE_PAR_DEF
 );
 
-void check_barrett15_69(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
+B15_CHECK_ATTR void check_barrett15_69(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
      MODBASECASE_PAR_DEF);
 
-void check_barrett15_70(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
+B15_CHECK_ATTR void check_barrett15_70(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
      MODBASECASE_PAR_DEF);
 
-void check_barrett15_71(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
+B15_CHECK_ATTR void check_barrett15_71(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
      MODBASECASE_PAR_DEF);
 
-void check_barrett15_73(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
+B15_CHECK_ATTR void check_barrett15_73(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
      MODBASECASE_PAR_DEF);
 
-void check_barrett15_74(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
+B15_CHECK_ATTR void check_barrett15_74(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
      MODBASECASE_PAR_DEF);
 
 int90_v sub_if_gte_90(const int90_v a, const int90_v b);
@@ -88,20 +94,20 @@ void shl_90(int90_v * const a);
 
 void shl_180(int180_v * const a);
 
-void div_180_90(int90_v * const res, const uint qhi, const int90_v n, const float_v nf
+B15_CHECK_ATTR void div_180_90(int90_v * const res, const uint qhi, const int90_v n, const float_v nf
 #if (TRACE_KERNEL > 1)
                   , const uint tid
 #endif
                   MODBASECASE_PAR_DEF
 );
 
-void check_barrett15_82(uint shifter, const int90_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
+B15_CHECK_ATTR void check_barrett15_82(uint shifter, const int90_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
                         MODBASECASE_PAR_DEF);
 
-void check_barrett15_83(uint shifter, const int90_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
+B15_CHECK_ATTR void check_barrett15_83(uint shifter, const int90_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
                         MODBASECASE_PAR_DEF);
 
-void check_barrett15_88(uint shifter, const int90_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
+B15_CHECK_ATTR void check_barrett15_88(uint shifter, const int90_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
                         MODBASECASE_PAR_DEF);
 
 // end prototypes
@@ -686,7 +692,7 @@ void div_150_75_d(int75_v * const res, const uint qhi, const int75_v n, const do
 }
 #endif
 
-void div_150_75(int75_v * const res, const uint qhi, const int75_v n, const float_v nf
+B15_CHECK_ATTR void div_150_75(int75_v * const res, const uint qhi, const int75_v n, const float_v nf
 #if (TRACE_KERNEL > 1)
                   , const uint tid
 #endif
@@ -1015,7 +1021,7 @@ void div_150_75(int75_v * const res, const uint qhi, const int75_v n, const floa
  * bit_max65 is bit_max - 65
  ****/
 
-void check_barrett15_69(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
+B15_CHECK_ATTR void check_barrett15_69(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
      MODBASECASE_PAR_DEF)
 {
   __private int75_v a, u;
@@ -1189,7 +1195,7 @@ Precalculated here since it is the same for all steps in the following loop */
                        );
 }
 
-void check_barrett15_70(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
+B15_CHECK_ATTR void check_barrett15_70(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
      MODBASECASE_PAR_DEF)
 {
   __private int75_v a, u;
@@ -1357,7 +1363,7 @@ Precalculated here since it is the same for all steps in the following loop */
 }
 
 
-void check_barrett15_71(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
+B15_CHECK_ATTR void check_barrett15_71(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
                         MODBASECASE_PAR_DEF)
 {
   __private int75_v a, u;
@@ -1530,7 +1536,7 @@ ff = 1/f as float, needed in div_192_96().
 }
 
 
-void check_barrett15_73(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
+B15_CHECK_ATTR void check_barrett15_73(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
                         MODBASECASE_PAR_DEF)
 {
   __private int75_v a, u;
@@ -1731,7 +1737,7 @@ ff = 1/f as float, needed in div_192_96().
 }
 
 
-void check_barrett15_74(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
+B15_CHECK_ATTR void check_barrett15_74(uint shifter, const int75_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
                         MODBASECASE_PAR_DEF)
 {
   __private int75_v a, u;
@@ -2575,7 +2581,7 @@ void div_180_90_d(int90_v * const res, const uint qhi, const int90_v n, const do
 }
 #else
 // no support for doubles
-void div_180_90(int90_v * const res, const uint qhi, const int90_v n, const float_v nf
+B15_CHECK_ATTR void div_180_90(int90_v * const res, const uint qhi, const int90_v n, const float_v nf
 #if (TRACE_KERNEL > 1)
                   , const uint tid
 #endif
@@ -2968,7 +2974,7 @@ void div_180_90(int90_v * const res, const uint qhi, const int90_v n, const floa
 }
 #endif
 
-void check_barrett15_82(uint shifter, const int90_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
+B15_CHECK_ATTR void check_barrett15_82(uint shifter, const int90_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
                         MODBASECASE_PAR_DEF)
 {
   __private int90_v a, u;
@@ -3026,7 +3032,6 @@ void check_barrett15_82(uint shifter, const int90_v f, const uint tid, const uin
         V(u.d5), V(u.d4), V(u.d3), V(u.d2), V(u.d1), V(u.d0), V(ff));
 #endif
 #endif
-
   if (bit_max65 > 10)  // need to distiguish how far to shift; the same branch will be taken by all threads
   {
     //bit_max is 76 .. 89
@@ -3101,7 +3106,6 @@ void check_barrett15_82(uint shifter, const int90_v f, const uint tid, const uin
     ///
     ///// here it starts to become different between the 3 6x15bit kernels
     ///
-
   while(shifter)
   {
     square_90_180(&b, a);						// b = a^2
@@ -3176,7 +3180,6 @@ void check_barrett15_82(uint shifter, const int90_v f, const uint tid, const uin
         shifter, V(a.d5), V(a.d4), V(a.d3), V(a.d2), V(a.d1), V(a.d0) );
 #endif
   }
-
   mod_simple_even_90_and_check_big_factor90(a, f, ff, RES
 #ifdef CHECKS_MODBASECASE
                                       , bit_max65, 10, modbasecase_debug
@@ -3184,7 +3187,7 @@ void check_barrett15_82(uint shifter, const int90_v f, const uint tid, const uin
                                       );
 }
 
-void check_barrett15_83(uint shifter, const int90_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
+B15_CHECK_ATTR void check_barrett15_83(uint shifter, const int90_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
                         MODBASECASE_PAR_DEF)
 {
   __private int90_v a, u;
@@ -3400,7 +3403,7 @@ void check_barrett15_83(uint shifter, const int90_v f, const uint tid, const uin
 }
 
 
-void check_barrett15_88(uint shifter, const int90_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
+B15_CHECK_ATTR void check_barrett15_88(uint shifter, const int90_v f, const uint tid, const uint8 b_in, const int bit_max65, __global uint * restrict RES
                         MODBASECASE_PAR_DEF)
 {
   __private int90_v a, u;
