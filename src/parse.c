@@ -419,7 +419,10 @@ enum ASSIGNMENT_ERRORS clear_assignment(char *filename, unsigned int exponent, i
 
   f_out = NULL;
   if (make_temp_file(temp_filename) == 0)
+  {
     f_out = fopen(temp_filename, "w");
+    if (NULL == f_out) remove(temp_filename); // make_temp_file() creates the file on POSIX systems
+  }
   if (NULL == f_out)
   {
     unlock_and_fclose(f_in);
