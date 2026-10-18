@@ -24,12 +24,13 @@ along with mfaktc.  If not, see <http://www.gnu.org/licenses/>.
 unsigned int crc32_checksum(char *string, size_t chars)
 {
     unsigned int cur_char, chksum = 0xFFFFFFFF;
-    int str_idx, cur_bit;
+    size_t str_idx;
+    int cur_bit;
 
     for (str_idx = 0; str_idx < chars; str_idx++) {
         cur_char = string[str_idx];
         if (!cur_char) {
-            printf("Error: failed to compute checksum due to invalid character at index %d\n", str_idx);
+            printf("Error: failed to compute checksum due to invalid character at index %lu\n", (unsigned long)str_idx);
             break;
         }
         chksum ^= cur_char;

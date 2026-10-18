@@ -53,7 +53,7 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
     nanosleep(&ts, NULL);
   }
   #define getdrive() 0
-  #define chdrive(x) 0
+  #define chdrive(x) ((void)(x), 0)
 #endif
 
 #define MAX_LOCKED_FILES 5

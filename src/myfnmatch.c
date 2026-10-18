@@ -49,7 +49,7 @@ static int str_next(const char *str, size_t n, size_t *step)
 		*step = 0;
 		return 0;
 	}
-	if (str[0] >= 128U) {
+	if ((unsigned char)str[0] >= 128U) {
 		wchar_t wc;
 		int k = mbtowc(&wc, str, n);
 		if (k<0) {
@@ -66,6 +66,7 @@ static int str_next(const char *str, size_t n, size_t *step)
 static int pat_next(const char *pat, size_t m, size_t *step, int flags)
 {
 	int esc = 0;
+	(void)flags;
 	if (!m || !*pat) {
 		*step = 0;
 		return END;
@@ -102,7 +103,7 @@ static int pat_next(const char *pat, size_t m, size_t *step, int flags)
 	if (pat[0] == '?')
 		return QUESTION;
 escaped:
-	if (pat[0] >= 128U) {
+	if ((unsigned char)pat[0] >= 128U) {
 		wchar_t wc;
 		int k = mbtowc(&wc, pat, m);
 		if (k<0) {
@@ -166,7 +167,7 @@ static int match_bracket(const char *p, int k, int kfold)
 			}
 			continue;
 		}
-		if (*p < 128U) {
+		if ((unsigned char)*p < 128U) {
 			wc = (unsigned char)*p;
 		} else {
 			int l = mbtowc(&wc, p, 4);
@@ -244,7 +245,7 @@ static int fnmatch_internal(const char *pat, size_t m, const char *str, size_t n
 	 * On illegal sequences we may get it wrong, but in that case
 	 * we necessarily have a matching failure anyway. */
 	for (s=endstr; s>str && tailcnt; tailcnt--) {
-		if (s[-1] < 128U) s--;
+		if ((unsigned char)s[-1] < 128U) s--;
 		else while ((unsigned char)*--s-0x80U<0x40 && s>str);
 	}
 	if (tailcnt) return FNM_NOMATCH;

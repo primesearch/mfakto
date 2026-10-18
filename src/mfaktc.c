@@ -563,7 +563,7 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
   };
 
   kernel_precedence *k = &kernel_precedences[mystuff->gpu_type]; // select the row for the GPU we're running on / we're configured for
-  GPUKernels         use_kernel = AUTOSELECT_KERNEL, test_use_kernel;
+  GPUKernels         use_kernel = AUTOSELECT_KERNEL, test_use_kernel = UNKNOWN_KERNEL;
   cl_uint            i;
   cl_uint            gpusieve_offset = 0;
 
@@ -699,7 +699,7 @@ other return value
     }
   }
 
-  sprintf(mystuff->stats.kernelname, "%s_%d", kernel_info[use_kernel].kernelname, mystuff->vectorsize);
+  snprintf(mystuff->stats.kernelname, sizeof(mystuff->stats.kernelname), "%s_%d", kernel_info[use_kernel].kernelname, mystuff->vectorsize);
 
   if(mystuff->mode != MODE_SELFTEST_SHORT && mystuff->verbosity >= 1)logprintf(mystuff, "Using GPU kernel \"%s\"\n", mystuff->stats.kernelname);
 
@@ -1149,7 +1149,7 @@ RET_ERROR we might have a serios problem
   // restore SievePrimes ini value
   mystuff->sieve_primes = sieve_primes_save;
 
-  if(st_success == num_selftests)
+  if((unsigned int)st_success == num_selftests)
   {
     logprintf(mystuff, "self-test PASSED!\n\n");
     retval=0;

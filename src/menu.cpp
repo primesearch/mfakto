@@ -179,16 +179,20 @@ static void increase_sieve_process_size(mystuff_t *mystuff)
 
 static void set_kernel(mystuff_t *mystuff, const char * new_kernel)
 {
+  (void)mystuff;
+  (void)new_kernel;
   printf("set kernel: not yet implemented\n");
 }
 
 static void use_previous_kernel(mystuff_t *mystuff)
 {
+  (void)mystuff;
   printf("prev kernel: not yet implemented\n");
 }
 
 static void use_next_kernel(mystuff_t *mystuff)
 {
+  (void)mystuff;
   printf("next kernel: not yet implemented\n");
 }
 
