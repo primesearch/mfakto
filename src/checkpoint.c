@@ -145,8 +145,10 @@ int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cu
       ptr=strstr(ptr2, ": ");
       if (ptr > ptr2)
       {
-        strncpy(version, ptr2, ptr-ptr2);
-        version[ptr-ptr2]='\0';
+        /* a longer version doesn't fit and won't match the line rebuilt below, so the file is rejected */
+        size_t len = (size_t)(ptr - ptr2) < sizeof(version) ? (size_t)(ptr - ptr2) : sizeof(version) - 1;
+        memcpy(version, ptr2, len);
+        version[len]='\0';
       }
       else sprintf(version, "%s", MFAKTO_VERSION);
       /* parse into local variables, the caller's values are only set if the checkpoint file is valid */
@@ -156,11 +158,15 @@ int checkpoint_read(unsigned int exp, int bit_min, int bit_max, unsigned int *cu
       /* factors_buffer holds MAX_FACTOR_BUFFER_LENGTH (600) chars including the NUL */
       if (sscanf(ptr,": %d %d %599s %llu", &cur_class_ckp, &num_factors_ckp, factors_buffer, &bit_level_time_ckp) == 4)
       {
-        sprintf(cur_buffer,"%s%u %d %d %d %s: %d %d %s %llu", prefix, exp, bit_min, bit_max, mystuff.num_classes, version, cur_class_ckp, num_factors_ckp, factors_buffer, bit_level_time_ckp);
+        /* the rebuilt line can be longer than the line read (e.g. "-1" printed as %llu), a line that
+           doesn't fit into cur_buffer can't match */
+        i=snprintf(cur_buffer, sizeof(cur_buffer), "%s%u %d %d %d %s: %d %d %s %llu", prefix, exp, bit_min, bit_max, mystuff.num_classes, version, cur_class_ckp, num_factors_ckp, factors_buffer, bit_level_time_ckp);
         chksum= crc32_checksum(cur_buffer,(int)strlen(cur_buffer));
         // no trainling '\n' for the compare buffer to allow interchanging \n\r and \n files 
-        i=sprintf(cur_buffer,"%s%u %d %d %d %s: %d %d %s %llu %08X", prefix, exp, bit_min, bit_max, mystuff.num_classes, version, cur_class_ckp, num_factors_ckp, factors_buffer, bit_level_time_ckp, chksum);
-        if(cur_class_ckp >= 0 && \
+        if (i >= 0 && i < (int)sizeof(cur_buffer))
+          i=snprintf(cur_buffer, sizeof(cur_buffer), "%s%u %d %d %d %s: %d %d %s %llu %08X", prefix, exp, bit_min, bit_max, mystuff.num_classes, version, cur_class_ckp, num_factors_ckp, factors_buffer, bit_level_time_ckp, chksum);
+        if(i >= 0 && i < (int)sizeof(cur_buffer) && \
+           cur_class_ckp >= 0 && \
            cur_class_ckp < (int)mystuff.num_classes && \
            num_factors_ckp >= 0 && \
            strncmp(ckp_buffer, cur_buffer, i) == 0 && \
