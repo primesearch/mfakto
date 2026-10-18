@@ -2942,6 +2942,11 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
               std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Waiting for a GPU sieve batch. (clWaitForEvents)\n";
               return RET_ERROR;
             }
+            if (mystuff->quit > 1)  // a second ^C during the wait: don't start this batch
+            {
+              aborted = 1;
+              continue;
+            }
           }
         }
 
