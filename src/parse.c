@@ -500,6 +500,7 @@ enum ASSIGNMENT_ERRORS clear_assignment(char *filename, unsigned int exponent, i
     }
   }	// while.....
   write_error = ferror(f_out);
+  if (sync_file(f_out) != 0) write_error = 1; /* the new workfile must be complete on the disk before it replaces the old one */
   if (fclose(f_out) != 0) write_error = 1;
 
   /* Keep the workfile locked until it has been replaced: another process (e.g. AutoPrimeNet) that adds
