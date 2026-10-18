@@ -963,6 +963,67 @@ static void binfile_header(char *header, size_t size, const char *program_option
 }
 
 /*
+ * amd_clang_version()
+ * AMD's OpenCL compiler records its version ("AMD clang version 20.0.0git ...")
+ * in the binaries it creates, while the driver version is the same for ROCm 7.1
+ * and 7.2. Build a trivial kernel and look for it. Returns the major version, 0
+ * if not found, or -1 if the device's platform isn't AMD's own driver (rusticl,
+ * PoCL and others use different compilers).
+ */
+static int amd_clang_version(cl_device_id device)
+{
+    const char *source = "__kernel void probe(__global uint *a) { a[0] = 1; }";
+    const char tag[] = "AMD clang version ";
+    char vendor[128] = "";
+    cl_platform_id platform = NULL;
+    cl_program probe;
+    cl_int status;
+    cl_uint num_devices = 0;
+    size_t *sizes = NULL;
+    unsigned char **binaries = NULL;
+    int major = 0;
+
+    if (clGetDeviceInfo(device, CL_DEVICE_PLATFORM, sizeof(platform), &platform, NULL) != CL_SUCCESS ||
+        clGetPlatformInfo(platform, CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL) != CL_SUCCESS)
+        return 0;
+    vendor[sizeof(vendor) - 1] = '\0';
+    if (strcmp(vendor, "Advanced Micro Devices, Inc.") != 0) return -1;
+
+    probe = clCreateProgramWithSource(context, 1, &source, NULL, &status);
+    if (status != CL_SUCCESS) return 0;
+    // the program has all devices of the context, but only this one is built
+    if (clBuildProgram(probe, 1, &device, "", NULL, NULL) == CL_SUCCESS &&
+        clGetProgramInfo(probe, CL_PROGRAM_NUM_DEVICES, sizeof(num_devices), &num_devices, NULL) == CL_SUCCESS && num_devices > 0 &&
+        (sizes = (size_t *)malloc(num_devices * sizeof(size_t))) != NULL &&
+        (binaries = (unsigned char **)malloc(num_devices * sizeof(unsigned char *))) != NULL &&
+        clGetProgramInfo(probe, CL_PROGRAM_BINARY_SIZES, num_devices * sizeof(size_t), sizes, NULL) == CL_SUCCESS)
+    {
+        cl_uint d;
+        for (d = 0; d < num_devices; d++)
+            if (sizes[d] > 0 && (binaries[d] = (unsigned char *)malloc(sizes[d])) == NULL) break;
+        if (d == num_devices &&
+            clGetProgramInfo(probe, CL_PROGRAM_BINARIES, num_devices * sizeof(unsigned char *), binaries, NULL) == CL_SUCCESS)
+        {
+            for (d = 0; d < num_devices && major == 0; d++)
+            {
+                // the binary is an ELF file: search it byte by byte
+                for (size_t i = 0; binaries[d] && i + sizeof(tag) - 1 < sizes[d] && major == 0; i++)
+                {
+                    if (memcmp(binaries[d] + i, tag, sizeof(tag) - 1) != 0) continue;
+                    for (size_t j = i + sizeof(tag) - 1; j < sizes[d] && binaries[d][j] >= '0' && binaries[d][j] <= '9' && major < 1000; j++)
+                        major = major * 10 + (binaries[d][j] - '0');
+                }
+            }
+        }
+        for (d = 0; d < num_devices; d++) free(binaries[d]);
+    }
+    free(binaries);
+    free(sizes);
+    clReleaseProgram(probe);
+    return major;
+}
+
+/*
  * load_kernels
  * compile cl files or load the precompiled binary, and load all kernels
  */
@@ -974,7 +1035,7 @@ int load_kernels(cl_int *devnumber)
   size_t size;
   char*  source = NULL;
   int binary_loaded = 0;
-  char program_options[256]; /* default options (< 100 chars) + CompileOptions (< 151 chars) */
+  char program_options[256]; /* default options incl. -DB15_NOINLINE (< 100 chars) + CompileOptions (< 151 chars) */
   char header[256 + 3 * 256 + 100]; /* program_options, platform, device and driver names, checksum */
 
   // so far use the same vector size for all kernels ...
@@ -1013,6 +1074,23 @@ int load_kernels(cl_int *devnumber)
 
     if (mystuff.gpu_sieving == 1)
       strcat(program_options, " -DCL_GPU_SIEVE");
+
+    // AMD clang 20 and older miscompile the barrett15 kernels, see barrett15.cl
+    if (strstr(mystuff.CompileOptions, "-DB15_NOINLINE") == NULL)
+    {
+      int clang = amd_clang_version(devices[*devnumber]);
+      if (clang >= 0 && clang < 22)
+      {
+        strcat(program_options, " -DB15_NOINLINE");
+        if (mystuff.verbosity > 0)
+        {
+          if (clang > 0)
+            printf("AMD clang %d detected, using the workaround for its barrett15 miscompile.\n", clang);
+          else
+            printf("Unknown AMD compiler version, using the workaround for the barrett15 miscompile of AMD clang 20 and older.\n");
+        }
+      }
+    }
 
     if (mystuff.CompileOptions[0] == '+')
       strcat(program_options, mystuff.CompileOptions+1);
