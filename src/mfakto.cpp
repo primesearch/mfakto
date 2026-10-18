@@ -584,7 +584,9 @@ int init_CL(int num_streams, cl_int *devnumber)
     kernel_info[BARRETT88_MUL15_GS].bit_max = 0;
   }
   */
-  deviceinfo.maxThreadsPerBlock = deviceinfo.wi_sizes[0];
+  // a work-group is limited by both the first work-item dimension and the work-group size: ROCm reports
+  // 1024 and 256, and launches with 1024 work-items fail with CL_INVALID_WORK_GROUP_SIZE
+  deviceinfo.maxThreadsPerBlock = MIN(deviceinfo.wi_sizes[0], deviceinfo.wg_size);
   deviceinfo.maxThreadsPerGrid  = deviceinfo.wi_sizes[0];
   for (i=1; i<deviceinfo.w_dim && i<5; i++)
   {
