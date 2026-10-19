@@ -1683,7 +1683,9 @@ void CL_test(cl_int devnumber)
       << "] , Max clock speed:" << deviceinfo.max_clock << ", compute units:" << deviceinfo.units << std::endl;
   }
 
-  deviceinfo.maxThreadsPerBlock = deviceinfo.wi_sizes[0];
+  // a work-group is limited by both the first work-item dimension and the work-group size: ROCm reports
+  // 1024 and 256, and launches with 1024 work-items fail with CL_INVALID_WORK_GROUP_SIZE
+  deviceinfo.maxThreadsPerBlock = MIN(deviceinfo.wi_sizes[0], deviceinfo.wg_size);
   deviceinfo.maxThreadsPerGrid  = deviceinfo.wi_sizes[0];
   for (i=1; i<deviceinfo.w_dim && i<5; i++)
   {
