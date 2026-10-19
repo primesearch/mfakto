@@ -973,28 +973,45 @@ cl_int build_program(cl_program program, cl_device_id device, const char *option
 
   if (status == CL_INVALID_BUILD_OPTIONS)
   {
-    char retry_options[512] = "";
-    size_t n = 0;
+    size_t len = strlen(options), n = 0;
+    char *retry_options = (char *)malloc(len + 1);
+    char quote = 0; /* the quote character of an open quoted argument */
     int removed = 0;
 
-    for (const char *p = options; *p != '\0'; )
+    if (retry_options == NULL) return status;
+    /* copy the options unchanged except for standalone -O3 outside quotes, so quoted arguments such as include paths
+       keep their spaces */
+    for (size_t i = 0; i < len; i++)
     {
-      size_t len;
+      char c = options[i];
 
-      p += strspn(p, " \t");
-      len = strcspn(p, " \t");
-      if (len == 0) break;
-      if (len == 3 && strncmp(p, "-O3", 3) == 0)
+      if (!quote && (i == 0 || options[i - 1] == ' ' || options[i - 1] == '\t') && strncmp(options + i, "-O3", 3) == 0 &&
+          (options[i + 3] == '\0' || options[i + 3] == ' ' || options[i + 3] == '\t'))
+      {
         removed = 1;
-      else if (n + len + 2 < sizeof(retry_options))
-        n += snprintf(retry_options + n, sizeof(retry_options) - n, "%s%.*s", n ? " " : "", (int)len, p);
-      p += len;
+        i += 3;
+        while (options[i] == ' ' || options[i] == '\t') i++; /* and the whitespace after it */
+        i--;
+        continue;
+      }
+      if (c == '\\' && i + 1 < len) /* an escaped character, e.g. a quote or space */
+      {
+        retry_options[n++] = c;
+        c = options[++i];
+      }
+      else if (quote && c == quote)
+        quote = 0;
+      else if (!quote && (c == '"' || c == '\''))
+        quote = c;
+      retry_options[n++] = c;
     }
+    retry_options[n] = '\0';
     if (removed)
     {
       printf("The OpenCL driver doesn't accept -O3, building without it.\n");
       status = clBuildProgram(program, 1, &device, retry_options, NULL, NULL);
     }
+    free(retry_options);
   }
   return status;
 }
