@@ -975,7 +975,8 @@ cl_int build_program(cl_program program, cl_device_id device, const char *option
   {
     size_t len = strlen(options), n = 0;
     char *retry_options = (char *)malloc(len + 1);
-    char quote = 0; /* the quote character of an open quoted argument */
+    char quote = 0;      /* the quote character of an open quoted argument */
+    int arg_start = 1;   /* at the start of an argument: after whitespace that isn't escaped or quoted */
     int removed = 0;
 
     if (retry_options == NULL) return status;
@@ -985,7 +986,7 @@ cl_int build_program(cl_program program, cl_device_id device, const char *option
     {
       char c = options[i];
 
-      if (!quote && (i == 0 || options[i - 1] == ' ' || options[i - 1] == '\t') && strncmp(options + i, "-O3", 3) == 0 &&
+      if (arg_start && strncmp(options + i, "-O3", 3) == 0 &&
           (options[i + 3] == '\0' || options[i + 3] == ' ' || options[i + 3] == '\t'))
       {
         removed = 1;
@@ -994,6 +995,7 @@ cl_int build_program(cl_program program, cl_device_id device, const char *option
         i--;
         continue;
       }
+      arg_start = 0;
       if (c == '\\' && i + 1 < len) /* an escaped character, e.g. a quote or space */
       {
         retry_options[n++] = c;
@@ -1003,6 +1005,8 @@ cl_int build_program(cl_program program, cl_device_id device, const char *option
         quote = 0;
       else if (!quote && (c == '"' || c == '\''))
         quote = c;
+      else if (!quote && (c == ' ' || c == '\t'))
+        arg_start = 1;
       retry_options[n++] = c;
     }
     retry_options[n] = '\0';
