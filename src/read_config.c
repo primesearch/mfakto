@@ -80,14 +80,18 @@ void create_inifile_from_example(char *inifile)
 }
 
 /*
-read_config() reads the INI file into memory once (ini_cache) instead of opening it again for every setting.
-my_read_int() and my_read_string() split it into lines exactly as fgets(buf, 512, ...) did, and read the
-file itself when it isn't cached (e.g. the settings main() reads before read_config()).
+read_config() reads the INI file into memory once (ini_t) instead of opening it again for every setting, and
+passes it to the ini_read_*() functions. They split it into lines exactly as fgets(buf, 512, ...) did.
+my_read_int() and my_read_string() read the file themselves (e.g. for the settings main() reads before
+read_config()).
 */
-static char *ini_cache = NULL;
-static size_t ini_cache_size = 0;
-static char ini_cache_name[sizeof(((mystuff_t *)0)->inifile)];
-static int ini_cache_unavailable = 0; /* read_config() couldn't open ini_cache_name, don't try again during the pass */
+typedef struct
+{
+  const char *name; /* the INI file */
+  char *data;       /* its contents (NUL-terminated) if status is 0 */
+  size_t size;
+  int status;       /* ini_load(): 0 = loaded, 1 = can't be opened, 2 = reading failed */
+} ini_t;
 
 /* reads the whole file into *data (malloc'ed, NUL-terminated); returns 0 on success, 1 if the file can't be opened
    and 2 if reading it fails */
@@ -139,41 +143,6 @@ static int ini_load(const char *inifile, char **data, size_t *size)
   return 0;
 }
 
-/* returns the cached contents of inifile, or reads it; release with ini_release() */
-static int ini_get(const char *inifile, char **data, size_t *size)
-{
-  if (ini_cache != NULL && strcmp(inifile, ini_cache_name) == 0)
-  {
-    *data = ini_cache;
-    *size = ini_cache_size;
-    return 0;
-  }
-  if (ini_cache_unavailable && strcmp(inifile, ini_cache_name) == 0) return 1;
-  return ini_load(inifile, data, size);
-}
-
-static void ini_release(char *data)
-{
-  if (data != ini_cache) free(data);
-}
-
-static void ini_cache_load(const char *inifile)
-{
-  int ret = ini_load(inifile, &ini_cache, &ini_cache_size);
-
-  snprintf(ini_cache_name, sizeof(ini_cache_name), "%s", inifile);
-  if (ret != 0) ini_cache = NULL;
-  /* a missing file stays missing during read_config(); after a read error the settings are read one by one */
-  ini_cache_unavailable = (ret == 1);
-}
-
-static void ini_cache_free(void)
-{
-  free(ini_cache);
-  ini_cache = NULL;
-  ini_cache_unavailable = 0;
-}
-
 /* like fgets(buf, bufsize, ...) on data: copies the next line, or bufsize - 1 bytes of it; returns 0 at the end */
 static int ini_getline(const char *data, size_t size, size_t *pos, char *buf, int bufsize)
 {
@@ -189,14 +158,13 @@ static int ini_getline(const char *data, size_t size, size_t *pos, char *buf, in
   return 1;
 }
 
-int my_read_int(char *inifile, char *name, int *value)
+/* finds name in the INI file contents data; returns 0 if found */
+static int ini_find_int(const char *data, size_t size, const char *name, int *value)
 {
-  char *data;
-  size_t size, pos = 0;
+  size_t pos = 0;
   char buf[512];
   int found=0;
 
-  if (ini_get(inifile, &data, &size)) return 1;
   while(!found && ini_getline(data, size, &pos, buf, sizeof(buf)))
   {
     if(!strncmp(buf,name,strlen(name)) && buf[strlen(name)]=='=')
@@ -204,18 +172,16 @@ int my_read_int(char *inifile, char *name, int *value)
       if(sscanf(&(buf[strlen(name)+1]),"%d",value)==1)found=1;
     }
   }
-  ini_release(data);
   if(found)return 0;
   return 1;
 }
-static int my_read_ulong(char *inifile, char *name, unsigned long long int *value)
+/* finds name in the INI file contents data; returns 0 if found */
+static int ini_find_ulong(const char *data, size_t size, const char *name, unsigned long long int *value)
 {
-    char *data;
-    size_t size, pos = 0;
+    size_t pos = 0;
     char buf[512];
     int found = 0;
 
-    if (ini_get(inifile, &data, &size)) return 1;
     while (!found && ini_getline(data, size, &pos, buf, sizeof(buf)))
     {
         if (!strncmp(buf, name, strlen(name)) && buf[strlen(name)] == '=')
@@ -229,21 +195,19 @@ static int my_read_ulong(char *inifile, char *name, unsigned long long int *valu
             }
         }
     }
-    ini_release(data);
     if (found) {
         return 0;
     }
     return 1;
 }
-int my_read_string(char *inifile, char *name, char *string, unsigned int len)
+/* finds name in the INI file contents data; returns 0 if found */
+static int ini_find_string(const char *data, size_t size, const char *name, char *string, unsigned int len)
 {
-    char *data;
-    size_t size, pos = 0;
+    size_t pos = 0;
     char buf[512];
     unsigned int found = 0;
     unsigned int idx   = (unsigned int)strlen(name);
 
-    if (ini_get(inifile, &data, &size)) return 1;
     while (!found && ini_getline(data, size, &pos, buf, sizeof(buf))) {
         if (!strncmp(buf, name, idx) && buf[idx] == '=') {
             // the value ends at the line ending ("\r\n" when reading a DOS/Windows formatted file on Linux), but the
@@ -254,13 +218,72 @@ int my_read_string(char *inifile, char *name, char *string, unsigned int len)
             string[found] = '\0';
         }
     }
-    ini_release(data);
     if (found > 0) return 0;
     return 1;
 }
 
 
-static int read_config_settings(mystuff_t *mystuff)
+int my_read_int(char *inifile, char *name, int *value)
+{
+  char *data;
+  size_t size;
+  int ret;
+
+  if (ini_load(inifile, &data, &size)) return 1;
+  ret = ini_find_int(data, size, name, value);
+  free(data);
+  return ret;
+}
+
+static int my_read_ulong(char *inifile, char *name, unsigned long long int *value)
+{
+  char *data;
+  size_t size;
+  int ret;
+
+  if (ini_load(inifile, &data, &size)) return 1;
+  ret = ini_find_ulong(data, size, name, value);
+  free(data);
+  return ret;
+}
+
+int my_read_string(char *inifile, char *name, char *string, unsigned int len)
+{
+  char *data;
+  size_t size;
+  int ret;
+
+  if (ini_load(inifile, &data, &size)) return 1;
+  ret = ini_find_string(data, size, name, string, len);
+  free(data);
+  return ret;
+}
+
+/* like my_read_int(), from the INI file read by read_config(). After a read error, it tries to read the file again */
+static int ini_read_int(ini_t *ini, char *name, int *value)
+{
+  if (ini->status == 0) return ini_find_int(ini->data, ini->size, name, value);
+  if (ini->status == 2) return my_read_int((char *)ini->name, name, value);
+  return 1;
+}
+
+/* like my_read_ulong(), from the INI file read by read_config(). After a read error, it tries to read the file again */
+static int ini_read_ulong(ini_t *ini, char *name, unsigned long long int *value)
+{
+  if (ini->status == 0) return ini_find_ulong(ini->data, ini->size, name, value);
+  if (ini->status == 2) return my_read_ulong((char *)ini->name, name, value);
+  return 1;
+}
+
+/* like my_read_string(), from the INI file read by read_config(). After a read error, it tries to read the file again */
+static int ini_read_string(ini_t *ini, char *name, char *string, unsigned int len)
+{
+  if (ini->status == 0) return ini_find_string(ini->data, ini->size, name, string, len);
+  if (ini->status == 2) return my_read_string((char *)ini->name, name, string, len);
+  return 1;
+}
+
+static int read_config_settings(mystuff_t *mystuff, ini_t *ini)
 {
   int i;
   char tmp[51];
@@ -268,7 +291,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
   if(mystuff->verbosity == -1 || mystuff->override_v == 0)
   {
-    if(my_read_int(mystuff->inifile, "Verbosity", &i))
+    if(ini_read_int(ini, "Verbosity", &i))
     {
       logprintf(mystuff, "Warning: Cannot read Verbosity from INI file, set to 1 by default\n");
       mystuff->verbosity = 1;
@@ -284,7 +307,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-  if(my_read_int(mystuff->inifile, "SieveOnGPU", &i))
+  if(ini_read_int(ini, "SieveOnGPU", &i))
   {
     logprintf(mystuff, "Warning: Cannot read SieveOnGPU from INI file, set to 0 by default\n");
     i=0;
@@ -309,7 +332,7 @@ static int read_config_settings(mystuff_t *mystuff)
     mystuff->more_classes = 1;
     mystuff->num_classes  = 4620;
 
-    if(my_read_int(mystuff->inifile, "SievePrimesMin", &i))
+    if(ini_read_int(ini, "SievePrimesMin", &i))
     {
       logprintf(mystuff, "Warning: Cannot read SievePrimesMin from INI file, using default value (%d)\n", 5000);
       i = 5000;
@@ -325,7 +348,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
   /*****************************************************************************/
 
-    if(my_read_int(mystuff->inifile, "SievePrimesMax", &i))
+    if(ini_read_int(ini, "SievePrimesMax", &i))
     {
       logprintf(mystuff, "Warning: Cannot read SievePrimesMax from INI file, using default value (%d)\n", 200000);
       i = 200000;
@@ -340,7 +363,7 @@ static int read_config_settings(mystuff_t *mystuff)
     mystuff->sieve_primes_max = i;
 
   /*****************************************************************************/
-    if(my_read_int(mystuff->inifile, "SievePrimes", &i))
+    if(ini_read_int(ini, "SievePrimes", &i))
     {
       logprintf(mystuff, "Warning: Cannot read SievePrimes from INI file, using default value (%d)\n", SIEVE_PRIMES_DEFAULT);
       i = SIEVE_PRIMES_DEFAULT;
@@ -363,7 +386,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
   /*****************************************************************************/
 
-    if(my_read_int(mystuff->inifile, "SievePrimesAdjust", &i))
+    if(ini_read_int(ini, "SievePrimesAdjust", &i))
     {
       logprintf(mystuff, "Warning: Cannot read SievePrimesAdjust from INI file, using default value (0)\n");
       i = 0;
@@ -382,7 +405,7 @@ static int read_config_settings(mystuff_t *mystuff)
 #ifdef SIEVE_SIZE_LIMIT
     mystuff->sieve_size = SIEVE_SIZE;
 #else
-    if(my_read_int(mystuff->inifile, "SieveSizeLimit", &i))
+    if(ini_read_int(ini, "SieveSizeLimit", &i))
     {
       logprintf(mystuff, "Warning: Cannot read SieveSizeLimit from INI file, using default value (32)\n");
       i=32;
@@ -399,7 +422,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
   /*****************************************************************************/
 
-    if(my_read_int(mystuff->inifile, "NumStreams", &i))
+    if(ini_read_int(ini, "NumStreams", &i))
     {
       logprintf(mystuff, "Warning: Cannot read NumStreams from INI file, using default value (%d)\n",NUM_STREAMS_DEFAULT);
       i=NUM_STREAMS_DEFAULT;
@@ -423,7 +446,7 @@ static int read_config_settings(mystuff_t *mystuff)
   /*****************************************************************************/
 
   /* CPU streams not used by mfakto
-    if(my_read_int(mystuff->inifile, "CPUStreams", &i))
+    if(ini_read_int(ini, "CPUStreams", &i))
     {
       logprintf(mystuff, "Warning: Cannot read CPUStreams from inifile, using default value (%d)\n",CPU_STREAMS_DEFAULT);
       i=CPU_STREAMS_DEFAULT;
@@ -446,7 +469,7 @@ static int read_config_settings(mystuff_t *mystuff)
     */
   /*****************************************************************************/
 
-    if(my_read_int(mystuff->inifile, "GridSize", &i))
+    if(ini_read_int(ini, "GridSize", &i))
     {
       logprintf(mystuff, "Warning: Cannot read GridSize from INI file, using default value (3)\n");
       i = 3;
@@ -473,7 +496,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
   /*****************************************************************************/
 
-    if(my_read_ulong(mystuff->inifile, "SieveCPUMask", &ul))
+    if(ini_read_ulong(ini, "SieveCPUMask", &ul))
     {
       logprintf(mystuff, "Warning: Cannot read SieveCPUMask from INI file, set to 0 by default\n");
       ul=0;
@@ -491,7 +514,7 @@ static int read_config_settings(mystuff_t *mystuff)
     mystuff->num_streams = 3; // GPU sieve always uses only one stream, but perftest may use more
     mystuff->threads_per_grid_max = 2097152; // not used for the GPU sieve - defined here to satisfy some calculations
 
-    if(my_read_int(mystuff->inifile, "MoreClasses", &i))
+    if(ini_read_int(ini, "MoreClasses", &i))
     {
       logprintf(mystuff, "Warning: Cannot read MoreClasses from INI file, set to 1 by default\n");
       i=1;
@@ -511,7 +534,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-    if(my_read_int(mystuff->inifile, "GPUSievePrimes", &i))
+    if(ini_read_int(ini, "GPUSievePrimes", &i))
     {
       logprintf(mystuff, "Warning: Cannot read GPUSievePrimes from INI file, using default value (%d)\n",GPU_SIEVE_PRIMES_DEFAULT);
       i = GPU_SIEVE_PRIMES_DEFAULT;
@@ -534,7 +557,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-    if(my_read_int(mystuff->inifile, "GPUSieveProcessSize", &i))
+    if(ini_read_int(ini, "GPUSieveProcessSize", &i))
     {
       logprintf(mystuff, "Warning: Cannot read GPUSieveProcessSize from INI file, using default value (%d)\n",GPU_SIEVE_PROCESS_SIZE_DEFAULT);
       i = GPU_SIEVE_PROCESS_SIZE_DEFAULT;
@@ -563,7 +586,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-    if(my_read_int(mystuff->inifile, "GPUSieveSize", &i))
+    if(ini_read_int(ini, "GPUSieveSize", &i))
     {
       logprintf(mystuff, "Warning: Cannot read GPUSieveSize from INI file, using default value (%d)\n",GPU_SIEVE_SIZE_DEFAULT);
       i = GPU_SIEVE_SIZE_DEFAULT;
@@ -594,7 +617,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
     /*****************************************************************************/
 
-    if(my_read_int(mystuff->inifile, "FlushInterval", &i))
+    if(ini_read_int(ini, "FlushInterval", &i))
     {
       logprintf(mystuff, "Warning: Cannot read FlushInterval from INI file, using default value 0\n");
       i = 0;
@@ -613,7 +636,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-  if(my_read_string(mystuff->inifile, "WorkFile", mystuff->workfile, 50))
+  if(ini_read_string(ini, "WorkFile", mystuff->workfile, 50))
   {
     snprintf(mystuff->workfile, sizeof(mystuff->workfile), WORKTODO_FILE);
     logprintf(mystuff, "Warning: Cannot read WorkFile from INI file, using default (%s)\n", mystuff->workfile);
@@ -622,7 +645,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-  if(my_read_int(mystuff->inifile, "RequireWorkFileLock", &i))
+  if(ini_read_int(ini, "RequireWorkFileLock", &i))
   {
     i=1; /* not in older INI files, enabled silently */
   }
@@ -640,7 +663,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-  if(my_read_string(mystuff->inifile, "ResultsFile", mystuff->resultfile, 50))
+  if(ini_read_string(ini, "ResultsFile", mystuff->resultfile, 50))
   {
     snprintf(mystuff->resultfile, sizeof(mystuff->resultfile), RESULTS_FILE);
     logprintf(mystuff, "Warning: Cannot read ResultsFile from INI file, using default (%s)\n", mystuff->resultfile);
@@ -649,7 +672,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
  /*****************************************************************************/
 
-  if (my_read_string(mystuff->inifile, "JSONResultsFile", mystuff->jsonresultfile, 50))
+  if (ini_read_string(ini, "JSONResultsFile", mystuff->jsonresultfile, 50))
   {
     snprintf(mystuff->jsonresultfile, sizeof(mystuff->jsonresultfile), RESULTS_JSON_FILE);
     logprintf(mystuff, "Warning: Cannot read JSONResultsFile from INI file, using default (%s)\n", mystuff->jsonresultfile);
@@ -658,7 +681,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
  /*****************************************************************************/
 
-  if (my_read_string(mystuff->inifile, "LogFile", mystuff->logfile, 50))
+  if (ini_read_string(ini, "LogFile", mystuff->logfile, 50))
   {
     snprintf(mystuff->logfile, sizeof(mystuff->logfile), LOG_FILE);
     logprintf(mystuff, "Warning: Cannot read LogFile from INI file, using default (%s)\n", mystuff->logfile);
@@ -667,7 +690,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-  if(my_read_int(mystuff->inifile, "Checkpoints", &i))
+  if(ini_read_int(ini, "Checkpoints", &i))
   {
     logprintf(mystuff, "Warning: Cannot read Checkpoints from INI file, enabled by default\n");
     i=1;
@@ -693,7 +716,7 @@ static int read_config_settings(mystuff_t *mystuff)
   }
   else
   {
-    if(my_read_int(mystuff->inifile, "CheckpointDelay", &i))
+    if(ini_read_int(ini, "CheckpointDelay", &i))
     {
       logprintf(mystuff, "Warning: Cannot read CheckpointDelay from INI file, set to 300 s by default\n");
       i = 300;
@@ -714,7 +737,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-  if(my_read_int(mystuff->inifile, "Stages", &i))
+  if(ini_read_int(ini, "Stages", &i))
   {
     logprintf(mystuff, "Warning: Cannot read Stages from INI file, enabled by default\n");
     i=1;
@@ -733,7 +756,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-  if(my_read_int(mystuff->inifile, "StopAfterFactor", &i))
+  if(ini_read_int(ini, "StopAfterFactor", &i))
   {
     logprintf(mystuff, "Warning: Cannot read StopAfterFactor from INI file, set to 1 by default\n");
     i=1;
@@ -753,7 +776,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-  if(my_read_int(mystuff->inifile, "PrintMode", &i))
+  if(ini_read_int(ini, "PrintMode", &i))
   {
     logprintf(mystuff, "Warning: Cannot read PrintMode from INI file, set to 0 by default\n");
     i=0;
@@ -773,7 +796,7 @@ static int read_config_settings(mystuff_t *mystuff)
   /*****************************************************************************/
 
 
-  if (my_read_int(mystuff->inifile, "Logging", &i))
+  if (ini_read_int(ini, "Logging", &i))
   {
       logprintf(mystuff, "Warning: Cannot read Logging from INI file, set to 0 by default\n");
       i = 0;
@@ -800,7 +823,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-  if (my_read_string(mystuff->inifile, "V5UserID", mystuff->V5UserID, 50))
+  if (ini_read_string(ini, "V5UserID", mystuff->V5UserID, 50))
   {
     /* no problem, don't use any */
     if(mystuff->verbosity >= 1)logprintf(mystuff, "  V5UserID                  none\n");
@@ -813,7 +836,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-  if(my_read_string(mystuff->inifile, "ComputerID", mystuff->ComputerID, 50))
+  if(ini_read_string(ini, "ComputerID", mystuff->ComputerID, 50))
   {
     /* no problem, don't use any */
     if(mystuff->verbosity >= 1)logprintf(mystuff, "  ComputerID                none\n");
@@ -827,7 +850,7 @@ static int read_config_settings(mystuff_t *mystuff)
 /*****************************************************************************/
 
   for(i = 0; i < 256; i++)mystuff->stats.progressheader[i] = 0;
-  if(my_read_string(mystuff->inifile, "ProgressHeader", mystuff->stats.progressheader, 250))
+  if(ini_read_string(ini, "ProgressHeader", mystuff->stats.progressheader, 250))
   {
 //    sprintf(mystuff->stats.progressheader, "    class | candidates |    time |    ETA | avg. rate | SievePrimes | CPU wait");
     sprintf(mystuff->stats.progressheader, "Date   Time     Pct    ETA | Exponent    Bits | GHz-d/day    Sieve     Wait");
@@ -838,7 +861,7 @@ static int read_config_settings(mystuff_t *mystuff)
 /*****************************************************************************/
 
   for(i = 0; i < 256; i++)mystuff->stats.progressformat[i] = 0;
-  if(my_read_string(mystuff->inifile, "ProgressFormat", mystuff->stats.progressformat, 250))
+  if(ini_read_string(ini, "ProgressFormat", mystuff->stats.progressformat, 250))
   {
     sprintf(mystuff->stats.progressformat, "%%d %%T  %%p %%e | %%M %%l-%%u |   %%g  %%s  %%W%%%%");
     logprintf(mystuff, "Warning: no ProgressFormat specified in INI file, using default\n");
@@ -848,7 +871,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-  if(my_read_int(mystuff->inifile, "TimeStampInResults", &i))
+  if(ini_read_int(ini, "TimeStampInResults", &i))
   {
     // no big deal, just leave it out
     i=0;
@@ -867,7 +890,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-  if(my_read_int(mystuff->inifile, "LegacyResultsTxt", &i))
+  if(ini_read_int(ini, "LegacyResultsTxt", &i))
   {
     logprintf(mystuff, "Warning: Cannot read LegacyResultsTxt from INI file, set to 0 by default\n");
     i=0;
@@ -886,7 +909,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-  if(my_read_int(mystuff->inifile, "VectorSize", &i))
+  if(ini_read_int(ini, "VectorSize", &i))
   {
     logprintf(mystuff, "Warning: Cannot read VectorSize from INI file, set to 4 by default\n");
     i=4;
@@ -908,7 +931,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
 /*****************************************************************************/
 
-  if (my_read_string(mystuff->inifile, "GPUType", tmp, 50))
+  if (ini_read_string(ini, "GPUType", tmp, 50))
   {
     logprintf(mystuff, "Warning: Cannot read GPUType from INI file, using default (AUTO)\n");
     strcpy(tmp, "AUTO");
@@ -937,7 +960,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
   /*****************************************************************************/
 
-  if(my_read_string(mystuff->inifile, "OCLCompileOptions", mystuff->CompileOptions, 150))
+  if(ini_read_string(ini, "OCLCompileOptions", mystuff->CompileOptions, 150))
   {
     mystuff->CompileOptions[0]='\0';
   }
@@ -948,7 +971,7 @@ static int read_config_settings(mystuff_t *mystuff)
 
   /*****************************************************************************/
 
-  if(my_read_string(mystuff->inifile, "UseBinfile", mystuff->binfile, 50))
+  if(ini_read_string(ini, "UseBinfile", mystuff->binfile, 50))
   {
     mystuff->binfile[0] = '\0';
   }
@@ -1011,10 +1034,12 @@ int read_array(char *filename, char *keyname, cl_uint num, cl_uint *arr)
 
 int read_config(mystuff_t *mystuff)
 {
+  ini_t ini = { mystuff->inifile, NULL, 0, 0 };
   int ret;
 
-  ini_cache_load(mystuff->inifile);
-  ret = read_config_settings(mystuff);
-  ini_cache_free();
+  /* a missing file stays missing during read_config(); after a read error the settings are read one by one */
+  ini.status = ini_load(ini.name, &ini.data, &ini.size);
+  ret = read_config_settings(mystuff, &ini);
+  free(ini.data);
   return ret;
 }
