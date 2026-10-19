@@ -406,15 +406,36 @@ int replace_file(const char *from, const char *to)
 #endif
 }
 
-/* creates a file with a unique name from tpl, whose last six characters must be "XXXXXX". returns 0 on success */
-int make_temp_file(char *tpl)
+/* creates a file with a unique name from tpl, whose last six characters must be "XXXXXX", and returns it opened for
+   writing, or NULL on failure. The stream uses the descriptor that created the file, so the file can't be replaced
+   between creating and opening it */
+FILE *make_temp_file(char *tpl)
 {
+  int temp_fd;
+  FILE *f;
 #if defined _MSC_VER || defined __MINGW32__
-  return _mktemp_s(tpl, strlen(tpl) + 1);
+  size_t len = strlen(tpl);
+  int tries;
+
+  /* _mktemp_s() only picks a name, so create the file exclusively, and pick another name if it was taken meanwhile */
+  for (tries = 0; ; tries++)
+  {
+    memcpy(tpl + len - 6, "XXXXXX", 6);
+    if (_mktemp_s(tpl, len + 1) != 0) return NULL;
+    temp_fd = open(tpl, _O_WRONLY | _O_CREAT | _O_EXCL, MODE);
+    if (temp_fd >= 0 || errno != EEXIST || tries == 9) break;
+  }
+  if (temp_fd < 0) return NULL;
+  f = _fdopen(temp_fd, "w");
 #else
-  int temp_fd = mkstemp(tpl);
-  if (temp_fd == -1) return errno ? errno : EINVAL;
-  close(temp_fd);
-  return 0;
+  temp_fd = mkstemp(tpl);
+  if (temp_fd < 0) return NULL;
+  f = fdopen(temp_fd, "w");
 #endif
+  if (f == NULL)
+  {
+    close(temp_fd);
+    remove(tpl);
+  }
+  return f;
 }

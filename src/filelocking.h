@@ -30,7 +30,7 @@ int fclose_keep_lock(FILE *f);
 int unlock_file(const char *path);
 int sync_file(FILE *f);
 int replace_file(const char *from, const char *to);
-int make_temp_file(char *tpl);
+FILE *make_temp_file(char *tpl);
 
 #ifdef __cplusplus
 }
