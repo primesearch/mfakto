@@ -26,9 +26,9 @@ extern "C" {
 #include "my_types.h"
 
 int gpusieve_init(mystuff_t *mystuff, cl_context context);
-void gpusieve_init_exponent(mystuff_t *mystuff);
-void gpusieve_init_class(mystuff_t *mystuff, unsigned long long k_min);
-void gpusieve(mystuff_t *mystuff, unsigned long long num_k_remaining);
+int gpusieve_init_exponent(mystuff_t *mystuff);
+int gpusieve_init_class(mystuff_t *mystuff, unsigned long long k_min);
+int gpusieve(mystuff_t *mystuff, unsigned long long num_k_remaining);
 int gpusieve_free(mystuff_t *mystuff);
 void tiny_soe(cl_uint limit, cl_uint *primes);
 
