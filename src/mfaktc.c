@@ -102,6 +102,9 @@ unsigned long long int calculate_k(unsigned int exp, int bits)
 }
 
 
+/* kernels that failed the startup self-test because of a miscompile, see selftest() */
+static char kernel_disabled[UNKNOWN_GS_KERNEL];
+
 int kernel_possible(int kernel, mystuff_t *mystuff)
 /* returns 1 if the selected kernel can handle the assignment, 0 otherwise
 The variables exp, bit_min and bit_max must be a valid assignment! */
@@ -117,6 +120,8 @@ The variables exp, bit_min and bit_max must be a valid assignment! */
     if ((kernel < BARRETT79_MUL32_GS) || (kernel >= UNKNOWN_GS_KERNEL))
       return 0;  // no GPU version available
   }
+
+  if (kernel_disabled[kernel]) return 0;
 
   k = kernel_info[kernel];
   // check the kernel's limits
@@ -387,8 +392,11 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       BARRETT71_MUL15,
       BARRETT76_MUL32,
       BARRETT77_MUL32,
+      BARRETT82_MUL15,
+      BARRETT83_MUL15,
       BARRETT87_MUL32,
       BARRETT88_MUL32,
+      BARRETT88_MUL15,
       BARRETT73_MUL15,
       BARRETT74_MUL15,
       BARRETT79_MUL32,
@@ -398,10 +406,7 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       _71BIT_MUL24,
       MG88,
       UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL }, // TODO fix failures in kernels: {'cl_barrett15_83_gs': 33323, 'cl_barrett15_88_gs': 33764, 'cl_barrett15_82_gs': 33225}
+      UNKNOWN_KERNEL },
         {
         /*  GPU_RDNA3  (3rd gen RDNA) (only Barettt tested) */
       BARRETT69_MUL15,
@@ -409,8 +414,11 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       BARRETT71_MUL15,
       BARRETT76_MUL32,
       BARRETT77_MUL32,
+      BARRETT82_MUL15,
+      BARRETT83_MUL15,
       BARRETT87_MUL32,
       BARRETT88_MUL32,
+      BARRETT88_MUL15,
       BARRETT73_MUL15,
       BARRETT74_MUL15,
       BARRETT79_MUL32,
@@ -420,10 +428,7 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       _71BIT_MUL24,
       MG88,
       UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL }, // TODO fix failures in kernels: {'cl_barrett15_83_gs': 33323, 'cl_barrett15_88_gs': 33764, 'cl_barrett15_82_gs': 33225}
+      UNKNOWN_KERNEL },
         {
         /*  GPU_RDNA4  (4th gen RDNA) (only Barrett kernels tested) */
       BARRETT69_MUL15,
@@ -431,8 +436,11 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       BARRETT71_MUL15,
       BARRETT76_MUL32,
       BARRETT77_MUL32,
+      BARRETT82_MUL15,
+      BARRETT83_MUL15,
       BARRETT87_MUL32,
       BARRETT88_MUL32,
+      BARRETT88_MUL15,
       BARRETT73_MUL15,
       BARRETT74_MUL15,
       BARRETT79_MUL32,
@@ -442,10 +450,7 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       _71BIT_MUL24,
       MG88,
       UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL }, // TODO fix failures in kernels: {'cl_barrett15_83_gs': 33323, 'cl_barrett15_88_gs': 33764, 'cl_barrett15_82_gs': 33225}
+      UNKNOWN_KERNEL },
         {
 /*  GPU_APU,  (BeaverCreek=???, v=4)  */
       BARRETT70_MUL15,  // "cl_barrett15_70" (79.66 M/s)
@@ -1126,6 +1131,23 @@ RET_ERROR we might have a serios problem
     {
       num_selftests++;
       tf_res=tf(mystuff, f_class, st_data[ind].k, kernels[--j]);
+      if ((tf_res == 1 || tf_res == 2) && type == MODE_SELFTEST_SHORT && !mystuff->quit &&
+          ((kernels[j] >= BARRETT73_MUL15 && kernels[j] <= BARRETT74_MUL15) ||
+           (kernels[j] >= BARRETT73_MUL15_GS && kernels[j] <= BARRETT74_MUL15_GS)))
+      {
+        /* Some AMD compilers miscompile the barrett15 kernels (see barrett15.cl).
+           load_kernels() works around the known ones, so this shouldn't happen:
+           stop using the failing kernel and repeat the test with the next one. */
+        logprintf(mystuff, "WARNING: kernel %s failed the self-test (compiler problem?) and will not be used.\n",
+                  kernel_info[kernels[j]].kernelname);
+        kernel_disabled[kernels[j]] = 1;
+        if ((kernels[0]=find_fastest_kernel(mystuff, 0)) != AUTOSELECT_KERNEL)
+        {
+          num_selftests--;
+          j=1;
+          continue;
+        }
+      }
             if(tf_res == 0)st_success++;
       else if(tf_res == 1)st_nofactor++;
       else if(tf_res == 2)st_wrongfactor++;
