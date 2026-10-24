@@ -217,7 +217,7 @@ static void handle_menu(mystuff_t *mystuff)
     if (choice == -1)       // quit
     {
       if (mystuff->verbosity > 0) printf("\nExiting\n");
-      mystuff->quit++;
+      QUIT_INCREMENT(mystuff);
       break;
     }
     if (choice == 0)
@@ -367,7 +367,7 @@ int handle_kb_input(mystuff_t *mystuff)
     case 'q':
     case 'Q': if (mystuff->verbosity > 0)
                 printf("\n%c: Exiting\n", last_key);
-              mystuff->quit++;
+              QUIT_INCREMENT(mystuff);
       break;
     default: printf("\nIgnoring unknown keyboard input '%c'\n", last_key);
       break;

@@ -2735,6 +2735,9 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
   cl_ulong k_diff, k_remaining;
   char string[50];
   int running=0;
+  int aborted=0;                // set if a second ^C stops the class early
+  cl_event gs_batch_events[GS_MAX_QUEUED_BATCHES] = {0}; // markers after the last GPU sieve batches
+  cl_uint  gs_batch = 0;
 
   int h_ktab_index = 0;
   unsigned long long int k_min_grid[NUM_STREAMS_MAX];  // k_min_grid[N] contains the k_min for h_ktab[N], only valid for preprocessed h_ktab[]s
@@ -2872,12 +2875,15 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
   // the kernels read VECTOR_SIZE candidates at a time, extract_bits() pads the list for that
   shared_mem_required += (mystuff->vectorsize - 1) * sizeof (short);
 
-  while((k_min <= k_max) || (running > 0))
+  while(((k_min <= k_max) && !aborted) || (running > 0))
   {
+    /* second ^C: don't start any more work, let the running blocks finish and return RET_QUIT */
+    if (QUIT_COUNT(mystuff) > 1) aborted = 1;
+
     h_ktab_index = count % mystuff->num_streams;
 
 /* preprocessing: calculate a ktab (factor table) */
-    if((mystuff->stream_status[h_ktab_index] == UNUSED) && (k_min <= k_max))  // if we have an empty h_ktab we can preprocess another one
+    if((mystuff->stream_status[h_ktab_index] == UNUSED) && (k_min <= k_max) && !aborted)  // if we have an empty h_ktab we can preprocess another one
     {
 #ifdef DEBUG_STREAM_SCHEDULE
       printf(" STREAM_SCHEDULE: preprocessing on h_ktab[%d]\n", h_ktab_index);
@@ -2920,6 +2926,31 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
           k_remaining = numblocks * mystuff->gpu_sieve_processing_size;
         } else
           numblocks = mystuff->gpu_sieve_size / mystuff->gpu_sieve_processing_size;
+
+        /* Keep at most GS_MAX_QUEUED_BATCHES batches in the queue: before enqueueing another one, wait for the
+           batch enqueued GS_MAX_QUEUED_BATCHES batches earlier, whose marker is in the slot this batch will use.
+           Otherwise the whole class is queued at once, and as queued work can't be cancelled, a second ^C
+           couldn't stop the class early. */
+        {
+          cl_event *ev = &gs_batch_events[gs_batch % GS_MAX_QUEUED_BATCHES];
+
+          if (*ev != NULL)
+          {
+            status = clWaitForEvents(1, ev);
+            clReleaseEvent(*ev);
+            *ev = NULL;
+            if (status != CL_SUCCESS)
+            {
+              std::cerr << "Error " << status << " (" << ClErrorString(status) << "): Waiting for a GPU sieve batch. (clWaitForEvents)\n";
+              return RET_ERROR;
+            }
+            if (QUIT_COUNT(mystuff) > 1)  // a second ^C during the wait: don't start this batch
+            {
+              aborted = 1;
+              continue;
+            }
+          }
+        }
 
         // the sieving
 
@@ -2995,6 +3026,15 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
           fprintf(stderr, "Programming error: kernel %d unknown or not prepared for GPU-sieving\n", use_kernel);
           return RET_ERROR;
         }
+        /* mark the end of this batch, see above */
+        status = clEnqueueMarkerWithWaitList(QUEUE, 0, NULL, &gs_batch_events[gs_batch++ % GS_MAX_QUEUED_BATCHES]);
+        if (status != CL_SUCCESS)
+        {
+          std::cerr << "Error " << status << " (" << ClErrorString(status) << "): clEnqueueMarkerWithWaitList\n";
+          return RET_ERROR;
+        }
+        clFlush(QUEUE);
+
         // Count the number of blocks processed
         count += numblocks;
 
@@ -3027,7 +3067,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
       {
         case UNUSED:
           {
-            if (k_min <= k_max)
+            if ((k_min <= k_max) && !aborted)
             {
               wait = 0;
             }
@@ -3193,7 +3233,7 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
           {                              // or maybe not; wait until the class is done.
             mystuff->stream_status[i] = UNUSED;
             --running;
-            if ((k_min <= k_max) || (running==0))
+            if (((k_min <= k_max) && !aborted) || (running==0))
             {
               wait = 0;  // some k's left to be processed, or nothing running on GPU - not time to sleep!
             }
@@ -3288,6 +3328,14 @@ int tf_class_opencl(cl_ulong k_min, cl_ulong k_max, mystuff_t *mystuff, enum GPU
     std::cout << "Error " << status << " (" << ClErrorString(status) << "): clEnqueueReadBuffer RES failed.\n";
     return RET_ERROR;
   }
+
+  for (i=0; i<GS_MAX_QUEUED_BATCHES; i++)
+  {
+    if (gs_batch_events[i] != NULL) clReleaseEvent(gs_batch_events[i]);
+  }
+
+  /* the blocking read above waited for all kernels of the class, the results of the unfinished class are discarded */
+  if (aborted) return RET_QUIT;
 
   if (mystuff->verbosity > 2)
   {
