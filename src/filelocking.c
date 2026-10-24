@@ -300,142 +300,142 @@ int lock_workfile(const char *workfile)
 /* closes a file opened with fopen_and_lock() but keeps it locked until unlock_file(path) */
 int fclose_keep_lock(FILE *f)
 {
-  unsigned int i;
+    unsigned int i;
 
-  if (f == NULL) return -1;
-  for (i=0; i<num_locked_files; i++)
-  {
-    if (locked_files[i].open_file == f)
-    {
-      locked_files[i].open_file = NULL;
-      break;
+    if (f == NULL) return -1;
+    for (i = 0; i < num_locked_files; i++) {
+        if (locked_files[i].open_file == f) {
+            locked_files[i].open_file = NULL;
+            break;
+        }
     }
-  }
-  return fclose(f);
+    return fclose(f);
 }
 
 /* releases the lock of a file closed with fclose_keep_lock() */
 int unlock_file(const char *path)
 {
-  unsigned int i;
-  char lock_filename[256];
+    unsigned int i;
+    char lock_filename[256];
 
-  snprintf(lock_filename, sizeof(lock_filename), "%.250s.lck", path);
-  restore_current_dir();
-  for (i=0; i<num_locked_files; i++)
-  {
-    if (locked_files[i].open_file == NULL && strcmp(locked_files[i].lock_filename, lock_filename) == 0)
-    {
-      release_lock(i);
-      return 0;
+    snprintf(lock_filename, sizeof(lock_filename), "%.250s.lck", path);
+    restore_current_dir();
+    for (i = 0; i < num_locked_files; i++) {
+        if (locked_files[i].open_file == NULL && strcmp(locked_files[i].lock_filename, lock_filename) == 0) {
+            release_lock(i);
+            return 0;
+        }
     }
-  }
-  return -1;
+    return -1;
 }
 
-/* writes the buffered data of f and syncs the file to the disk, so that a file that replaces another one is complete
-   even after a power loss. returns 0 on success */
+/* writes the buffered data of f and syncs the file to the disk so that a file
+   that replaces another one is complete even after a power loss. returns 0 on
+   success */
 int sync_file(FILE *f)
 {
-  if (fflush(f) != 0) return -1;
+    if (fflush(f) != 0) return -1;
 #if defined _MSC_VER || defined __MINGW32__
-  return _commit(_fileno(f)) == 0 ? 0 : -1;
+    return _commit(_fileno(f)) == 0 ? 0 : -1;
 #else
-  return fsync(fileno(f)) == 0 ? 0 : -1;
+    return fsync(fileno(f)) == 0 ? 0 : -1;
 #endif
 }
 
 #if !(defined _MSC_VER || defined __MINGW32__)
-/* syncs the file or directory path to the disk. returns 0 on success */
+/* syncs the file or directory path to the disk */
 static int sync_path(const char *path)
 {
-  int fd = open(path, O_RDONLY), ret;
+    int fd = open(path, O_RDONLY), ret;
 
-  if (fd < 0) return -1;
-  ret = fsync(fd);
-  close(fd);
-  return ret == 0 ? 0 : -1;
+    if (fd < 0) return -1;
+    ret = fsync(fd);
+    close(fd);
+    /* returns 0 on success */
+    return ret == 0 ? 0 : -1;
 }
 
-/* syncs the directory containing path, so that a rename in it survives a power loss */
+/* syncs the directory containing path so that a rename in it survives a power
+   loss */
 static void sync_directory(const char *path)
 {
-  const char *slash = strrchr(path, '/');
-  char *dir = slash == NULL ? strdup(".") : strndup(path, slash == path ? 1 : (size_t)(slash - path));
+    const char *slash = strrchr(path, '/');
+    char *dir         = slash == NULL ? strdup(".") : strndup(path, slash == path ? 1 : (size_t)(slash - path));
 
-  /* the file has been replaced already, so only warn */
-  if (dir == NULL || sync_path(dir) != 0)
-    fprintf(stderr, "Warning: could not sync the directory of \"%s\", its new version may not survive a power loss (%s)\n", path,
-            strerror(errno));
-  free(dir);
+    /* only display a warning as the file has been replaced already */
+    if (dir == NULL || sync_path(dir) != 0)
+        fprintf(stderr, "Warning: could not sync the directory of \"%s\", its new version may not survive a power loss (%s)\n", path,
+                strerror(errno));
+    free(dir);
 }
 #endif
 
-/* replaces the file "to" with the file "from"; on POSIX systems atomically. returns 0 on success */
+/* replaces the file "to" with the file "from" */
 int replace_file(const char *from, const char *to)
 {
 #if defined _MSC_VER || defined __MINGW32__
-  /* MOVEFILE_WRITE_THROUGH: return only when the move is on the disk */
-  return MoveFileExA(from, to, MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) ? 0 : -1;
+    /* MOVEFILE_WRITE_THROUGH: return only when the move is on the disk */
+    return MoveFileExA(from, to, MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) ? 0 : -1;
 #else
-  struct stat st;
+    /* replace the file on POSIX systems atomically */
+    struct stat st;
 
-  /* keep the group and the permissions of the replaced file (mkstemp() creates files with mode 0600, and the new
-     file may get another group). If that fails, replace it anyway: not removing a finished assignment from the
-     work file would be worse. */
-  if (stat(to, &st) == 0)
-  {
-    if (chown(from, (uid_t)-1, st.st_gid) != 0)
-    {
-      fprintf(stderr, "Warning: could not keep the group of \"%s\" (%s)\n", to, strerror(errno));
-      st.st_mode &= ~(mode_t)S_IRWXG; /* don't give the group permissions to another group */
+    /* keep the group and the permissions of the replaced file (as mkstemp()
+       creates files with mode 0600, and the new file may get another group).
+       If that fails, replace it anyway as not removing a finished assignment
+       from the work file would be worse. */
+    if (stat(to, &st) == 0) {
+        if (chown(from, (uid_t)-1, st.st_gid) != 0) {
+            fprintf(stderr, "Warning: could not keep the group of \"%s\" (%s)\n", to, strerror(errno));
+            /* don't give the group permissions to another group */
+            st.st_mode &= ~(mode_t)S_IRWXG;
+        }
+        if (chmod(from, st.st_mode & 07777) != 0) {
+            fprintf(stderr, "Warning: could not keep the permissions of \"%s\" (%s)\n", to, strerror(errno));
+        }
+        /* the caller synced the contents, sync the new group and permissions as well */
+        if (sync_path(from) != 0) {
+            fprintf(stderr, "Warning: could not sync the group and permissions of \"%s\" (%s)\n", to, strerror(errno));
+        }
     }
-    if (chmod(from, st.st_mode & 07777) != 0)
-    {
-      fprintf(stderr, "Warning: could not keep the permissions of \"%s\" (%s)\n", to, strerror(errno));
-    }
-    /* the caller synced the contents, sync the new group and permissions as well */
-    if (sync_path(from) != 0)
-    {
-      fprintf(stderr, "Warning: could not sync the group and permissions of \"%s\" (%s)\n", to, strerror(errno));
-    }
-  }
-  if (rename(from, to) != 0) return -1;
-  sync_directory(to); /* the rename itself must survive a power loss too */
-  return 0;
+    if (rename(from, to) != 0) return -1;
+    /* the rename itself must survive a power loss too */
+    sync_directory(to);
+    /* returns 0 on success */
+    return 0;
 #endif
 }
 
-/* creates a file with a unique name from tpl, whose last six characters must be "XXXXXX", and returns it opened for
-   writing, or NULL on failure. The stream uses the descriptor that created the file, so the file can't be replaced
-   between creating and opening it */
+/* creates a file with a unique name from tpl and returns the opened file
+   handle, or NULL on failure. The stream uses the descriptor that created
+   the file, so the file can't be replaced between creating and opening it */
 FILE *make_temp_file(char *tpl)
 {
-  int temp_fd;
-  FILE *f;
+    int temp_fd;
+    FILE *f;
 #if defined _MSC_VER || defined __MINGW32__
-  size_t len = strlen(tpl);
-  int tries;
+    size_t len = strlen(tpl);
+    int tries;
 
-  /* _mktemp_s() only picks a name, so create the file exclusively, and pick another name if it was taken meanwhile */
-  for (tries = 0; ; tries++)
-  {
-    memcpy(tpl + len - 6, "XXXXXX", 6);
-    if (_mktemp_s(tpl, len + 1) != 0) return NULL;
-    temp_fd = open(tpl, _O_WRONLY | _O_CREAT | _O_EXCL, MODE);
-    if (temp_fd >= 0 || errno != EEXIST || tries == 9) break;
-  }
-  if (temp_fd < 0) return NULL;
-  f = _fdopen(temp_fd, "w");
+    /* create the file exclusively as _mktemp_s() only picks a name */
+    for (tries = 0;; tries++) {
+        /* last six characters in tpl must be "XXXXXX" */
+        memcpy(tpl + len - 6, "XXXXXX", 6);
+        if (_mktemp_s(tpl, len + 1) != 0) return NULL;
+        temp_fd = open(tpl, _O_WRONLY | _O_CREAT | _O_EXCL, MODE);
+        /* don't pick another name unless the original one is taken */
+        if (temp_fd >= 0 || errno != EEXIST || tries == 9) break;
+    }
+    if (temp_fd < 0) return NULL;
+    f = _fdopen(temp_fd, "w");
 #else
-  temp_fd = mkstemp(tpl);
-  if (temp_fd < 0) return NULL;
-  f = fdopen(temp_fd, "w");
+    temp_fd = mkstemp(tpl);
+    if (temp_fd < 0) return NULL;
+    f = fdopen(temp_fd, "w");
 #endif
-  if (f == NULL)
-  {
-    close(temp_fd);
-    remove(tpl);
-  }
-  return f;
+    if (f == NULL) {
+        close(temp_fd);
+        remove(tpl);
+    }
+    return f;
 }

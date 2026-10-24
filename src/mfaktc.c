@@ -1595,10 +1595,10 @@ int main(int argc, char **argv)
               else                                                   parse_ret = clear_assignment(mystuff.workfile, mystuff.exponent, mystuff.bit_min, mystuff.bit_max_assignment, mystuff.bit_max_stage);
 
                    if(parse_ret == CANT_OPEN_WORKFILE)   logprintf(&mystuff, "ERROR: clear_assignment() / modify_assignment(): can't open \"%s\"\n", mystuff.workfile);
-              else if(parse_ret == CANT_OPEN_TEMPFILE)   logprintf(&mystuff, "ERROR: clear_assignment() / modify_assignment(): can't create or write the temporary file\n");
+              else if(parse_ret == CANT_OPEN_TEMPFILE)   logprintf(&mystuff, "ERROR: clear_assignment() / modify_assignment(): can't create or write to temporary file\n");
               else if(parse_ret == ASSIGNMENT_NOT_FOUND) logprintf(&mystuff, "ERROR: clear_assignment() / modify_assignment(): assignment not found in \"%s\"\n", mystuff.workfile);
-              else if(parse_ret == CANT_RENAME)          logprintf(&mystuff, "ERROR: clear_assignment() / modify_assignment(): can't rename workfiles\n");
-              else if(parse_ret != OK)                   logprintf(&mystuff, "ERROR: clear_assignment() / modify_assignment(): Unknown error (%d)\n", parse_ret);
+              else if(parse_ret == CANT_RENAME)          logprintf(&mystuff, "ERROR: clear_assignment() / modify_assignment(): can't rename work files\n");
+              else if(parse_ret != OK)                   logprintf(&mystuff, "ERROR: clear_assignment() / modify_assignment(): unknown error (%d)\n", parse_ret);
             }
 
             mystuff.bit_min = mystuff.bit_max_stage;
@@ -1608,7 +1608,7 @@ int main(int argc, char **argv)
       }
       else if(parse_ret == CANT_OPEN_FILE)             logprintf(&mystuff, "ERROR: get_next_assignment(): can't open \"%s\"\n", mystuff.workfile);
       else if(parse_ret == VALID_ASSIGNMENT_NOT_FOUND) logprintf(&mystuff, "ERROR: get_next_assignment(): no valid assignment found in \"%s\"\n", mystuff.workfile);
-      else if(parse_ret != OK)                         logprintf(&mystuff, "ERROR: get_next_assignment(): Unknown error (%d)\n", parse_ret);
+      else if(parse_ret != OK)                         logprintf(&mystuff, "ERROR: get_next_assignment(): unknown error (%d)\n", parse_ret);
     }
     while(parse_ret == OK && use_worktodo && !mystuff.quit);
   }

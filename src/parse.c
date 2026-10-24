@@ -381,7 +381,7 @@ enum ASSIGNMENT_ERRORS get_next_assignment(char *filename, unsigned int *exponen
 }
 
 
-/* writes the name of a file called name in the directory of path to buf; returns 0 on success, -1 if buf is too small */
+/* writes the name of a file called name in the directory of path to buf */
 static int name_beside(char *buf, size_t size, const char *path, const char *name)
 {
   size_t dir_len = 0, i;
@@ -394,6 +394,7 @@ static int name_beside(char *buf, size_t size, const char *path, const char *nam
     if (path[i] == '/') dir_len = i + 1;
 #endif
   }
+  /* returns 0 on success or -1 if buf is too small */
   return snprintf(buf, size, "%.*s%s", (int)dir_len, path, name) < (int)size ? 0 : -1;
 }
 
@@ -409,7 +410,7 @@ static int name_beside(char *buf, size_t size, const char *path, const char *nam
  *                                                                                                          *
  *     0 - OK												                                                *
  *     3 - clear_assignment    : cannot open file <filename>						                        *
- *     4 - clear_assignment    : cannot create/write temporary file "__worktodo__.XXXXXX"                  *
+ *     4 - clear_assignment    : cannot create or write to temporary file "__worktodo__.XXXXXX"             *
  *     5 - clear_assignment    : assignment not found							                            *
  *     6 - clear_assignment    : cannot rename temporary workfile to regular workfile			            *
  *                                                                                                          *
@@ -429,8 +430,8 @@ enum ASSIGNMENT_ERRORS clear_assignment(char *filename, unsigned int exponent, i
   char temp_filename[300];
   int write_error;
 
-  /* next to the work file, as rename() can't replace it from another file system; the name is unique, so instances
-     may share a directory */
+  /* next to the work file as rename() can't replace it from another file
+     system; the name is unique, so instances may share a directory */
   if (name_beside(temp_filename, sizeof(temp_filename), filename, "__worktodo__.XXXXXX") != 0)
     return CANT_OPEN_TEMPFILE;
 
@@ -516,11 +517,13 @@ enum ASSIGNMENT_ERRORS clear_assignment(char *filename, unsigned int exponent, i
     }
   }	// while.....
   write_error = ferror(f_out);
-  if (sync_file(f_out) != 0) write_error = 1; /* the new workfile must be complete on the disk before it replaces the old one */
+  /* the new work file must be complete on the disk before it replaces the old one */
+  if (sync_file(f_out) != 0) write_error = 1;
   if (fclose(f_out) != 0) write_error = 1;
 
-  /* Keep the workfile locked until it has been replaced: another process (e.g. AutoPrimeNet) that adds
-     assignments in between would otherwise lose them when the temporary file replaces the workfile. */
+  /* keep the work file locked until it has been replaced: otherwise, interim
+     changes made by another process (such as AutoPrimeNet) could be lost when
+     the temporary file replaces the work file */
   fclose_keep_lock(f_in);
   if (!found || write_error)
   {
