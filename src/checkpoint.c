@@ -57,8 +57,9 @@ void checkpoint_write(unsigned int exp, int bit_min, int bit_max, unsigned int c
       sprintf(factors_buffer, "0");
   }
   
-  f=fopen_new(filename_write); // not fopen(): don't write to a file another process put there
-  if(f==NULL)
+  // not fopen(): don't write to a file another process put there
+  f = fopen_new(filename_write);
+  if (f == NULL)
   {
     printf("Warning: Could not create checkpoint file \"%s\"\n", filename_write);
     return;

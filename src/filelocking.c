@@ -464,9 +464,9 @@ FILE *make_temp_file(char *tpl)
     return f;
 }
 
-/* creates the file path for writing, replacing an old one. Unlike
-   fopen(path, "w"), it doesn't write to a file (or follow a symlink) that
-   another process puts at path. returns NULL on failure */
+/* creates the file path to write to, replacing an old one. Unlike
+   fopen(path, "w"), this method doesn't write to a file (or follow a symlink)
+   that another process puts at the given path. returns NULL on failure */
 FILE *fopen_new(const char *path)
 {
     int fd;
@@ -475,12 +475,16 @@ FILE *fopen_new(const char *path)
     remove(path);
 #if defined _MSC_VER || defined __MINGW32__
     fd = open(path, _O_WRONLY | _O_CREAT | _O_EXCL, MODE);
-    if (fd < 0) return NULL;
+    if (fd < 0) {
+        return NULL;
+    }
     f = _fdopen(fd, "w");
 #else
     /* the mode fopen() uses */
     fd = open(path, O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-    if (fd < 0) return NULL;
+    if (fd < 0) {
+        return NULL;
+    }
     f = fdopen(fd, "w");
 #endif
     if (f == NULL) {
