@@ -20,8 +20,12 @@ class keyboard
 
   private:
 
+    bool foreground_terminal();
+    void configure();
+
     struct termios initial_settings, new_settings;
     int peek_character;
+    bool configured;            // the terminal settings have been changed
 
 };
 
