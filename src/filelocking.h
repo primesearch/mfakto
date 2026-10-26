@@ -25,7 +25,7 @@ int file_exists(char *filename);
 FILE *fopen_and_lock(const char *path, const char *mode);
 int unlock_and_fclose(FILE *f);
 int lock_workfile(const char *workfile);
-FILE *fopen_new(const char *path);
+FILE *fopen_new(char *buf, size_t size, const char *path);
 
 int fclose_keep_lock(FILE *f);
 int unlock_file(const char *path);

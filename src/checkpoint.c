@@ -34,12 +34,11 @@ checkpoint_write() writes the checkpoint file.
 void checkpoint_write(unsigned int exp, int bit_min, int bit_max, unsigned int cur_class, int num_factors, int96 factors[MAX_FACTORS_PER_JOB], unsigned long long int bit_level_time)
 {
   FILE *f;
-  char buffer[MAX_BUFFER_LENGTH], filename[32], filename_save[32], filename_write[32], factors_buffer[MAX_FACTOR_BUFFER_LENGTH];
+  char buffer[MAX_BUFFER_LENGTH], filename[32], filename_save[32], filename_write[64], factors_buffer[MAX_FACTOR_BUFFER_LENGTH];
   unsigned int i, res, factors_buffer_length;
 
   sprintf(filename, "M%u.ckp", exp);
   sprintf(filename_save, "M%u.ckp.bu", exp);
-  sprintf(filename_write, "M%u.ckp.write", exp);
 
   if (factors[0].d0 || factors[0].d1 || factors[0].d2) {
       i = 0;
@@ -58,10 +57,10 @@ void checkpoint_write(unsigned int exp, int bit_min, int bit_max, unsigned int c
   }
   
   // not fopen(): don't write to a file another process put there
-  f = fopen_new(filename_write);
+  f = fopen_new(filename_write, sizeof(filename_write), filename);
   if (f == NULL)
   {
-    printf("Warning: Could not create checkpoint file \"%s\"\n", filename_write);
+    printf("Warning: Could not create a new checkpoint file for \"%s\"\n", filename);
     return;
   }
   else
@@ -85,11 +84,13 @@ void checkpoint_write(unsigned int exp, int bit_min, int bit_max, unsigned int c
       if (rename(filename_write, filename))
       {
         printf("Warning: renaming %s to %s failed.\n", filename_write, filename);
+        remove(filename_write);
       }
     }
     else
     {
       printf("Warning: Could not write checkpoint file \"%s\", %u chars written.\n", filename_write, i);
+      remove(filename_write);
     }
 /*               c5 = timer_diff(&cptimer);
     printf("\nCP in %lld us, %lld us, %lld us, %lld us, %lld us\n", c1, c2, c3, c4, c5); */
@@ -247,6 +248,7 @@ tries to delete the checkpoint file
   remove(filename);
   sprintf(filename, "M%u.ckp.bu", exp);
   remove(filename);
+  /* left behind by older versions, which used a fixed name */
   sprintf(filename, "M%u.ckp.write", exp);
   remove(filename);
 }
