@@ -1783,7 +1783,7 @@ if (mystuff.more_classes == 1)  strcat(program_options, " -DMORE_CLASSES");
 
   // program_options can be overridden by setting en environment variable AMD_OCL_BUILD_OPTIONS
 
-  status = clBuildProgram(program, 1, &devices[devnumber], program_options, NULL, NULL);
+  status = build_program(program, devices[devnumber], program_options);
   {
       cl_int logstatus;
       char *buildLog = NULL;
