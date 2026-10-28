@@ -20,6 +20,7 @@ along with mfaktc (mfakto).  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __MY_TYPES_H
 #define __MY_TYPES_H
 #include <stdio.h>
+#include <signal.h>
 #include "params.h"
 
 #define CL_TARGET_OPENCL_VERSION 120
@@ -292,7 +293,11 @@ typedef struct _mystuff_t
   cl_uint  vectorsize;
   cl_uint  printmode;
   cl_uint  print_timestamp;
-  cl_uint  quit;
+#if defined _MSC_VER || defined __MINGW32__
+  volatile long quit;          /* set by the signal handler, which runs on its own thread on Windows (see my_signal_handler()) */
+#else
+  volatile sig_atomic_t quit;  /* set by the signal handler */
+#endif
   cl_ulong cpu_mask;           /* CPU affinity mask for the siever thread */
   cl_int   verbosity;          /* -1 = uninitialized, 0 = reduced number of screen printfs, 1= default, >= 2 = some additional printfs */
   cl_int   logging;
@@ -320,6 +325,17 @@ typedef struct _mystuff_t
   cl_uint override_v;          /* override INI file when setting verbosity */
 
 }mystuff_t;		       /* FIXME: proper name needed */
+
+/* The signal handler changes quit, possibly on another thread (see my_signal_handler()): read it with QUIT_COUNT()
+   and increment it with QUIT_INCREMENT(), which returns the new value (lock-free, so the handler can use it). */
+#if defined _MSC_VER || defined __MINGW32__
+#include <intrin.h>
+#define QUIT_COUNT(m)     _InterlockedCompareExchange(&(m)->quit, 0, 0)
+#define QUIT_INCREMENT(m) _InterlockedIncrement(&(m)->quit)
+#else
+#define QUIT_COUNT(m)     __atomic_load_n(&(m)->quit, __ATOMIC_SEQ_CST)
+#define QUIT_INCREMENT(m) __atomic_add_fetch(&(m)->quit, 1, __ATOMIC_SEQ_CST)
+#endif
 
 typedef struct
 {
