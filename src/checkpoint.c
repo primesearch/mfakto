@@ -251,4 +251,7 @@ tries to delete the checkpoint file
   /* left behind by older versions, which used a fixed name */
   sprintf(filename, "M%u.ckp.write", exp);
   remove(filename);
+  /* left behind if mfakto stopped while writing a checkpoint */
+  sprintf(filename, "M%u.ckp", exp);
+  remove_stale_new_files(filename);
 }
