@@ -362,11 +362,17 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       UNKNOWN_KERNEL,
       UNKNOWN_KERNEL },
         {
-/*  GPU_RDNA  (1st gen RDNA) (does not like all 15-bit Barrett kernels) */
+/*  GPU_RDNA  (1st gen RDNA) */
+      BARRETT69_MUL15,
+      BARRETT70_MUL15,
+      BARRETT71_MUL15,
       BARRETT76_MUL32,
       BARRETT77_MUL32,
+      BARRETT82_MUL15,
+      BARRETT83_MUL15,
       BARRETT87_MUL32,
       BARRETT88_MUL32,
+      BARRETT88_MUL15,
       BARRETT73_MUL15,
       BARRETT74_MUL15,
       BARRETT79_MUL32,
@@ -376,12 +382,6 @@ GPUKernels find_fastest_kernel(mystuff_t *mystuff, cl_uint do_test)
       _71BIT_MUL24,
       MG88,
       UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL,
-      UNKNOWN_KERNEL,      
       UNKNOWN_KERNEL },
         {
         /*  GPU_RDNA2  (2nd gen RDNA) */
