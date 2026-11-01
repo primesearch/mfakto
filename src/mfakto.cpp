@@ -997,7 +997,7 @@ static int amd_clang_version(cl_device_id device)
     if (clBuildProgram(probe, 1, &device, "", NULL, NULL) == CL_SUCCESS &&
         clGetProgramInfo(probe, CL_PROGRAM_NUM_DEVICES, sizeof(num_devices), &num_devices, NULL) == CL_SUCCESS && num_devices > 0 &&
         (sizes = (size_t *)malloc(num_devices * sizeof(size_t))) != NULL &&
-        (binaries = (unsigned char **)malloc(num_devices * sizeof(unsigned char *))) != NULL &&
+        (binaries = (unsigned char **)calloc(num_devices, sizeof(unsigned char *))) != NULL &&
         clGetProgramInfo(probe, CL_PROGRAM_BINARY_SIZES, num_devices * sizeof(size_t), sizes, NULL) == CL_SUCCESS)
     {
         cl_uint d;
