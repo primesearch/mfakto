@@ -498,6 +498,8 @@ void remove_stale_new_files(const char *path)
 #if defined _MSC_VER || defined __MINGW32__
   HANDLE h;
   WIN32_FIND_DATAA fd;
+  BY_HANDLE_FILE_INFORMATION info;
+  HANDLE fh;
   FILETIME now;
   ULARGE_INTEGER now_t, file_t;
 
@@ -528,10 +530,23 @@ void remove_stale_new_files(const char *path)
     file_t.LowPart = fd.ftLastWriteTime.dwLowDateTime;
     file_t.HighPart = fd.ftLastWriteTime.dwHighDateTime;
     /* FILETIME counts 100 ns */
-    if (is_new_file_name(fd.cFileName, base) && now_t.QuadPart > file_t.QuadPart &&
-        (now_t.QuadPart - file_t.QuadPart) / 10000000ULL > STALE_NEW_FILE_SECONDS &&
+    if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) && is_new_file_name(fd.cFileName, base) &&
+        now_t.QuadPart > file_t.QuadPart && (now_t.QuadPart - file_t.QuadPart) / 10000000ULL > STALE_NEW_FILE_SECONDS &&
         snprintf(name, sizeof(name), "%s%s", prefix, fd.cFileName) < (int)sizeof(name))
-      remove(name);
+    {
+      /* Like the POSIX branch, leave symbolic links and files with other hard links alone.
+         Asking for no more than the attributes works even while a writer has the file open;
+         remove() still fails then, as the writer doesn't share it for deletion. */
+      fh = CreateFileA(name, FILE_READ_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING,
+                       FILE_FLAG_OPEN_REPARSE_POINT, NULL);
+      if (fh != INVALID_HANDLE_VALUE)
+      {
+        if (GetFileInformationByHandle(fh, &info) && info.nNumberOfLinks == 1 &&
+            !(info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT))
+          remove(name);
+        CloseHandle(fh);
+      }
+    }
   } while (FindNextFileA(h, &fd));
   FindClose(h);
 #else
