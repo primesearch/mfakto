@@ -1141,6 +1141,7 @@ RET_ERROR we might have a serios problem
         num_selftests--;
         break;
       }
+      /* BARRETT73_MUL15 .. BARRETT74_MUL15 are all the barrett15 kernels (69, 70, 71, 73, 74, 82, 83, 88) */
       if ((tf_res == 1 || tf_res == 2) && type == MODE_SELFTEST_SHORT && !mystuff->quit &&
           ((kernels[j] >= BARRETT73_MUL15 && kernels[j] <= BARRETT74_MUL15) ||
            (kernels[j] >= BARRETT73_MUL15_GS && kernels[j] <= BARRETT74_MUL15_GS)))

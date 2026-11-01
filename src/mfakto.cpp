@@ -970,7 +970,7 @@ static void binfile_header(char *header, size_t size, const char *program_option
  * in the binaries it creates, while the driver version is the same for ROCm 7.1
  * and 7.2. Build a trivial kernel and look for it. Returns the major version, 0
  * if not found, or -1 if the device's platform isn't AMD's own driver (rusticl,
- * PoCL and others use different compilers).
+ * PoCL and others use different compilers) or can't be identified.
  */
 static int amd_clang_version(cl_device_id device)
 {
@@ -987,7 +987,7 @@ static int amd_clang_version(cl_device_id device)
 
     if (clGetDeviceInfo(device, CL_DEVICE_PLATFORM, sizeof(platform), &platform, NULL) != CL_SUCCESS ||
         clGetPlatformInfo(platform, CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL) != CL_SUCCESS)
-        return 0;
+        return -1; // can't tell that it is an AMD device
     vendor[sizeof(vendor) - 1] = '\0';
     if (strcmp(vendor, "Advanced Micro Devices, Inc.") != 0) return -1;
 
@@ -1023,6 +1023,24 @@ static int amd_clang_version(cl_device_id device)
     free(sizes);
     clReleaseProgram(probe);
     return major;
+}
+
+/*
+ * defines_macro()
+ * true if the compiler options contain the whole option "name" (or "name=value"),
+ * and not just an option that starts with it, such as -DB15_NOINLINE_DEBUG
+ */
+static bool defines_macro(const char *options, const char *name)
+{
+    size_t len = strlen(name);
+    for (const char *p = options; (p = strstr(p, name)) != NULL; p += len)
+    {
+        bool starts = (p == options) || p[-1] == ' ' || p[-1] == '\t';
+        char c = p[len];
+        if (starts && (c == '\0' || c == ' ' || c == '\t' || c == '='))
+            return true;
+    }
+    return false;
 }
 
 /*
@@ -1078,7 +1096,7 @@ int load_kernels(cl_int *devnumber)
       strcat(program_options, " -DCL_GPU_SIEVE");
 
     // AMD clang 20 and older miscompile the barrett15 kernels, see barrett15.cl
-    if (strstr(mystuff.CompileOptions, "-DB15_NOINLINE") == NULL)
+    if (!defines_macro(mystuff.CompileOptions, "-DB15_NOINLINE"))
     {
       int clang = amd_clang_version(devices[*devnumber]);
       if (clang >= 0 && clang < 22)
