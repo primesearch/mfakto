@@ -965,6 +965,65 @@ static void binfile_header(char *header, size_t size, const char *program_option
 }
 
 /*
+build_program() builds program with the given options. Optimization options such as -O3 aren't part of the OpenCL
+standard: some drivers (e.g. Mesa's rusticl) reject them with CL_INVALID_BUILD_OPTIONS. In this case the program is
+built again without -O3 (every occurrence, including any from CompileOptions in the INI file), so it doesn't have to
+be known in advance which drivers accept it.
+*/
+cl_int build_program(cl_program program, cl_device_id device, const char *options)
+{
+  cl_int status = clBuildProgram(program, 1, &device, options, NULL, NULL);
+
+  if (status == CL_INVALID_BUILD_OPTIONS)
+  {
+    size_t len = strlen(options), n = 0;
+    char *retry_options = (char *)malloc(len + 1);
+    char quote = 0;      /* the quote character of an open quoted argument */
+    int arg_start = 1;   /* at the start of an argument: after whitespace that isn't escaped or quoted */
+    int removed = 0;
+
+    if (retry_options == NULL) return status;
+    /* copy the options unchanged except for standalone -O3 outside quotes, so quoted arguments such as include paths
+       keep their spaces */
+    for (size_t i = 0; i < len; i++)
+    {
+      char c = options[i];
+
+      if (arg_start && strncmp(options + i, "-O3", 3) == 0 &&
+          (options[i + 3] == '\0' || options[i + 3] == ' ' || options[i + 3] == '\t'))
+      {
+        removed = 1;
+        i += 3;
+        while (options[i] == ' ' || options[i] == '\t') i++; /* and the whitespace after it */
+        i--;
+        continue;
+      }
+      arg_start = 0;
+      if (c == '\\' && i + 1 < len) /* an escaped character, e.g. a quote or space */
+      {
+        retry_options[n++] = c;
+        c = options[++i];
+      }
+      else if (quote && c == quote)
+        quote = 0;
+      else if (!quote && (c == '"' || c == '\''))
+        quote = c;
+      else if (!quote && (c == ' ' || c == '\t'))
+        arg_start = 1;
+      retry_options[n++] = c;
+    }
+    retry_options[n] = '\0';
+    if (removed)
+    {
+      printf("The OpenCL driver doesn't accept -O3, building without it.\n");
+      status = clBuildProgram(program, 1, &device, retry_options, NULL, NULL);
+    }
+    free(retry_options);
+  }
+  return status;
+}
+
+/*
  * load_kernels
  * compile cl files or load the precompiled binary, and load all kernels
  */
@@ -1148,7 +1207,7 @@ build_from_source:
 
   // program_options can be overridden by setting en environment variable AMD_OCL_BUILD_OPTIONS
 
-  status = clBuildProgram(program, 1, &devices[*devnumber], program_options, NULL, NULL);
+  status = build_program(program, devices[*devnumber], program_options);
   if((status != CL_SUCCESS) || (mystuff.verbosity > 2))
   {
     if((status == CL_BUILD_PROGRAM_FAILURE) || (mystuff.verbosity > 2))
